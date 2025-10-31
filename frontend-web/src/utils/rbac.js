@@ -1,0 +1,193 @@
+// Role hierarchy and permissions for School Management System
+export const ROLES = {
+  SUPER_ADMIN: 'super_admin',
+  PRINCIPAL: 'principal',
+  VICE_PRINCIPAL: 'vice_principal',
+  HOD: 'hod',
+  TEACHER: 'teacher',
+  STUDENT: 'student',
+  ACCOUNTANT: 'accountant',
+  GUARD: 'guard',
+  CLEANER: 'cleaner',
+};
+
+// Permission definitions
+export const PERMISSIONS = {
+  // Students
+  VIEW_STUDENTS: 'view_students',
+  CREATE_STUDENTS: 'create_students',
+  EDIT_STUDENTS: 'edit_students',
+  DELETE_STUDENTS: 'delete_students',
+  
+  // Teachers
+  VIEW_TEACHERS: 'view_teachers',
+  CREATE_TEACHERS: 'create_teachers',
+  EDIT_TEACHERS: 'edit_teachers',
+  DELETE_TEACHERS: 'delete_teachers',
+  
+  // Attendance
+  VIEW_ATTENDANCE: 'view_attendance',
+  MARK_ATTENDANCE: 'mark_attendance',
+  
+  // Exams
+  VIEW_EXAMS: 'view_exams',
+  CREATE_EXAMS: 'create_exams',
+  EDIT_EXAMS: 'edit_exams',
+  ENTER_RESULTS: 'enter_results',
+  
+  // Assignments
+  VIEW_ASSIGNMENTS: 'view_assignments',
+  CREATE_ASSIGNMENTS: 'create_assignments',
+  SUBMIT_ASSIGNMENTS: 'submit_assignments',
+  
+  // Fees
+  VIEW_FEES: 'view_fees',
+  MANAGE_FEES: 'manage_fees',
+  
+  // Events
+  VIEW_EVENTS: 'view_events',
+  CREATE_EVENTS: 'create_events',
+  
+  // Announcements
+  VIEW_ANNOUNCEMENTS: 'view_announcements',
+  CREATE_ANNOUNCEMENTS: 'create_announcements',
+  
+  // Messages
+  SEND_MESSAGES: 'send_messages',
+  VIEW_MESSAGES: 'view_messages',
+};
+
+// Role-Permission mapping
+export const ROLE_PERMISSIONS = {
+  [ROLES.SUPER_ADMIN]: [
+    // Has all permissions
+    ...Object.values(PERMISSIONS),
+  ],
+  
+  [ROLES.PRINCIPAL]: [
+    PERMISSIONS.VIEW_STUDENTS,
+    PERMISSIONS.CREATE_STUDENTS,
+    PERMISSIONS.EDIT_STUDENTS,
+    PERMISSIONS.DELETE_STUDENTS,
+    PERMISSIONS.VIEW_TEACHERS,
+    PERMISSIONS.CREATE_TEACHERS,
+    PERMISSIONS.EDIT_TEACHERS,
+    PERMISSIONS.DELETE_TEACHERS,
+    PERMISSIONS.VIEW_ATTENDANCE,
+    PERMISSIONS.VIEW_EXAMS,
+    PERMISSIONS.CREATE_EXAMS,
+    PERMISSIONS.EDIT_EXAMS,
+    PERMISSIONS.ENTER_RESULTS,
+    PERMISSIONS.VIEW_ASSIGNMENTS,
+    PERMISSIONS.CREATE_ASSIGNMENTS,
+    PERMISSIONS.VIEW_FEES,
+    PERMISSIONS.MANAGE_FEES,
+    PERMISSIONS.VIEW_EVENTS,
+    PERMISSIONS.CREATE_EVENTS,
+    PERMISSIONS.VIEW_ANNOUNCEMENTS,
+    PERMISSIONS.CREATE_ANNOUNCEMENTS,
+    PERMISSIONS.SEND_MESSAGES,
+    PERMISSIONS.VIEW_MESSAGES,
+  ],
+  
+  [ROLES.VICE_PRINCIPAL]: [
+    PERMISSIONS.VIEW_STUDENTS,
+    PERMISSIONS.EDIT_STUDENTS,
+    PERMISSIONS.VIEW_TEACHERS,
+    PERMISSIONS.VIEW_ATTENDANCE,
+    PERMISSIONS.VIEW_EXAMS,
+    PERMISSIONS.CREATE_EXAMS,
+    PERMISSIONS.ENTER_RESULTS,
+    PERMISSIONS.VIEW_ASSIGNMENTS,
+    PERMISSIONS.CREATE_ASSIGNMENTS,
+    PERMISSIONS.VIEW_EVENTS,
+    PERMISSIONS.CREATE_EVENTS,
+    PERMISSIONS.VIEW_ANNOUNCEMENTS,
+    PERMISSIONS.CREATE_ANNOUNCEMENTS,
+    PERMISSIONS.SEND_MESSAGES,
+    PERMISSIONS.VIEW_MESSAGES,
+  ],
+  
+  [ROLES.HOD]: [
+    PERMISSIONS.VIEW_STUDENTS,
+    PERMISSIONS.VIEW_TEACHERS,
+    PERMISSIONS.VIEW_ATTENDANCE,
+    PERMISSIONS.MARK_ATTENDANCE,
+    PERMISSIONS.VIEW_EXAMS,
+    PERMISSIONS.CREATE_EXAMS,
+    PERMISSIONS.ENTER_RESULTS,
+    PERMISSIONS.VIEW_ASSIGNMENTS,
+    PERMISSIONS.CREATE_ASSIGNMENTS,
+    PERMISSIONS.VIEW_EVENTS,
+    PERMISSIONS.VIEW_ANNOUNCEMENTS,
+    PERMISSIONS.SEND_MESSAGES,
+    PERMISSIONS.VIEW_MESSAGES,
+  ],
+  
+  [ROLES.TEACHER]: [
+    PERMISSIONS.VIEW_STUDENTS,
+    PERMISSIONS.VIEW_ATTENDANCE,
+    PERMISSIONS.MARK_ATTENDANCE,
+    PERMISSIONS.VIEW_EXAMS,
+    PERMISSIONS.CREATE_EXAMS,
+    PERMISSIONS.ENTER_RESULTS,
+    PERMISSIONS.VIEW_ASSIGNMENTS,
+    PERMISSIONS.CREATE_ASSIGNMENTS,
+    PERMISSIONS.VIEW_EVENTS,
+    PERMISSIONS.VIEW_ANNOUNCEMENTS,
+    PERMISSIONS.SEND_MESSAGES,
+    PERMISSIONS.VIEW_MESSAGES,
+  ],
+  
+  [ROLES.STUDENT]: [
+    PERMISSIONS.VIEW_ATTENDANCE,
+    PERMISSIONS.VIEW_EXAMS,
+    PERMISSIONS.VIEW_ASSIGNMENTS,
+    PERMISSIONS.SUBMIT_ASSIGNMENTS,
+    PERMISSIONS.VIEW_FEES,
+    PERMISSIONS.VIEW_EVENTS,
+    PERMISSIONS.VIEW_ANNOUNCEMENTS,
+    PERMISSIONS.SEND_MESSAGES,
+    PERMISSIONS.VIEW_MESSAGES,
+  ],
+  
+  [ROLES.ACCOUNTANT]: [
+    PERMISSIONS.VIEW_STUDENTS,
+    PERMISSIONS.VIEW_FEES,
+    PERMISSIONS.MANAGE_FEES,
+    PERMISSIONS.SEND_MESSAGES,
+    PERMISSIONS.VIEW_MESSAGES,
+  ],
+  
+  [ROLES.GUARD]: [
+    PERMISSIONS.VIEW_EVENTS,
+    PERMISSIONS.VIEW_ANNOUNCEMENTS,
+  ],
+  
+  [ROLES.CLEANER]: [
+    PERMISSIONS.VIEW_EVENTS,
+    PERMISSIONS.VIEW_ANNOUNCEMENTS,
+  ],
+};
+
+// Check if user has permission
+export const hasPermission = (userRole, permission) => {
+  if (!userRole || !permission) return false;
+  const rolePermissions = ROLE_PERMISSIONS[userRole] || [];
+  return rolePermissions.includes(permission);
+};
+
+// Check if user has any of the permissions
+export const hasAnyPermission = (userRole, permissions = []) => {
+  return permissions.some(permission => hasPermission(userRole, permission));
+};
+
+// Check if user has all permissions
+export const hasAllPermissions = (userRole, permissions = []) => {
+  return permissions.every(permission => hasPermission(userRole, permission));
+};
+
+// Get all permissions for a role
+export const getRolePermissions = (role) => {
+  return ROLE_PERMISSIONS[role] || [];
+};
