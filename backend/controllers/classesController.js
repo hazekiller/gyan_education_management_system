@@ -754,6 +754,43 @@ const getSectionStudents = async (req, res) => {
   }
 };
 
+// Get sections for a class
+const getClassSections = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [sections] = await pool.query(
+      `
+      SELECT 
+        sec.*,
+        CONCAT(t.first_name, ' ', t.last_name) as teacher_name,
+        t.employee_id as teacher_employee_id,
+        COUNT(DISTINCT s.id) as student_count
+      FROM sections sec
+      LEFT JOIN teachers t ON sec.class_teacher_id = t.id
+      LEFT JOIN students s ON sec.id = s.section_id
+      WHERE sec.class_id = ? AND sec.is_active = 1
+      GROUP BY sec.id
+      ORDER BY sec.name
+    `,
+      [id]
+    );
+
+    res.json({
+      success: true,
+      count: sections.length,
+      data: sections,
+    });
+  } catch (error) {
+    console.error("Get class sections error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch sections",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllClasses,
   getClassById,
@@ -768,4 +805,5 @@ module.exports = {
   deleteSection,
   assignSectionTeacher,
   getSectionStudents,
+  getClassSections,
 };
