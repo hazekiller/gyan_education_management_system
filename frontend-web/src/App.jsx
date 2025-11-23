@@ -1,28 +1,29 @@
-
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { selectIsAuthenticated } from './store/slices/authSlice';
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectIsAuthenticated } from "./store/slices/authSlice";
 
 // Layouts
-import AuthLayout from './components/layout/AuthLayout';
-import DashboardLayout from './components/layout/DashboardLayout';
+import AuthLayout from "./components/layout/AuthLayout";
+import DashboardLayout from "./components/layout/DashboardLayout";
 
 // Pages
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Students from './pages/Students';
-import StudentDetails from './pages/StudentDetails';
-import Teachers from './pages/Teachers';
-import TeacherDetails from './pages/TeacherDetails';
-import Attendance from './pages/Attendance';
-import Exams from './pages/Exams';
-import Assignments from './pages/Assignments';
-import FeeManagement from './pages/FeeManagement';
-import Events from './pages/Events';
-import Announcements from './pages/Announcements';
-import Messages from './pages/Messages';
-import Profile from './pages/Profile';
-import NotFound from './pages/NotFound';
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Classes from "./pages/Classes";
+import Students from "./pages/Students";
+import StudentDetails from "./pages/StudentDetails";
+import Teachers from "./pages/Teachers";
+import TeacherDetails from "./pages/TeacherDetails";
+import Attendance from "./pages/Attendance";
+import Exams from "./pages/Exams";
+import Assignments from "./pages/Assignments";
+import FeeManagement from "./pages/FeeManagement";
+import Events from "./pages/Events";
+import Announcements from "./pages/Announcements";
+import Messages from "./pages/Messages";
+import Profile from "./pages/Profile";
+import NotFound from "./pages/NotFound";
+import ClassDetails from "./pages/ClassDetails";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -62,6 +63,8 @@ function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="class" element={<Classes />} />
+        <Route path="/classes/:id" element={<ClassDetails />} />
         <Route path="students" element={<Students />} />
         <Route path="students/:id" element={<StudentDetails />} />
         <Route path="teachers" element={<Teachers />} />

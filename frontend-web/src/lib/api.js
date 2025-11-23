@@ -120,10 +120,19 @@ export const teachersAPI = {
 // CLASSES API
 // ============================================
 export const classesAPI = {
-  getAll: () => api.get('/classes'),
-  create: (data) => api.post('/classes', data),
+  getAll: (params) => api.get("/classes", { params }),
+  getById: (id) => api.get(`/classes/${id}`),
+  create: (data) => api.post("/classes", data),
+  update: (id, data) => api.put(`/classes/${id}`, data),
+  delete: (id) => api.delete(`/classes/${id}`),
   getSections: (classId) => api.get(`/classes/${classId}/sections`),
+  getStudents: (classId) => api.get(`/classes/${classId}/students`),
+  assignTeacher: (classId, teacherId) =>
+    api.put(`/classes/${classId}/assign-teacher`, { teacher_id: teacherId }),
+  removeTeacher: (classId) => api.delete(`/classes/${classId}/remove-teacher`),
 };
+
+
 
 // ============================================
 // ATTENDANCE API
@@ -192,7 +201,9 @@ export const announcementsAPI = {
 // DASHBOARD API
 // ============================================
 export const dashboardAPI = {
-  getStats: () => api.get('/dashboard/stats'),
+  getStats: () => api.get("/dashboard/stats"),
+  getRecentRegistrations: (limit = 5) =>
+    api.get("/dashboard/recent-registrations", { params: { limit } }),
 };
 
 export default api;
