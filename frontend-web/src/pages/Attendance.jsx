@@ -148,7 +148,7 @@ const Attendance = () => {
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Class
             </label>
@@ -167,9 +167,9 @@ const Attendance = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Section
             </label>
@@ -186,7 +186,7 @@ const Attendance = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           <div className="flex items-end">
             <button
@@ -194,7 +194,7 @@ const Attendance = () => {
               disabled={submitting || students.length === 0}
               className="btn btn-primary w-full disabled:opacity-50"
             >
-              {submitting ? 'Saving...' : 'Save Attendance'}
+              {submitting ? 'Saving...' : 'view Attendance'}
             </button>
           </div>
         </div>
