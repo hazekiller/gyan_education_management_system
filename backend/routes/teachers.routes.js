@@ -3,44 +3,40 @@ const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const { requirePermission } = require('../middleware/authorization');
 const upload = require('../middleware/upload');
+
 const {
   getAllTeachers,
   getTeacherById,
   createTeacher,
   updateTeacher,
-  deleteTeacher,
-  getTeacherSchedule
+  deleteTeacher
 } = require('../controllers/teachersController');
 
-// All routes require authentication
 router.use(authenticate);
 
-// Get all teachers - requires 'read' permission
+// READ
 router.get('/', requirePermission('teachers', 'read'), getAllTeachers);
 
-// Get teacher by ID - requires 'read' permission
+// READ single
 router.get('/:id', requirePermission('teachers', 'read'), getTeacherById);
 
-// Create teacher - requires 'create' permission
+// CREATE with image
 router.post(
   '/',
   requirePermission('teachers', 'create'),
-  upload.single('profile_photo'),
+  upload.single('profile_photo'),   // 👈 MUST MATCH FRONTEND INPUT NAME
   createTeacher
 );
 
-// Update teacher - requires 'update' permission
+// UPDATE with image
 router.put(
   '/:id',
   requirePermission('teachers', 'update'),
-  upload.single('profile_photo'),
+  upload.single('profile_photo'),   // 👈 MUST MATCH FRONTEND INPUT NAME
   updateTeacher
 );
 
-// Delete teacher - requires 'delete' permission
+// DELETE
 router.delete('/:id', requirePermission('teachers', 'delete'), deleteTeacher);
-
-// Get teacher's schedule/timetable - requires 'read' permission
-router.get('/:id/schedule', requirePermission('teachers', 'read'), getTeacherSchedule);
 
 module.exports = router;
