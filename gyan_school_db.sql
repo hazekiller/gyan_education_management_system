@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Oct 31, 2025 at 09:03 AM
+-- Generation Time: Nov 23, 2025 at 10:43 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -168,6 +168,10 @@ CREATE TABLE `classes` (
   `grade_level` int(11) NOT NULL,
   `description` text DEFAULT NULL,
   `academic_year` varchar(20) DEFAULT NULL,
+  `class_teacher_id` int(11) DEFAULT NULL,
+  `room_number` varchar(50) DEFAULT NULL,
+  `capacity` int(11) DEFAULT 40,
+  `status` enum('active','inactive','archived') DEFAULT 'active',
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -177,17 +181,19 @@ CREATE TABLE `classes` (
 -- Dumping data for table `classes`
 --
 
-INSERT INTO `classes` (`id`, `name`, `grade_level`, `description`, `academic_year`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'Class 1', 1, 'First grade', '2024-2025', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
-(2, 'Class 2', 2, 'Second grade', '2024-2025', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
-(3, 'Class 3', 3, 'Third grade', '2024-2025', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
-(4, 'Class 4', 4, 'Fourth grade', '2024-2025', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
-(5, 'Class 5', 5, 'Fifth grade', '2024-2025', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
-(6, 'Class 6', 6, 'Sixth grade', '2024-2025', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
-(7, 'Class 7', 7, 'Seventh grade', '2024-2025', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
-(8, 'Class 8', 8, 'Eighth grade', '2024-2025', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
-(9, 'Class 9', 9, 'Ninth grade', '2024-2025', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
-(10, 'Class 10', 10, 'Tenth grade', '2024-2025', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23');
+INSERT INTO `classes` (`id`, `name`, `grade_level`, `description`, `academic_year`, `class_teacher_id`, `room_number`, `capacity`, `status`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'Class 1', 1, 'First grade', '2024-2025', NULL, NULL, 40, 'active', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
+(2, 'Class 2', 2, 'Second grade', '2024-2025', NULL, NULL, 40, 'active', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
+(3, 'Class 3', 3, 'Third grade', '2024-2025', NULL, NULL, 40, 'active', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
+(4, 'Class 4', 4, 'Fourth grade', '2024-2025', NULL, NULL, 40, 'active', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
+(5, 'Class 5', 5, 'Fifth grade', '2024-2025', NULL, NULL, 40, 'active', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
+(6, 'Class 6', 6, 'Sixth grade', '2024-2025', NULL, NULL, 40, 'active', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
+(7, 'Class 7', 7, 'Seventh grade', '2024-2025', NULL, NULL, 40, 'active', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
+(8, 'Class 8', 8, 'Eighth grade', '2024-2025', NULL, NULL, 40, 'active', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
+(9, 'Class 9', 9, 'Ninth grade', '2024-2025', NULL, NULL, 40, 'active', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
+(10, 'Class 10', 10, 'Tenth grade', '2024-2025', NULL, NULL, 40, 'active', 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
+(11, 'Class 11', 11, 'this is a class 11 tope class', '2026', NULL, NULL, 35, 'active', 1, '2025-11-23 09:03:41', '2025-11-23 09:03:41'),
+(12, 'Annapurna', 12, 'sdfkdkjsfjdshbjfbdsjb kjsdh jkejfhjsdjewuh hjdsh yuefgdshbg', '2026', 2, 'Room 420', 32, 'active', 1, '2025-11-23 09:09:33', '2025-11-23 09:29:48');
 
 -- --------------------------------------------------------
 
@@ -691,7 +697,8 @@ CREATE TABLE `teachers` (
 --
 
 INSERT INTO `teachers` (`id`, `user_id`, `employee_id`, `first_name`, `middle_name`, `last_name`, `date_of_birth`, `gender`, `blood_group`, `address`, `city`, `state`, `pincode`, `phone`, `emergency_contact`, `qualification`, `experience_years`, `specialization`, `joining_date`, `salary`, `status`, `profile_photo`, `created_at`, `updated_at`) VALUES
-(1, 5, 'GYan-1', 'Teacher1', NULL, 'One', '1982-05-03', 'male', NULL, 'jhapa', 'kathmandu', 'Bagmati', '44655', '9813453997', '9841454565', 'MED', 5, 'Mathematics', '2025-10-22', 15000.00, 'active', NULL, '2025-10-22 18:35:17', '2025-10-22 18:35:17');
+(1, 5, 'GYan-1', 'Teacher1', NULL, 'One', '1982-05-03', 'male', NULL, 'jhapa', 'kathmandu', 'Bagmati', '44655', '9813453997', '9841454565', 'MED', 5, 'Mathematics', '2025-10-22', 15000.00, 'active', NULL, '2025-10-22 18:35:17', '2025-10-22 18:35:17'),
+(2, 6, 'SUN001', 'Sunab', NULL, 'Baskota', '2001-09-15', 'male', NULL, 'suryabinayak-4, Tarkhal', 'Bhaktapur', 'Bagmati Province', '44600', '9814945424', '9745520486', 'BCA', 5, 'Computer Application', '2025-11-23', 30000.00, 'active', 'uploads/profiles/profile_photo-wp14182748-krishna-4k-phone-wallpapers-1763889450971-887994919.jpg', '2025-11-23 09:17:31', '2025-11-23 09:17:31');
 
 -- --------------------------------------------------------
 
@@ -795,9 +802,10 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `role`, `is_active`, `last_login`, `created_at`, `updated_at`) VALUES
-(1, 'admin@gyan.edu', '$2a$10$iS1c4/I55GqFLgJfLjwuP.cKivj7BJUyo/Z.WY.gaAD82D4rFKeJK', 'super_admin', 1, '2025-10-31 07:21:32', '2025-10-22 11:07:23', '2025-10-31 07:21:32'),
+(1, 'admin@gyan.edu', '$2a$10$iS1c4/I55GqFLgJfLjwuP.cKivj7BJUyo/Z.WY.gaAD82D4rFKeJK', 'super_admin', 1, '2025-11-23 15:27:23', '2025-10-22 11:07:23', '2025-11-23 09:42:23'),
 (4, 'prakashtimilsina76@gmail.com', '$2a$10$SYLTPwE2kiY4bHgo1Ch.neI9//pAxsJPgHmq0d8U9w9YWCwdE/jrK', 'student', 1, '2025-10-24 14:45:15', '2025-10-22 18:32:46', '2025-10-24 14:45:15'),
-(5, 'teacher1@gyan.edu', '$2a$10$wRqck9BDySogW1tVgIilFuMMtXh0yGlJhl.Wcxt9r.8mD2bM0GPQ.', 'teacher', 1, NULL, '2025-10-22 18:35:17', '2025-10-22 18:35:17');
+(5, 'teacher1@gyan.edu', '$2a$10$wRqck9BDySogW1tVgIilFuMMtXh0yGlJhl.Wcxt9r.8mD2bM0GPQ.', 'teacher', 1, NULL, '2025-10-22 18:35:17', '2025-10-22 18:35:17'),
+(6, 'sunabbaskota@gmail.com', '$2a$10$i00m7HUdqyMa9V0THW3UzuiNADhaXsi20NVkHIcuYkZOoDmurTLo.', 'teacher', 1, NULL, '2025-11-23 09:17:31', '2025-11-23 09:17:31');
 
 -- --------------------------------------------------------
 
@@ -887,7 +895,8 @@ ALTER TABLE `attendance`
 --
 ALTER TABLE `classes`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_grade` (`grade_level`);
+  ADD KEY `idx_grade` (`grade_level`),
+  ADD KEY `idx_class_teacher` (`class_teacher_id`);
 
 --
 -- Indexes for table `class_subjects`
@@ -1169,7 +1178,7 @@ ALTER TABLE `attendance`
 -- AUTO_INCREMENT for table `classes`
 --
 ALTER TABLE `classes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `class_subjects`
@@ -1289,7 +1298,7 @@ ALTER TABLE `syllabus`
 -- AUTO_INCREMENT for table `teachers`
 --
 ALTER TABLE `teachers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `teacher_class_assignments`
@@ -1319,7 +1328,7 @@ ALTER TABLE `transport_routes`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `visitors`
@@ -1371,6 +1380,12 @@ ALTER TABLE `attendance`
   ADD CONSTRAINT `attendance_ibfk_2` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `attendance_ibfk_3` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `attendance_ibfk_4` FOREIGN KEY (`marked_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `classes`
+--
+ALTER TABLE `classes`
+  ADD CONSTRAINT `fk_class_teacher` FOREIGN KEY (`class_teacher_id`) REFERENCES `teachers` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `class_subjects`
