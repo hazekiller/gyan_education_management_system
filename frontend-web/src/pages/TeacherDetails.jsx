@@ -1,24 +1,26 @@
 // File: frontend-web/src/pages/TeacherDetails.jsx
-import { useQuery } from '@tanstack/react-query';
-import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Mail, 
-  Phone, 
+import { useQuery } from "@tanstack/react-query";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
   Calendar,
   Briefcase,
   Award,
-  Edit
-} from 'lucide-react';
-import { teachersAPI } from '../lib/api';
+  Edit,
+} from "lucide-react";
+import { teachersAPI } from "../lib/api";
+
+const IMAGE_URL = import.meta.env.VITE_IMAGE_URL;
 
 const TeacherDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['teacher', id],
-    queryFn: () => teachersAPI.getById(id)
+    queryKey: ["teacher", id],
+    queryFn: () => teachersAPI.getById(id),
   });
 
   const teacher = data?.data;
@@ -44,7 +46,7 @@ const TeacherDetails = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <button
-          onClick={() => navigate('/teachers')}
+          onClick={() => navigate("/teachers")}
           className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -65,9 +67,9 @@ const TeacherDetails = () => {
         <div className="px-6 pb-6">
           <div className="flex flex-col md:flex-row md:items-end -mt-16 mb-6">
             <div className="w-32 h-32 rounded-full border-4 border-white bg-white flex items-center justify-center mb-4 md:mb-0">
-              {teacher.profile_photo ? (
+              {teacher?.profile_photo ? (
                 <img
-                  src={`http://localhost:5000/${teacher.profile_photo}`}
+                  src={`${IMAGE_URL}/${teacher.profile_photo}`}
                   alt={teacher.first_name}
                   className="w-full h-full rounded-full object-cover"
                 />
@@ -81,15 +83,19 @@ const TeacherDetails = () => {
               <h1 className="text-3xl font-bold text-gray-900">
                 {teacher.first_name} {teacher.middle_name} {teacher.last_name}
               </h1>
-              <p className="text-gray-600">Employee ID: {teacher.employee_id}</p>
+              <p className="text-gray-600">
+                Employee ID: {teacher.employee_id}
+              </p>
               {teacher.specialization && (
                 <p className="text-blue-600 mt-1">{teacher.specialization}</p>
               )}
             </div>
             <div className="mt-4 md:mt-0">
-              <span className={`badge ${
-                teacher.status === 'active' ? 'badge-success' : 'badge-danger'
-              } text-lg px-4 py-2`}>
+              <span
+                className={`badge ${
+                  teacher.status === "active" ? "badge-success" : "badge-danger"
+                } text-lg px-4 py-2`}
+              >
                 {teacher.status}
               </span>
             </div>
@@ -102,7 +108,7 @@ const TeacherDetails = () => {
               <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
                 Personal Information
               </h3>
-              
+
               <div className="flex items-start space-x-3">
                 <Mail className="w-5 h-5 text-gray-400 mt-1" />
                 <div>
@@ -133,7 +139,9 @@ const TeacherDetails = () => {
                 <Award className="w-5 h-5 text-gray-400 mt-1" />
                 <div>
                   <p className="text-sm text-gray-600">Gender</p>
-                  <p className="font-medium text-gray-900 capitalize">{teacher.gender}</p>
+                  <p className="font-medium text-gray-900 capitalize">
+                    {teacher.gender}
+                  </p>
                 </div>
               </div>
             </div>
@@ -148,7 +156,9 @@ const TeacherDetails = () => {
                 <Award className="w-5 h-5 text-gray-400 mt-1" />
                 <div>
                   <p className="text-sm text-gray-600">Qualification</p>
-                  <p className="font-medium text-gray-900">{teacher.qualification || 'N/A'}</p>
+                  <p className="font-medium text-gray-900">
+                    {teacher.qualification || "N/A"}
+                  </p>
                 </div>
               </div>
 
@@ -157,7 +167,9 @@ const TeacherDetails = () => {
                 <div>
                   <p className="text-sm text-gray-600">Experience</p>
                   <p className="font-medium text-gray-900">
-                    {teacher.experience_years ? `${teacher.experience_years} years` : 'N/A'}
+                    {teacher.experience_years
+                      ? `${teacher.experience_years} years`
+                      : "N/A"}
                   </p>
                 </div>
               </div>
@@ -176,7 +188,9 @@ const TeacherDetails = () => {
                 <Phone className="w-5 h-5 text-gray-400 mt-1" />
                 <div>
                   <p className="text-sm text-gray-600">Emergency Contact</p>
-                  <p className="font-medium text-gray-900">{teacher.emergency_contact || 'N/A'}</p>
+                  <p className="font-medium text-gray-900">
+                    {teacher.emergency_contact || "N/A"}
+                  </p>
                 </div>
               </div>
             </div>
