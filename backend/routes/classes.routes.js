@@ -15,6 +15,7 @@ const {
   updateSection,
   deleteSection,
   assignSectionTeacher,
+  getClassSections,
   getSectionStudents,
 } = require("../controllers/classesController");
 
@@ -25,6 +26,13 @@ router.use(authenticate);
 
 // Get all classes - requires 'read' permission
 router.get("/", requirePermission("classes", "read"), getAllClasses);
+
+// Get sections for a class
+router.get(
+  "/:id/sections",
+  requirePermission("classes", "read"),
+  getClassSections
+);
 
 // Get class by ID - requires 'read' permission
 router.get("/:id", requirePermission("classes", "read"), getClassById);
@@ -44,6 +52,7 @@ router.get(
   requirePermission("students", "read"),
   getClassStudents
 );
+
 
 // Assign class teacher - requires 'update' permission
 router.put(
