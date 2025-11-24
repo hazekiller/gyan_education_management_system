@@ -13,12 +13,18 @@ const {
   getClassStudents,
   assignClassTeacher,
   removeClassTeacher,
+  getClassSections,
+  getSectionById,
   createSection,
   updateSection,
   deleteSection,
   assignSectionTeacher,
-  getClassSections,
+  removeSectionTeacher,
   getSectionStudents,
+  getSectionSubjectTeachers,
+  assignSectionSubjectTeacher,
+  updateSectionSubjectTeacher,
+  removeSectionSubjectTeacher,
 } = require("../controllers/classesController");
 
 // All routes require authentication
@@ -30,10 +36,10 @@ router.use(authenticate);
 router.get("/", requirePermission("classes", "read"), getAllClasses);
 
 // Get classes assigned to logged-in user (role-based)
-router.get('/my-classes', authenticate, getMyClasses);
+router.get("/my-classes", authenticate, getMyClasses);
 
 // Get sections assigned to logged-in user for a specific class (role-based)
-router.get('/:id/my-sections', authenticate, getMySections);
+router.get("/:id/my-sections", authenticate, getMySections);
 
 // Get sections for a class
 router.get(
@@ -61,7 +67,6 @@ router.get(
   getClassStudents
 );
 
-
 // Assign class teacher - requires 'update' permission
 router.put(
   "/:id/assign-teacher",
@@ -85,6 +90,13 @@ router.post(
   createSection
 );
 
+// Get section by ID - requires 'read' permission
+router.get(
+  "/sections/:section_id",
+  requirePermission("classes", "read"),
+  getSectionById
+);
+
 // Update section - requires 'update' permission
 router.put(
   "/sections/:section_id",
@@ -99,11 +111,18 @@ router.delete(
   deleteSection
 );
 
-// Assign section teacher - requires 'update' permission
+// Assign section class teacher (homeroom teacher) - requires 'update' permission
 router.put(
   "/sections/:section_id/assign-teacher",
   requirePermission("classes", "update"),
   assignSectionTeacher
+);
+
+// Remove section class teacher - requires 'update' permission
+router.delete(
+  "/sections/:section_id/remove-teacher",
+  requirePermission("classes", "update"),
+  removeSectionTeacher
 );
 
 // Get section students - requires 'read' permission for students
@@ -111,6 +130,36 @@ router.get(
   "/sections/:section_id/students",
   requirePermission("students", "read"),
   getSectionStudents
+);
+
+// ============= SECTION SUBJECT TEACHER ROUTES =============
+
+// Get all subject teachers for a section
+router.get(
+  "/sections/:section_id/subject-teachers",
+  requirePermission("classes", "read"),
+  getSectionSubjectTeachers
+);
+
+// Assign subject teacher to section
+router.post(
+  "/sections/:section_id/subject-teachers",
+  requirePermission("classes", "update"),
+  assignSectionSubjectTeacher
+);
+
+// Update section subject teacher assignment
+router.put(
+  "/section-subject-teachers/:assignment_id",
+  requirePermission("classes", "update"),
+  updateSectionSubjectTeacher
+);
+
+// Remove subject teacher from section
+router.delete(
+  "/section-subject-teachers/:assignment_id",
+  requirePermission("classes", "update"),
+  removeSectionSubjectTeacher
 );
 
 module.exports = router;

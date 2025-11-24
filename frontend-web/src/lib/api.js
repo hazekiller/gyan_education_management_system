@@ -84,6 +84,7 @@ export const studentsAPI = {
   getResults: (id, params) => api.get(`/students/${id}/results`, { params }),
 };
 
+
 // ============================================
 // TEACHERS API
 // ============================================
@@ -116,22 +117,63 @@ export const teachersAPI = {
   getSchedule: (id, params) => api.get(`/teachers/${id}/schedule`, { params }),
 };
 
+// SUBJECTS API
+// ============================================
+export const subjectsAPI = {
+  getAll: (params) => api.get('/subjects', { params }),
+  getById: (id) => api.get(`/subjects/${id}`),
+  create: (data) => api.post('/subjects', data),
+  update: (id, data) => api.put(`/subjects/${id}`, data),
+  delete: (id) => api.delete(`/subjects/${id}`),
+};
+
 // ============================================
 // CLASSES API
 // ============================================
 export const classesAPI = {
+  // Class Management
   getAll: (params) => api.get("/classes", { params }),
-  getMyClasses: () => api.get("/classes/my-classes"), // New: Get teacher's assigned classes
+  getMyClasses: () => api.get("/classes/my-classes"), // Get teacher's assigned classes
   getById: (id) => api.get(`/classes/${id}`),
   create: (data) => api.post("/classes", data),
   update: (id, data) => api.put(`/classes/${id}`, data),
   delete: (id) => api.delete(`/classes/${id}`),
-  getSections: (classId) => api.get(`/classes/${classId}/sections`),
-  getMySections: (classId) => api.get(`/classes/${classId}/my-sections`), // New: Get teacher's assigned sections
   getStudents: (classId) => api.get(`/classes/${classId}/students`),
+
+  // Class Teacher Management (Legacy - kept for backward compatibility)
   assignTeacher: (classId, teacherId) =>
     api.put(`/classes/${classId}/assign-teacher`, { teacher_id: teacherId }),
   removeTeacher: (classId) => api.delete(`/classes/${classId}/remove-teacher`),
+
+  // Section Management
+  getSections: (classId) => api.get(`/classes/${classId}/sections`),
+  getMySections: (classId) => api.get(`/classes/${classId}/my-sections`), // Get teacher's assigned sections
+  getSectionById: (sectionId) => api.get(`/classes/sections/${sectionId}`),
+  createSection: (classId, data) =>
+    api.post(`/classes/${classId}/sections`, data),
+  updateSection: (sectionId, data) =>
+    api.put(`/classes/sections/${sectionId}`, data),
+  deleteSection: (sectionId) => api.delete(`/classes/sections/${sectionId}`),
+  getSectionStudents: (sectionId) =>
+    api.get(`/classes/sections/${sectionId}/students`),
+
+  // Section Class Teacher Management (Homeroom Teacher)
+  assignSectionTeacher: (sectionId, teacherId) =>
+    api.put(`/classes/sections/${sectionId}/assign-teacher`, {
+      teacher_id: teacherId,
+    }),
+  removeSectionTeacher: (sectionId) =>
+    api.delete(`/classes/sections/${sectionId}/remove-teacher`),
+
+  // Section Subject Teachers Management
+  getSectionSubjectTeachers: (sectionId) =>
+    api.get(`/classes/sections/${sectionId}/subject-teachers`),
+  assignSectionSubjectTeacher: (sectionId, data) =>
+    api.post(`/classes/sections/${sectionId}/subject-teachers`, data),
+  updateSectionSubjectTeacher: (assignmentId, data) =>
+    api.put(`/classes/section-subject-teachers/${assignmentId}`, data),
+  removeSectionSubjectTeacher: (assignmentId) =>
+    api.delete(`/classes/section-subject-teachers/${assignmentId}`),
 };
 
 
