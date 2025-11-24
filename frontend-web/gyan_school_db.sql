@@ -6,6 +6,7 @@
 -- Generation Time: Nov 24, 2025 at 07:59 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -164,6 +165,10 @@ CREATE TABLE `classes` (
   `grade_level` int(11) NOT NULL,
   `description` text DEFAULT NULL,
   `academic_year` varchar(20) DEFAULT NULL,
+  `class_teacher_id` int(11) DEFAULT NULL,
+  `room_number` varchar(50) DEFAULT NULL,
+  `capacity` int(11) DEFAULT 40,
+  `status` enum('active','inactive','archived') DEFAULT 'active',
   `class_teacher_id` int(11) DEFAULT NULL,
   `room_number` varchar(50) DEFAULT NULL,
   `capacity` int(11) DEFAULT 40,
@@ -698,6 +703,8 @@ CREATE TABLE `teachers` (
 INSERT INTO `teachers` (`id`, `user_id`, `employee_id`, `first_name`, `middle_name`, `last_name`, `date_of_birth`, `gender`, `blood_group`, `address`, `city`, `state`, `pincode`, `phone`, `emergency_contact`, `qualification`, `experience_years`, `specialization`, `joining_date`, `salary`, `status`, `profile_photo`, `created_at`, `updated_at`) VALUES
 (1, 5, 'GYan-1', 'Teacher1', NULL, 'One', '1982-05-03', 'male', NULL, 'jhapa', 'kathmandu', 'Bagmati', '44655', '9813453997', '9841454565', 'MED', 5, 'Mathematics', '2025-10-22', 15000.00, 'active', NULL, '2025-10-22 18:35:17', '2025-10-22 18:35:17'),
 (2, 6, 'SUN001', 'Sunab', NULL, 'Baskota', '2001-09-15', 'male', NULL, 'suryabinayak-4, Tarkhal', 'Bhaktapur', 'Bagmati Province', '44600', '9814945424', '9745520486', 'BCA', 5, 'Computer Application', '2025-11-23', 30000.00, 'active', 'uploads/profiles/profile_photo-wp14182748-krishna-4k-phone-wallpapers-1763889450971-887994919.jpg', '2025-11-23 09:17:31', '2025-11-23 09:17:31');
+(1, 5, 'GYan-1', 'Teacher1', NULL, 'One', '1982-05-03', 'male', NULL, 'jhapa', 'kathmandu', 'Bagmati', '44655', '9813453997', '9841454565', 'MED', 5, 'Mathematics', '2025-10-22', 15000.00, 'active', NULL, '2025-10-22 18:35:17', '2025-10-22 18:35:17'),
+(2, 6, 'SUN001', 'Sunab', NULL, 'Baskota', '2001-09-15', 'male', NULL, 'suryabinayak-4, Tarkhal', 'Bhaktapur', 'Bagmati Province', '44600', '9814945424', '9745520486', 'BCA', 5, 'Computer Application', '2025-11-23', 30000.00, 'active', 'uploads/profiles/profile_photo-wp14182748-krishna-4k-phone-wallpapers-1763889450971-887994919.jpg', '2025-11-23 09:17:31', '2025-11-23 09:17:31');
 
 -- --------------------------------------------------------
 
@@ -896,6 +903,8 @@ ALTER TABLE `attendance`
 --
 ALTER TABLE `classes`
   ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_grade` (`grade_level`),
+  ADD KEY `idx_class_teacher` (`class_teacher_id`);
   ADD KEY `idx_grade` (`grade_level`),
   ADD KEY `idx_class_teacher` (`class_teacher_id`);
 
@@ -1300,6 +1309,7 @@ ALTER TABLE `syllabus`
 --
 ALTER TABLE `teachers`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `teacher_class_assignments`
@@ -1381,6 +1391,12 @@ ALTER TABLE `attendance`
   ADD CONSTRAINT `attendance_ibfk_2` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `attendance_ibfk_3` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `attendance_ibfk_4` FOREIGN KEY (`marked_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `classes`
+--
+ALTER TABLE `classes`
+  ADD CONSTRAINT `fk_class_teacher` FOREIGN KEY (`class_teacher_id`) REFERENCES `teachers` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `classes`

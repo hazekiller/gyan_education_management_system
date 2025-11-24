@@ -1,5 +1,5 @@
-import { NavLink } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { NavLink } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   LayoutDashboard,
   Users,
@@ -12,11 +12,14 @@ import {
   Megaphone,
   MessageSquare,
   GraduationCap,
-  X
-} from 'lucide-react';
-import { selectCurrentUser, selectUserRole } from '../../store/slices/authSlice';
-import { PERMISSIONS } from '../../utils/rbac';
-import { usePermission } from '../../hooks/usePermission';
+  X,
+} from "lucide-react";
+import {
+  selectCurrentUser,
+  selectUserRole,
+} from "../../store/slices/authSlice";
+import { PERMISSIONS } from "../../utils/rbac";
+import { usePermission } from "../../hooks/usePermission";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const user = useSelector(selectCurrentUser);
@@ -25,73 +28,79 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   const navigationItems = [
     {
-      name: 'Dashboard',
-      path: '/dashboard',
+      name: "Dashboard",
+      path: "/dashboard",
       icon: LayoutDashboard,
       show: true, // Everyone can see dashboard
     },
     {
-      name: 'Students',
-      path: '/students',
-      icon: Users,
-      show: hasPermission(PERMISSIONS.VIEW_STUDENTS),
-    },
-    {
-      name: 'Teachers',
-      path: '/teachers',
-      icon: UserCheck,
-      show: hasPermission(PERMISSIONS.VIEW_TEACHERS),
-    },
-    {
-      name: 'Attendance',
-      path: '/attendance',
-      icon: ClipboardList,
-      show: hasPermission(PERMISSIONS.VIEW_ATTENDANCE),
-    },
-    {
-      name: 'Exams',
-      path: '/exams',
+      name: "Classes",
+      path: "/class",
       icon: BookOpen,
       show: hasPermission(PERMISSIONS.VIEW_EXAMS),
     },
     {
-      name: 'Assignments',
-      path: '/assignments',
+      name: "Students",
+      path: "/students",
+      icon: Users,
+      show: hasPermission(PERMISSIONS.VIEW_STUDENTS),
+    },
+    {
+      name: "Teachers",
+      path: "/teachers",
+      icon: UserCheck,
+      show: hasPermission(PERMISSIONS.VIEW_TEACHERS),
+    },
+    {
+      name: "Attendance",
+      path: "/attendance",
+      icon: ClipboardList,
+      show: hasPermission(PERMISSIONS.VIEW_ATTENDANCE),
+    },
+    {
+      name: "Exams",
+      path: "/exams",
+      icon: BookOpen,
+      show: hasPermission(PERMISSIONS.VIEW_EXAMS),
+    },
+    {
+      name: "Assignments",
+      path: "/assignments",
       icon: FileText,
       show: hasPermission(PERMISSIONS.VIEW_ASSIGNMENTS),
     },
     {
-      name: 'Fee Management',
-      path: '/fees',
+      name: "Fee Management",
+      path: "/fees",
       icon: DollarSign,
       show: hasPermission(PERMISSIONS.VIEW_FEES),
     },
     {
-      name: 'Events',
-      path: '/events',
+      name: "Events",
+      path: "/events",
       icon: Calendar,
       show: hasPermission(PERMISSIONS.VIEW_EVENTS),
     },
     {
-      name: 'Announcements',
-      path: '/announcements',
+      name: "Announcements",
+      path: "/announcements",
       icon: Megaphone,
       show: hasPermission(PERMISSIONS.VIEW_ANNOUNCEMENTS),
     },
     {
-      name: 'Messages',
-      path: '/messages',
+      name: "Messages",
+      path: "/messages",
       icon: MessageSquare,
       show: hasPermission(PERMISSIONS.VIEW_MESSAGES),
-    }
+    },
   ];
 
-  const visibleNavigation = navigationItems.filter(item => item.show);
+  const visibleNavigation = navigationItems.filter((item) => item.show);
 
   return (
     <>
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
@@ -102,7 +111,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           fixed lg:static inset-y-0 left-0 z-30
           w-64 bg-white shadow-lg
           transform transition-transform duration-300 ease-in-out
-          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
         <div className="flex items-center justify-between h-16 px-6 border-b">
@@ -115,7 +124,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               <p className="text-xs text-gray-500">Management System</p>
             </div>
           </div>
-          
+
           <button
             onClick={() => setIsOpen(false)}
             className="lg:hidden text-gray-500 hover:text-gray-700"
@@ -133,8 +142,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   className={({ isActive }) =>
                     `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? "bg-blue-50 text-blue-600"
+                        : "text-gray-700 hover:bg-gray-50"
                     }`
                   }
                   onClick={() => {
@@ -150,7 +159,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             ))}
           </ul>
         </nav>
-
+        
         <div className="p-4 border-t">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -163,7 +172,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 {user?.details?.first_name || user?.email}
               </p>
               <p className="text-xs text-gray-500 capitalize">
-                {role?.replace('_', ' ')}
+                {role?.replace("_", " ")}
               </p>
             </div>
           </div>
