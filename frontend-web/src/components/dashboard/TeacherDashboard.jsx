@@ -116,7 +116,7 @@ const TeacherDashboard = () => {
           </div>
         </div>
 
-        <div className="card hover:shadow-lg transition-shadow">
+        <div className="card hover:shadow-lg transition-shadow" onClick={()=>navigate('/class')}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 mb-1">Classes Today</p>
