@@ -126,7 +126,7 @@ const checkSubmissionStatus = async (req, res) => {
   }
 };
 
-// Mark attendance for students
+// Mark attendance for students (create or update)
 const markAttendance = async (req, res) => {
   const connection = await pool.getConnection();
 
@@ -135,8 +135,14 @@ const markAttendance = async (req, res) => {
 
     const { date, attendance_records } = req.body;
     const marked_by = req.user.id;
+    const userRole = req.user.role;
 
-    if (!date || !attendance_records || !Array.isArray(attendance_records)) {
+    if (
+      !date ||
+      !attendance_records ||
+      !Array.isArray(attendance_records) ||
+      attendance_records.length === 0
+    ) {
       await connection.rollback();
       return res.status(400).json({
         success: false,
@@ -144,34 +150,72 @@ const markAttendance = async (req, res) => {
       });
     }
 
-    // Check if attendance already exists for this date
-    const existingIds = attendance_records.map((r) => r.student_id);
-    const placeholders = existingIds.map(() => "?").join(",");
+    const firstRecord = attendance_records[0];
+    const { class_id, section_id } = firstRecord;
 
-    const [existing] = await connection.query(
-      `SELECT student_id FROM attendance WHERE date = ? AND student_id IN (${placeholders})`,
-      [date, ...existingIds]
+    // Check if attendance is already submitted
+    const [existingSubmission] = await connection.query(
+      `SELECT is_submitted, submitted_by FROM attendance 
+       WHERE class_id = ? AND section_id = ? AND date = ? AND is_submitted = TRUE
+       LIMIT 1`,
+      [class_id, section_id, date]
     );
 
-    if (existing.length > 0) {
-      await connection.rollback();
-      return res.status(400).json({
-        success: false,
-        message: "Attendance already marked for some students on this date",
-      });
+    if (existingSubmission.length > 0) {
+      // Only admin can update submitted attendance
+      const adminRoles = ["super_admin", "principal", "vice_principal"];
+      if (!adminRoles.includes(userRole)) {
+        await connection.rollback();
+        return res.status(403).json({
+          success: false,
+          message:
+            "Attendance is already submitted. Only administrators can modify it.",
+        });
+      }
     }
 
-    // Insert attendance records
+    // Teachers can only mark attendance for their assigned classes
+    if (userRole === "teacher") {
+      const [teacherCheck] = await connection.query(
+        `SELECT t.id FROM teachers t
+         JOIN sections s ON s.class_teacher_id = t.id
+         WHERE t.user_id = ? AND s.class_id = ? AND s.id = ?`,
+        [marked_by, class_id, section_id]
+      );
+
+      if (teacherCheck.length === 0) {
+        await connection.rollback();
+        return res.status(403).json({
+          success: false,
+          message: "You can only mark attendance for your assigned classes",
+        });
+      }
+    }
+
+    // Delete existing records for this class/section/date
+    await connection.query(
+      `DELETE FROM attendance WHERE class_id = ? AND section_id = ? AND date = ?`,
+      [class_id, section_id, date]
+    );
+
+    // Insert new attendance records
     const values = attendance_records.map((record) => [
       record.student_id,
+      record.class_id,
+      record.section_id,
       date,
       record.status || "present",
       record.remarks || null,
       marked_by,
+      false, // is_submitted
+      null, // submitted_at
+      null, // submitted_by
     ]);
 
     await connection.query(
-      `INSERT INTO attendance (student_id, date, status, remarks, marked_by) VALUES ?`,
+      `INSERT INTO attendance 
+       (student_id, class_id, section_id, date, status, remarks, marked_by, is_submitted, submitted_at, submitted_by) 
+       VALUES ?`,
       [values]
     );
 
@@ -470,6 +514,7 @@ const deleteAttendance = async (req, res) => {
   }
 };
 
+// Get attendance statistics
 const getAttendanceStats = async (req, res) => {
   try {
     const { class_id, section_id, student_id, start_date, end_date } =

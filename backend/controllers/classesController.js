@@ -1,5 +1,7 @@
 const pool = require("../config/database");
 
+// ============= CLASS FUNCTIONS =============
+
 // Get all classes
 const getAllClasses = async (req, res) => {
   try {
@@ -163,7 +165,7 @@ const getMySections = async (req, res) => {
   }
 };
 
-// Get class by ID
+// Get class by ID with sections and teachers
 const getClassById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -190,16 +192,19 @@ const getClassById = async (req, res) => {
       });
     }
 
-    // Get sections for this class with their teachers
+    // Get sections for this class with their class teachers and subject teachers
     const [sections] = await pool.query(
       `
       SELECT 
         sec.*,
-        CONCAT(t.first_name, ' ', t.last_name) as section_teacher_name,
+        CONCAT(t.first_name, ' ', t.last_name) as class_teacher_name,
         t.employee_id as teacher_employee_id,
+        t.phone as teacher_phone,
+        u.email as teacher_email,
         COUNT(DISTINCT s.id) as student_count
       FROM sections sec
       LEFT JOIN teachers t ON sec.class_teacher_id = t.id
+      LEFT JOIN users u ON t.user_id = u.id
       LEFT JOIN students s ON sec.id = s.section_id AND s.class_id = ?
       WHERE sec.class_id = ?
       GROUP BY sec.id
@@ -208,13 +213,36 @@ const getClassById = async (req, res) => {
       [id, id]
     );
 
+    // For each section, get subject teachers
+    for (let section of sections) {
+      const [subjectTeachers] = await pool.query(
+        `
+        SELECT 
+          sst.*,
+          CONCAT(t.first_name, ' ', t.last_name) as teacher_name,
+          t.employee_id,
+          u.email as teacher_email,
+          subj.name as subject_name,
+          subj.code as subject_code
+        FROM section_subject_teachers sst
+        JOIN teachers t ON sst.teacher_id = t.id
+        LEFT JOIN users u ON t.user_id = u.id
+        JOIN subjects subj ON sst.subject_id = subj.id
+        WHERE sst.section_id = ? AND sst.is_active = 1
+        ORDER BY subj.name
+      `,
+        [section.id]
+      );
+      section.subject_teachers = subjectTeachers;
+    }
+
     // Get students count
     const [studentCount] = await pool.query(
       "SELECT COUNT(*) as count FROM students WHERE class_id = ?",
       [id]
     );
 
-    // Get assigned subject teachers
+    // Get assigned subject teachers at class level (legacy)
     const [subjectTeachers] = await pool.query(
       `
       SELECT 
@@ -316,19 +344,13 @@ const createClass = async (req, res) => {
 
     // Create sections if provided
     if (sections && Array.isArray(sections) && sections.length > 0) {
-      const sectionValues = sections.map((sectionName) => [
-        sectionName,
-        classId,
-        null, // class_teacher_id for section
-        capacity || 40,
-        1, // is_active
-      ]);
-
-      await connection.query(
-        `INSERT INTO sections (name, class_id, class_teacher_id, capacity, is_active) 
-         VALUES ?`,
-        [sectionValues]
-      );
+      for (const sectionName of sections) {
+        await connection.query(
+          `INSERT INTO sections (name, class_id, capacity) 
+           VALUES (?, ?, ?)`,
+          [sectionName, classId, capacity || 40]
+        );
+      }
     }
 
     await connection.commit();
@@ -336,14 +358,7 @@ const createClass = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Class created successfully",
-      data: {
-        id: classId,
-        name,
-        grade_level,
-        academic_year,
-        class_teacher_id,
-        sections_created: sections?.length || 0,
-      },
+      data: { id: classId, name, grade_level },
     });
   } catch (error) {
     await connection.rollback();
@@ -425,21 +440,16 @@ const updateClass = async (req, res) => {
 
 // Delete class
 const deleteClass = async (req, res) => {
-  const connection = await pool.getConnection();
-
   try {
-    await connection.beginTransaction();
-
     const { id } = req.params;
 
     // Check if class has students
-    const [students] = await connection.query(
+    const [students] = await pool.query(
       "SELECT COUNT(*) as count FROM students WHERE class_id = ?",
       [id]
     );
 
     if (students[0].count > 0) {
-      await connection.rollback();
       return res.status(400).json({
         success: false,
         message:
@@ -447,28 +457,19 @@ const deleteClass = async (req, res) => {
       });
     }
 
-    // Delete sections first (due to foreign key constraint)
-    await connection.query("DELETE FROM sections WHERE class_id = ?", [id]);
-
-    // Delete class
-    await connection.query("DELETE FROM classes WHERE id = ?", [id]);
-
-    await connection.commit();
+    await pool.query("DELETE FROM classes WHERE id = ?", [id]);
 
     res.json({
       success: true,
-      message: "Class and associated sections deleted successfully",
+      message: "Class deleted successfully",
     });
   } catch (error) {
-    await connection.rollback();
     console.error("Delete class error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to delete class",
       error: error.message,
     });
-  } finally {
-    connection.release();
   }
 };
 
@@ -476,26 +477,23 @@ const deleteClass = async (req, res) => {
 const getClassStudents = async (req, res) => {
   try {
     const { id } = req.params;
-    const { section_id } = req.query;
 
-    let query = `
-      SELECT s.*, u.email, sec.name as section_name
+    const [students] = await pool.query(
+      `
+      SELECT s.*, 
+        u.email,
+        sec.name as section_name,
+        c.name as class_name,
+        c.grade_level
       FROM students s
       LEFT JOIN users u ON s.user_id = u.id
       LEFT JOIN sections sec ON s.section_id = sec.id
+      LEFT JOIN classes c ON s.class_id = c.id
       WHERE s.class_id = ?
-    `;
-
-    const params = [id];
-
-    if (section_id) {
-      query += " AND s.section_id = ?";
-      params.push(section_id);
-    }
-
-    query += " ORDER BY s.roll_number, s.first_name";
-
-    const [students] = await pool.query(query, params);
+      ORDER BY sec.name, s.roll_number, s.first_name
+    `,
+      [id]
+    );
 
     res.json({
       success: true,
@@ -512,7 +510,7 @@ const getClassStudents = async (req, res) => {
   }
 };
 
-// Assign class teacher
+// Assign class teacher (legacy - now managed at section level)
 const assignClassTeacher = async (req, res) => {
   try {
     const { id } = req.params;
@@ -535,19 +533,6 @@ const assignClassTeacher = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid or inactive teacher ID",
-      });
-    }
-
-    // Check if class exists
-    const [classExists] = await pool.query(
-      "SELECT id FROM classes WHERE id = ?",
-      [id]
-    );
-
-    if (classExists.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Class not found",
       });
     }
 
@@ -589,6 +574,143 @@ const removeClassTeacher = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to remove class teacher",
+      error: error.message,
+    });
+  }
+};
+
+// ============= SECTION FUNCTIONS =============
+
+// Get sections for a class
+const getClassSections = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [sections] = await pool.query(
+      `
+      SELECT 
+        sec.*,
+        CONCAT(t.first_name, ' ', t.last_name) as class_teacher_name,
+        t.employee_id as teacher_employee_id,
+        t.phone as teacher_phone,
+        u.email as teacher_email,
+        COUNT(DISTINCT s.id) as student_count
+      FROM sections sec
+      LEFT JOIN teachers t ON sec.class_teacher_id = t.id
+      LEFT JOIN users u ON t.user_id = u.id
+      LEFT JOIN students s ON sec.id = s.section_id
+      WHERE sec.class_id = ? AND sec.is_active = 1
+      GROUP BY sec.id
+      ORDER BY sec.name
+    `,
+      [id]
+    );
+
+    // Get subject teachers for each section
+    for (let section of sections) {
+      const [subjectTeachers] = await pool.query(
+        `
+        SELECT 
+          sst.*,
+          CONCAT(t.first_name, ' ', t.last_name) as teacher_name,
+          t.employee_id,
+          u.email as teacher_email,
+          subj.name as subject_name,
+          subj.code as subject_code
+        FROM section_subject_teachers sst
+        JOIN teachers t ON sst.teacher_id = t.id
+        LEFT JOIN users u ON t.user_id = u.id
+        JOIN subjects subj ON sst.subject_id = subj.id
+        WHERE sst.section_id = ? AND sst.is_active = 1
+        ORDER BY subj.name
+      `,
+        [section.id]
+      );
+      section.subject_teachers = subjectTeachers;
+    }
+
+    res.json({
+      success: true,
+      count: sections.length,
+      data: sections,
+    });
+  } catch (error) {
+    console.error("Get class sections error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch sections",
+      error: error.message,
+    });
+  }
+};
+
+// Get section by ID with details
+const getSectionById = async (req, res) => {
+  try {
+    const { section_id } = req.params;
+
+    const [sections] = await pool.query(
+      `
+      SELECT 
+        sec.*,
+        c.name as class_name,
+        c.grade_level,
+        c.academic_year,
+        CONCAT(t.first_name, ' ', t.last_name) as class_teacher_name,
+        t.employee_id as teacher_employee_id,
+        t.phone as teacher_phone,
+        u.email as teacher_email,
+        COUNT(DISTINCT s.id) as student_count
+      FROM sections sec
+      JOIN classes c ON sec.class_id = c.id
+      LEFT JOIN teachers t ON sec.class_teacher_id = t.id
+      LEFT JOIN users u ON t.user_id = u.id
+      LEFT JOIN students s ON sec.id = s.section_id
+      WHERE sec.id = ?
+      GROUP BY sec.id
+    `,
+      [section_id]
+    );
+
+    if (sections.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    // Get subject teachers
+    const [subjectTeachers] = await pool.query(
+      `
+      SELECT 
+        sst.*,
+        CONCAT(t.first_name, ' ', t.last_name) as teacher_name,
+        t.employee_id,
+        u.email as teacher_email,
+        subj.name as subject_name,
+        subj.code as subject_code
+      FROM section_subject_teachers sst
+      JOIN teachers t ON sst.teacher_id = t.id
+      LEFT JOIN users u ON t.user_id = u.id
+      JOIN subjects subj ON sst.subject_id = subj.id
+      WHERE sst.section_id = ? AND sst.is_active = 1
+      ORDER BY subj.name
+    `,
+      [section_id]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        ...sections[0],
+        subject_teachers: subjectTeachers,
+      },
+    });
+  } catch (error) {
+    console.error("Get section error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch section",
       error: error.message,
     });
   }
@@ -775,7 +897,7 @@ const deleteSection = async (req, res) => {
   }
 };
 
-// Assign section teacher
+// Assign section class teacher (homeroom teacher)
 const assignSectionTeacher = async (req, res) => {
   try {
     const { section_id } = req.params;
@@ -821,13 +943,37 @@ const assignSectionTeacher = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Section teacher assigned successfully",
+      message: "Section class teacher assigned successfully",
     });
   } catch (error) {
     console.error("Assign section teacher error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to assign section teacher",
+      error: error.message,
+    });
+  }
+};
+
+// Remove section class teacher
+const removeSectionTeacher = async (req, res) => {
+  try {
+    const { section_id } = req.params;
+
+    await pool.query(
+      "UPDATE sections SET class_teacher_id = NULL, updated_at = NOW() WHERE id = ?",
+      [section_id]
+    );
+
+    res.json({
+      success: true,
+      message: "Section class teacher removed successfully",
+    });
+  } catch (error) {
+    console.error("Remove section teacher error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to remove section teacher",
       error: error.message,
     });
   }
@@ -865,47 +1011,268 @@ const getSectionStudents = async (req, res) => {
   }
 };
 
-// Get sections for a class
-const getClassSections = async (req, res) => {
-  try {
-    const { id } = req.params;
+// ============= SECTION SUBJECT TEACHER FUNCTIONS =============
 
-    const [sections] = await pool.query(
+// Get subject teachers for a section
+const getSectionSubjectTeachers = async (req, res) => {
+  try {
+    const { section_id } = req.params;
+
+    const [teachers] = await pool.query(
       `
       SELECT 
-        sec.*,
+        sst.*,
         CONCAT(t.first_name, ' ', t.last_name) as teacher_name,
-        t.employee_id as teacher_employee_id,
-        COUNT(DISTINCT s.id) as student_count
-      FROM sections sec
-      LEFT JOIN teachers t ON sec.class_teacher_id = t.id
-      LEFT JOIN students s ON sec.id = s.section_id
-      WHERE sec.class_id = ? AND sec.is_active = 1
-      GROUP BY sec.id
-      ORDER BY sec.name
+        t.employee_id,
+        t.phone as teacher_phone,
+        u.email as teacher_email,
+        subj.name as subject_name,
+        subj.code as subject_code,
+        subj.description as subject_description
+      FROM section_subject_teachers sst
+      JOIN teachers t ON sst.teacher_id = t.id
+      LEFT JOIN users u ON t.user_id = u.id
+      JOIN subjects subj ON sst.subject_id = subj.id
+      WHERE sst.section_id = ? AND sst.is_active = 1
+      ORDER BY subj.name
     `,
-      [id]
+      [section_id]
     );
 
     res.json({
       success: true,
-      count: sections.length,
-      data: sections,
+      count: teachers.length,
+      data: teachers,
     });
   } catch (error) {
-    console.error("Get class sections error:", error);
+    console.error("Get section subject teachers error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch sections",
+      message: "Failed to fetch section subject teachers",
+      error: error.message,
+    });
+  }
+};
+
+// Assign subject teacher to section
+const assignSectionSubjectTeacher = async (req, res) => {
+  try {
+    const { section_id } = req.params;
+    const { teacher_id, subject_id, academic_year } = req.body;
+
+    if (!teacher_id || !subject_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Teacher ID and Subject ID are required",
+      });
+    }
+
+    // Validate section exists
+    const [section] = await pool.query("SELECT id FROM sections WHERE id = ?", [
+      section_id,
+    ]);
+
+    if (section.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    // Validate teacher exists and is active
+    const [teacher] = await pool.query(
+      'SELECT id FROM teachers WHERE id = ? AND status = "active"',
+      [teacher_id]
+    );
+
+    if (teacher.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or inactive teacher ID",
+      });
+    }
+
+    // Validate subject exists
+    const [subject] = await pool.query("SELECT id FROM subjects WHERE id = ?", [
+      subject_id,
+    ]);
+
+    if (subject.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid subject ID",
+      });
+    }
+
+    // Check if this subject already has a teacher in this section for this academic year
+    const [existing] = await pool.query(
+      `SELECT id FROM section_subject_teachers 
+       WHERE section_id = ? AND subject_id = ? AND academic_year = ? AND is_active = 1`,
+      [section_id, subject_id, academic_year || null]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This subject already has a teacher assigned in this section for the specified academic year",
+      });
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO section_subject_teachers 
+       (section_id, teacher_id, subject_id, academic_year, is_active) 
+       VALUES (?, ?, ?, ?, 1)`,
+      [section_id, teacher_id, subject_id, academic_year || null]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Subject teacher assigned to section successfully",
+      data: {
+        id: result.insertId,
+        section_id,
+        teacher_id,
+        subject_id,
+      },
+    });
+  } catch (error) {
+    console.error("Assign section subject teacher error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to assign subject teacher to section",
+      error: error.message,
+    });
+  }
+};
+
+// Update section subject teacher
+const updateSectionSubjectTeacher = async (req, res) => {
+  try {
+    const { assignment_id } = req.params;
+    const { teacher_id, subject_id, academic_year, is_active } = req.body;
+
+    // Check if assignment exists
+    const [existing] = await pool.query(
+      "SELECT id FROM section_subject_teachers WHERE id = ?",
+      [assignment_id]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Assignment not found",
+      });
+    }
+
+    // Validate teacher if being updated
+    if (teacher_id) {
+      const [teacher] = await pool.query(
+        'SELECT id FROM teachers WHERE id = ? AND status = "active"',
+        [teacher_id]
+      );
+
+      if (teacher.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid or inactive teacher ID",
+        });
+      }
+    }
+
+    // Validate subject if being updated
+    if (subject_id) {
+      const [subject] = await pool.query(
+        "SELECT id FROM subjects WHERE id = ?",
+        [subject_id]
+      );
+
+      if (subject.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid subject ID",
+        });
+      }
+    }
+
+    const updateData = {};
+    if (teacher_id !== undefined) updateData.teacher_id = teacher_id;
+    if (subject_id !== undefined) updateData.subject_id = subject_id;
+    if (academic_year !== undefined) updateData.academic_year = academic_year;
+    if (is_active !== undefined) updateData.is_active = is_active;
+
+    const fields = Object.keys(updateData);
+    const values = Object.values(updateData);
+
+    if (fields.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No fields to update",
+      });
+    }
+
+    const setClause = fields.map((field) => `${field} = ?`).join(", ");
+    values.push(assignment_id);
+
+    await pool.query(
+      `UPDATE section_subject_teachers SET ${setClause}, updated_at = NOW() WHERE id = ?`,
+      values
+    );
+
+    res.json({
+      success: true,
+      message: "Section subject teacher updated successfully",
+    });
+  } catch (error) {
+    console.error("Update section subject teacher error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update section subject teacher",
+      error: error.message,
+    });
+  }
+};
+
+// Remove subject teacher from section
+const removeSectionSubjectTeacher = async (req, res) => {
+  try {
+    const { assignment_id } = req.params;
+
+    const [existing] = await pool.query(
+      "SELECT id FROM section_subject_teachers WHERE id = ?",
+      [assignment_id]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Assignment not found",
+      });
+    }
+
+    await pool.query("DELETE FROM section_subject_teachers WHERE id = ?", [
+      assignment_id,
+    ]);
+
+    res.json({
+      success: true,
+      message: "Subject teacher removed from section successfully",
+    });
+  } catch (error) {
+    console.error("Remove section subject teacher error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to remove subject teacher from section",
       error: error.message,
     });
   }
 };
 
 module.exports = {
+  // Class functions
   getAllClasses,
-  getMyClasses, // NEW FUNCTION
-  getMySections, // NEW FUNCTION
+  getMyClasses,
+  getMySections,
   getClassById,
   createClass,
   updateClass,
@@ -913,10 +1280,20 @@ module.exports = {
   getClassStudents,
   assignClassTeacher,
   removeClassTeacher,
+
+  // Section functions
+  getClassSections,
+  getSectionById,
   createSection,
   updateSection,
   deleteSection,
   assignSectionTeacher,
+  removeSectionTeacher,
   getSectionStudents,
-  getClassSections,
+
+  // Section subject teacher functions
+  getSectionSubjectTeachers,
+  assignSectionSubjectTeacher,
+  updateSectionSubjectTeacher,
+  removeSectionSubjectTeacher,
 };
