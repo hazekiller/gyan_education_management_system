@@ -4,6 +4,8 @@ const { authenticate } = require("../middleware/auth");
 const { requirePermission } = require("../middleware/authorization");
 const {
   getAllClasses,
+  getMyClasses,
+  getMySections,
   getClassById,
   createClass,
   updateClass,
@@ -26,6 +28,12 @@ router.use(authenticate);
 
 // Get all classes - requires 'read' permission
 router.get("/", requirePermission("classes", "read"), getAllClasses);
+
+// Get classes assigned to logged-in user (role-based)
+router.get('/my-classes', authenticate, getMyClasses);
+
+// Get sections assigned to logged-in user for a specific class (role-based)
+router.get('/:id/my-sections', authenticate, getMySections);
 
 // Get sections for a class
 router.get(

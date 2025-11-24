@@ -121,11 +121,13 @@ export const teachersAPI = {
 // ============================================
 export const classesAPI = {
   getAll: (params) => api.get("/classes", { params }),
+  getMyClasses: () => api.get("/classes/my-classes"), // New: Get teacher's assigned classes
   getById: (id) => api.get(`/classes/${id}`),
   create: (data) => api.post("/classes", data),
   update: (id, data) => api.put(`/classes/${id}`, data),
   delete: (id) => api.delete(`/classes/${id}`),
   getSections: (classId) => api.get(`/classes/${classId}/sections`),
+  getMySections: (classId) => api.get(`/classes/${classId}/my-sections`), // New: Get teacher's assigned sections
   getStudents: (classId) => api.get(`/classes/${classId}/students`),
   assignTeacher: (classId, teacherId) =>
     api.put(`/classes/${classId}/assign-teacher`, { teacher_id: teacherId }),
@@ -138,8 +140,12 @@ export const classesAPI = {
 // ATTENDANCE API
 // ============================================
 export const attendanceAPI = {
-  mark: (data) => api.post('/attendance', data),
-  get: (params) => api.get('/attendance', { params }),
+  mark: (data) => api.post("/attendance", data),
+  get: (params) => api.get("/attendance", { params }),
+  checkSubmission: (params) =>
+    api.get("/attendance/check-submission", { params }), // New: Check if submitted
+  submit: (data) => api.post("/attendance/submit", data), // New: Submit attendance
+  unlock: (data) => api.post("/attendance/unlock", data), // New: Unlock attendance (admin only)
 };
 
 // ============================================
