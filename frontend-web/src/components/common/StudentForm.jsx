@@ -1,75 +1,113 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { classesAPI } from '../../lib/api';
-import toast from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { classesAPI } from "../../lib/api";
+import toast from "react-hot-toast";
 
 const StudentForm = ({ student = null, onSubmit, onCancel, isSubmitting }) => {
   const [formData, setFormData] = useState({
-    admission_number: student?.admission_number || '',
-    first_name: student?.first_name || '',
-    middle_name: student?.middle_name || '',
-    last_name: student?.last_name || '',
-    email: student?.email || '',
-    password: '', // Only for new students
-    phone: student?.phone || '',
-    date_of_birth: student?.date_of_birth?.split('T')[0] || '',
-    gender: student?.gender || 'male',
-    blood_group: student?.blood_group || '',
-    class_id: student?.class_id || '',
-    section_id: student?.section_id || '',
-    roll_number: student?.roll_number || '',
-    admission_date: student?.admission_date?.split('T')[0] || new Date().toISOString().split('T')[0],
-    father_name: student?.father_name || '',
-    mother_name: student?.mother_name || '',
-    parent_phone: student?.parent_phone || '',
-    parent_email: student?.parent_email || '',
-    address: student?.address || '',
-    city: student?.city || '',
-    state: student?.state || '',
-    pincode: student?.pincode || '',
-    status: student?.status || 'active',
-    profile_photo: null
+    admission_number: student?.admission_number || "",
+    first_name: student?.first_name || "",
+    middle_name: student?.middle_name || "",
+    last_name: student?.last_name || "",
+    email: student?.email || "",
+    password: "",
+    phone: student?.phone || "",
+    date_of_birth: student?.date_of_birth?.split("T")[0] || "",
+    gender: student?.gender || "male",
+    blood_group: student?.blood_group || "",
+    class_id: student?.class_id || "",
+    section_id: student?.section_id || "",
+    roll_number: student?.roll_number || "",
+    admission_date:
+      student?.admission_date?.split("T")[0] ||
+      new Date().toISOString().split("T")[0],
+    father_name: student?.father_name || "",
+    mother_name: student?.mother_name || "",
+    parent_phone: student?.parent_phone || "",
+    parent_email: student?.parent_email || "",
+    address: student?.address || "",
+    city: student?.city || "",
+    state: student?.state || "",
+    pincode: student?.pincode || "",
+    status: student?.status || "active",
+    profile_photo: null,
   });
 
-  const { data: classesData } = useQuery({
-    queryKey: ['classes'],
-    queryFn: classesAPI.getAll
+  // Fetch classes
+  const {
+    data: classesData,
+    isLoading: classesLoading,
+    error: classesError,
+  } = useQuery({
+    queryKey: ["classes"],
+    queryFn: classesAPI.getAll,
   });
 
-  const { data: sectionsData } = useQuery({
-    queryKey: ['sections', formData.class_id],
+  // Fetch sections when class is selected
+  const {
+    data: sectionsData,
+    isLoading: sectionsLoading,
+    error: sectionsError,
+  } = useQuery({
+    queryKey: ["sections", formData.class_id],
     queryFn: () => classesAPI.getSections(formData.class_id),
-    enabled: !!formData.class_id
+    enabled: !!formData.class_id,
   });
 
   const classes = classesData?.data || [];
   const sections = sectionsData?.data || [];
 
+  // Debug: Log when data changes
+  useEffect(() => {
+    console.log("Classes available:", classes);
+    console.log("Sections available:", sections);
+    console.log("Selected class_id:", formData.class_id);
+  }, [classes, sections, formData.class_id]);
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setFormData({
-      ...formData,
-      [name]: files ? files[0] : value
-    });
+
+    // When class changes, reset section
+    if (name === "class_id") {
+      setFormData({
+        ...formData,
+        class_id: value,
+        section_id: "", // Reset section when class changes
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: files ? files[0] : value,
+      });
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validation
-    if (!formData.first_name || !formData.last_name || !formData.email || !formData.parent_phone) {
-      toast.error('Please fill all required fields');
+    if (
+      !formData.first_name ||
+      !formData.last_name ||
+      !formData.email ||
+      !formData.parent_phone
+    ) {
+      toast.error("Please fill all required fields");
       return;
     }
 
-    if (!formData.date_of_birth || !formData.class_id || !formData.admission_number) {
-      toast.error('Please fill all required fields');
+    if (
+      !formData.date_of_birth ||
+      !formData.class_id ||
+      !formData.admission_number
+    ) {
+      toast.error("Please fill all required fields");
       return;
     }
 
     // Password validation for new students
     if (!student && !formData.password) {
-      toast.error('Password is required for new students');
+      toast.error("Password is required for new students");
       return;
     }
 
@@ -80,7 +118,9 @@ const StudentForm = ({ student = null, onSubmit, onCancel, isSubmitting }) => {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Personal Information */}
       <div>
-        <h4 className="text-md font-semibold text-gray-900 mb-4">Personal Information</h4>
+        <h4 className="text-md font-semibold text-gray-900 mb-4">
+          Personal Information
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -166,9 +206,6 @@ const StudentForm = ({ student = null, onSubmit, onCancel, isSubmitting }) => {
                 placeholder="Min 6 characters"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Default: Student@123 (if left empty)
-              </p>
             </div>
           )}
 
@@ -255,46 +292,73 @@ const StudentForm = ({ student = null, onSubmit, onCancel, isSubmitting }) => {
 
       {/* Academic Information */}
       <div>
-        <h4 className="text-md font-semibold text-gray-900 mb-4">Academic Information</h4>
+        <h4 className="text-md font-semibold text-gray-900 mb-4">
+          Academic Information
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Class *
             </label>
-            <select
-              name="class_id"
-              value={formData.class_id}
-              onChange={handleChange}
-              className="input"
-              required
-            >
-              <option value="">Select Class</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))}
-            </select>
+            {classesLoading ? (
+              <div className="input bg-gray-50">Loading classes...</div>
+            ) : classesError ? (
+              <div className="text-red-500 text-sm">Error loading classes</div>
+            ) : (
+              <select
+                name="class_id"
+                value={formData.class_id}
+                onChange={handleChange}
+                className="input"
+                required
+              >
+                <option value="">Select Class</option>
+                {classes.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {classes.length === 0 && !classesLoading && (
+              <p className="text-xs text-amber-600 mt-1">
+                No classes available. Please create a class first.
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Section
             </label>
-            <select
-              name="section_id"
-              value={formData.section_id}
-              onChange={handleChange}
-              className="input"
-              disabled={!formData.class_id}
-            >
-              <option value="">Select Section</option>
-              {sections.map((section) => (
-                <option key={section.id} value={section.id}>
-                  {section.name}
-                </option>
-              ))}
-            </select>
+            {sectionsLoading ? (
+              <div className="input bg-gray-50">Loading sections...</div>
+            ) : (
+              <select
+                name="section_id"
+                value={formData.section_id}
+                onChange={handleChange}
+                className="input"
+                disabled={!formData.class_id}
+              >
+                <option value="">Select Section</option>
+                {sections.map((section) => (
+                  <option key={section.id} value={section.id}>
+                    {section.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {!formData.class_id && (
+              <p className="text-xs text-gray-500 mt-1">
+                Select a class first to see sections
+              </p>
+            )}
+            {formData.class_id && sections.length === 0 && !sectionsLoading && (
+              <p className="text-xs text-amber-600 mt-1">
+                No sections available for this class
+              </p>
+            )}
           </div>
 
           <div>
@@ -344,7 +408,9 @@ const StudentForm = ({ student = null, onSubmit, onCancel, isSubmitting }) => {
 
       {/* Parent Information */}
       <div>
-        <h4 className="text-md font-semibold text-gray-900 mb-4">Parent Information</h4>
+        <h4 className="text-md font-semibold text-gray-900 mb-4">
+          Parent Information
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -403,7 +469,9 @@ const StudentForm = ({ student = null, onSubmit, onCancel, isSubmitting }) => {
 
       {/* Address Information */}
       <div>
-        <h4 className="text-md font-semibold text-gray-900 mb-4">Address Information</h4>
+        <h4 className="text-md font-semibold text-gray-900 mb-4">
+          Address Information
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -474,7 +542,11 @@ const StudentForm = ({ student = null, onSubmit, onCancel, isSubmitting }) => {
           className="btn btn-primary"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Saving...' : student ? 'Update Student' : 'Add Student'}
+          {isSubmitting
+            ? "Saving..."
+            : student
+            ? "Update Student"
+            : "Add Student"}
         </button>
       </div>
     </form>
