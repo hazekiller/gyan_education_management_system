@@ -52,6 +52,117 @@ const getAllClasses = async (req, res) => {
   }
 };
 
+// Get classes assigned to the logged-in user (role-based)
+const getMyClasses = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    // If admin, return all classes
+    const adminRoles = ["super_admin", "principal", "vice_principal", "hod"];
+    if (adminRoles.includes(userRole)) {
+      const [classes] = await pool.query(
+        `SELECT DISTINCT c.* FROM classes c
+         WHERE c.is_active = 1
+         ORDER BY c.grade_level, c.name`
+      );
+
+      return res.json({
+        success: true,
+        count: classes.length,
+        data: classes,
+      });
+    }
+
+    // For teachers, get only their assigned classes (via sections)
+    const [classes] = await pool.query(
+      `SELECT DISTINCT c.* 
+       FROM classes c
+       JOIN sections s ON s.class_id = c.id
+       JOIN teachers t ON s.class_teacher_id = t.id
+       WHERE t.user_id = ? AND c.is_active = 1
+       ORDER BY c.grade_level, c.name`,
+      [userId]
+    );
+
+    res.json({
+      success: true,
+      count: classes.length,
+      data: classes,
+    });
+  } catch (error) {
+    console.error("Get my classes error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch classes",
+      error: error.message,
+    });
+  }
+};
+
+// Get sections for a specific class (filtered by teacher if applicable)
+const getMySections = async (req, res) => {
+  try {
+    const { id } = req.params; // class_id
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    // If admin, return all sections
+    const adminRoles = ["super_admin", "principal", "vice_principal", "hod"];
+    if (adminRoles.includes(userRole)) {
+      const [sections] = await pool.query(
+        `SELECT 
+          sec.*,
+          CONCAT(t.first_name, ' ', t.last_name) as teacher_name,
+          t.employee_id as teacher_employee_id,
+          COUNT(DISTINCT s.id) as student_count
+        FROM sections sec
+        LEFT JOIN teachers t ON sec.class_teacher_id = t.id
+        LEFT JOIN students s ON sec.id = s.section_id
+        WHERE sec.class_id = ? AND sec.is_active = 1
+        GROUP BY sec.id
+        ORDER BY sec.name`,
+        [id]
+      );
+
+      return res.json({
+        success: true,
+        count: sections.length,
+        data: sections,
+      });
+    }
+
+    // For teachers, get only their assigned sections
+    const [sections] = await pool.query(
+      `SELECT 
+        sec.*,
+        CONCAT(t.first_name, ' ', t.last_name) as teacher_name,
+        t.employee_id as teacher_employee_id,
+        COUNT(DISTINCT s.id) as student_count
+      FROM sections sec
+      JOIN teachers t ON sec.class_teacher_id = t.id
+      LEFT JOIN students s ON sec.id = s.section_id
+      WHERE sec.class_id = ? AND t.user_id = ? AND sec.is_active = 1
+      GROUP BY sec.id
+      ORDER BY sec.name`,
+      [id, userId]
+    );
+
+    res.json({
+      success: true,
+      count: sections.length,
+      data: sections,
+    });
+  } catch (error) {
+    console.error("Get my sections error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch sections",
+      error: error.message,
+    });
+  }
+};
+
 // Get class by ID
 const getClassById = async (req, res) => {
   try {
@@ -793,6 +904,8 @@ const getClassSections = async (req, res) => {
 
 module.exports = {
   getAllClasses,
+  getMyClasses, // NEW FUNCTION
+  getMySections, // NEW FUNCTION
   getClassById,
   createClass,
   updateClass,
