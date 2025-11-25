@@ -197,7 +197,7 @@ const TeacherDetails = () => {
           </div>
         </div>
       </div>
-
+      
       {/* Class Assignments */}
       {teacher.assignments && teacher.assignments.length > 0 && (
         <div className="bg-white rounded-lg shadow-md p-6">
