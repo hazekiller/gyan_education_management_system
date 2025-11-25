@@ -3,7 +3,11 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
+<<<<<<< HEAD:frontend-web/gyan_school_db.sql
 -- Generation Time: Nov 24, 2025 at 07:59 AM
+=======
+-- Generation Time: Nov 24, 2025 at 11:43 AM
+>>>>>>> a9de058de607b37c56ade897aecad1d8f60e71e2:gyan_school_db.sql
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 -- PHP Version: 8.0.30
@@ -104,13 +108,6 @@ CREATE TABLE `assignments` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `assignments`
---
-
-INSERT INTO `assignments` (`id`, `title`, `description`, `class_id`, `section_id`, `subject_id`, `created_by`, `due_date`, `total_marks`, `attachments`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'science', 'sasd', 1, 1, NULL, 1, '2025-10-24', 100, NULL, 'active', '2025-10-22 19:52:59', '2025-10-22 19:52:59');
-
 -- --------------------------------------------------------
 
 --
@@ -153,6 +150,17 @@ CREATE TABLE `attendance` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+<<<<<<< HEAD:frontend-web/gyan_school_db.sql
+=======
+--
+-- Dumping data for table `attendance`
+--
+
+INSERT INTO `attendance` (`id`, `student_id`, `class_id`, `section_id`, `date`, `status`, `remarks`, `marked_by`, `marked_at`, `is_submitted`, `submitted_at`, `submitted_by`, `updated_at`) VALUES
+(5, 2, 13, 7, '2025-11-24', 'present', NULL, 6, '2025-11-24 07:44:51', 1, '2025-11-24 13:29:51', 6, '2025-11-24 07:44:51'),
+(6, 3, 13, 8, '2025-11-24', 'present', NULL, 1, '2025-11-24 07:51:27', 0, NULL, NULL, '2025-11-24 08:00:02');
+
+>>>>>>> a9de058de607b37c56ade897aecad1d8f60e71e2:gyan_school_db.sql
 -- --------------------------------------------------------
 
 --
@@ -487,6 +495,7 @@ CREATE TABLE `sections` (
 --
 
 INSERT INTO `sections` (`id`, `name`, `class_id`, `class_teacher_id`, `capacity`, `is_active`, `created_at`, `updated_at`) VALUES
+<<<<<<< HEAD:frontend-web/gyan_school_db.sql
 (1, 'A', 1, NULL, 40, 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
 (2, 'B', 1, NULL, 40, 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
 (3, 'A', 2, NULL, 40, 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
@@ -495,6 +504,35 @@ INSERT INTO `sections` (`id`, `name`, `class_id`, `class_teacher_id`, `capacity`
 (6, 'B', 3, NULL, 40, 1, '2025-10-22 11:07:23', '2025-10-22 11:07:23'),
 (7, 'A', 13, NULL, 20, 1, '2025-11-23 14:08:05', '2025-11-23 14:08:05'),
 (8, 'B', 13, NULL, 20, 1, '2025-11-23 14:08:05', '2025-11-23 14:08:05');
+=======
+(7, 'A', 13, 2, 20, 1, '2025-11-23 14:08:05', '2025-11-24 07:42:15'),
+(8, 'B', 13, 1, 20, 1, '2025-11-23 14:08:05', '2025-11-24 07:43:22');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `section_subject_teachers`
+--
+
+CREATE TABLE `section_subject_teachers` (
+  `id` int(11) NOT NULL,
+  `section_id` int(11) NOT NULL,
+  `teacher_id` int(11) NOT NULL,
+  `subject_id` int(11) NOT NULL,
+  `academic_year` varchar(20) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Manages subject teachers assigned to specific sections';
+
+--
+-- Dumping data for table `section_subject_teachers`
+--
+
+INSERT INTO `section_subject_teachers` (`id`, `section_id`, `teacher_id`, `subject_id`, `academic_year`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 7, 1, 6, '2025-2026', 1, '2025-11-24 07:42:26', '2025-11-24 07:42:26'),
+(2, 8, 2, 1, '2025-2026', 1, '2025-11-24 07:43:29', '2025-11-24 07:43:29');
+>>>>>>> a9de058de607b37c56ade897aecad1d8f60e71e2:gyan_school_db.sql
 
 -- --------------------------------------------------------
 
@@ -570,8 +608,14 @@ CREATE TABLE `students` (
 --
 
 INSERT INTO `students` (`id`, `user_id`, `admission_number`, `first_name`, `middle_name`, `last_name`, `email`, `date_of_birth`, `gender`, `blood_group`, `address`, `city`, `state`, `pincode`, `phone`, `parent_phone`, `parent_email`, `father_name`, `mother_name`, `guardian_name`, `class_id`, `section_id`, `roll_number`, `admission_date`, `status`, `profile_photo`, `created_at`, `updated_at`) VALUES
+<<<<<<< HEAD:frontend-web/gyan_school_db.sql
 (1, 4, 'Gyan-01', 'Prakash', NULL, 'Timilsina', 'prakashtimilsina76@gmail.com', '1993-08-23', 'male', 'B+', 'Schoolchaun', 'Jhapa', 'Koshi', '44600', '9813453997', '9813453997', 'bhuwanshrestha475@gmail.com', 'Tara Nath Timilsina', 'Nara Maya Adhikari(Timilsina)', NULL, 1, 1, '1', '2025-10-22', 'active', NULL, '2025-10-22 18:32:46', '2025-10-22 18:32:46'),
 (2, 8, 'STU001', 'Sunab', NULL, 'Baskota', 'sunabbaskota15@gmail.com', '2001-09-15', 'male', 'O+', 'Gauradaha-05, Schoolchaun', 'Gauradaha', 'Koshi Province', '57200', '9814945424', '9842763697', 'sitabaskota196@gmail.com', 'Ganesh Prasad Baskota', 'Indra Maya Baskota', NULL, 13, 7, '1', '2025-11-23', 'active', 'uploads/profiles/profile_photo-Quantum_Tech-1763911226488-10710789.png', '2025-11-23 15:20:26', '2025-11-23 15:20:26');
+=======
+(1, 4, 'Gyan-01', 'Prakash', NULL, 'Timilsina', 'prakashtimilsina76@gmail.com', '1993-08-23', 'male', 'B+', 'Schoolchaun', 'Jhapa', 'Koshi', '44600', '9813453997', '9813453997', 'bhuwanshrestha475@gmail.com', 'Tara Nath Timilsina', 'Nara Maya Adhikari(Timilsina)', NULL, 1, NULL, '1', '2025-10-22', 'active', NULL, '2025-10-22 18:32:46', '2025-10-22 18:32:46'),
+(2, 8, 'STU001', 'Sunab', NULL, 'Baskota', 'sunabbaskota15@gmail.com', '2001-09-15', 'male', 'O+', 'Gauradaha-05, Schoolchaun', 'Gauradaha', 'Koshi Province', '57200', '9814945424', '9842763697', 'sitabaskota196@gmail.com', 'Ganesh Prasad Baskota', 'Indra Maya Baskota', NULL, 13, 7, '1', '2025-11-23', 'active', 'uploads/profiles/profile_photo-Quantum_Tech-1763911226488-10710789.png', '2025-11-23 15:20:26', '2025-11-23 15:20:26'),
+(3, 9, 'STU002', 'Test ', NULL, 'Student', 'test1@gmail.com', '2012-12-12', 'male', 'A+', '625', 'Kathmandu', 'Bagmati Province', '44600', '1234567890', '9874563210', 'admin@gmail.com', 'Test Test', 'Test Test', NULL, 13, 8, '1', '2025-11-24', 'active', NULL, '2025-11-24 07:51:02', '2025-11-24 07:51:02');
+>>>>>>> a9de058de607b37c56ade897aecad1d8f60e71e2:gyan_school_db.sql
 
 -- --------------------------------------------------------
 
@@ -808,11 +852,20 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `role`, `is_active`, `last_login`, `created_at`, `updated_at`) VALUES
+<<<<<<< HEAD:frontend-web/gyan_school_db.sql
 (1, 'admin@gyan.edu', '$2a$10$iS1c4/I55GqFLgJfLjwuP.cKivj7BJUyo/Z.WY.gaAD82D4rFKeJK', 'super_admin', 1, '2025-11-24 12:37:37', '2025-10-22 11:07:23', '2025-11-24 06:52:37'),
 (4, 'prakashtimilsina76@gmail.com', '$2a$10$SYLTPwE2kiY4bHgo1Ch.neI9//pAxsJPgHmq0d8U9w9YWCwdE/jrK', 'student', 1, '2025-10-24 14:45:15', '2025-10-22 18:32:46', '2025-10-24 14:45:15'),
 (5, 'teacher1@gyan.edu', '$2a$10$wRqck9BDySogW1tVgIilFuMMtXh0yGlJhl.Wcxt9r.8mD2bM0GPQ.', 'teacher', 1, NULL, '2025-10-22 18:35:17', '2025-10-22 18:35:17'),
 (6, 'sunabbaskota@gmail.com', '$2a$10$i00m7HUdqyMa9V0THW3UzuiNADhaXsi20NVkHIcuYkZOoDmurTLo.', 'teacher', 1, '2025-11-24 12:34:45', '2025-11-23 09:17:31', '2025-11-24 06:49:45'),
 (8, 'sunabbaskota15@gmail.com', '$2a$10$XpRgLx8N4aJH2XGjeiPpDeMIN6E8nhGXjdtd55EgAAA4vL9Ogz3xW', 'student', 1, '2025-11-24 11:48:57', '2025-11-23 15:20:26', '2025-11-24 06:03:57');
+=======
+(1, 'admin@gyan.edu', '$2a$10$iS1c4/I55GqFLgJfLjwuP.cKivj7BJUyo/Z.WY.gaAD82D4rFKeJK', 'super_admin', 1, '2025-11-24 16:28:18', '2025-10-22 11:07:23', '2025-11-24 10:43:18'),
+(4, 'prakashtimilsina76@gmail.com', '$2a$10$SYLTPwE2kiY4bHgo1Ch.neI9//pAxsJPgHmq0d8U9w9YWCwdE/jrK', 'student', 1, '2025-10-24 14:45:15', '2025-10-22 18:32:46', '2025-10-24 14:45:15'),
+(5, 'teacher1@gyan.edu', '$2a$10$wRqck9BDySogW1tVgIilFuMMtXh0yGlJhl.Wcxt9r.8mD2bM0GPQ.', 'teacher', 1, NULL, '2025-10-22 18:35:17', '2025-10-22 18:35:17'),
+(6, 'sunabbaskota@gmail.com', '$2a$10$i00m7HUdqyMa9V0THW3UzuiNADhaXsi20NVkHIcuYkZOoDmurTLo.', 'teacher', 1, '2025-11-24 13:45:52', '2025-11-23 09:17:31', '2025-11-24 08:00:52'),
+(8, 'sunabbaskota15@gmail.com', '$2a$10$XpRgLx8N4aJH2XGjeiPpDeMIN6E8nhGXjdtd55EgAAA4vL9Ogz3xW', 'student', 1, '2025-11-24 13:33:31', '2025-11-23 15:20:26', '2025-11-24 07:48:31'),
+(9, 'test1@gmail.com', '$2a$10$qVvLpndVQNAslMVreJ2pSuGK1jssfrqfMAs7raQgQPwM9.1Lvd52W', 'student', 1, '2025-11-24 13:44:32', '2025-11-24 07:51:02', '2025-11-24 07:59:32');
+>>>>>>> a9de058de607b37c56ade897aecad1d8f60e71e2:gyan_school_db.sql
 
 -- --------------------------------------------------------
 
@@ -1028,6 +1081,18 @@ ALTER TABLE `sections`
   ADD KEY `idx_class` (`class_id`);
 
 --
+-- Indexes for table `section_subject_teachers`
+--
+ALTER TABLE `section_subject_teachers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_section_subject_teacher` (`section_id`,`subject_id`,`academic_year`),
+  ADD KEY `idx_section` (`section_id`),
+  ADD KEY `idx_teacher` (`teacher_id`),
+  ADD KEY `idx_subject` (`subject_id`),
+  ADD KEY `idx_section_teacher` (`section_id`,`teacher_id`),
+  ADD KEY `idx_teacher_section` (`teacher_id`,`section_id`);
+
+--
 -- Indexes for table `staff`
 --
 ALTER TABLE `staff`
@@ -1182,7 +1247,7 @@ ALTER TABLE `assignment_submissions`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `classes`
@@ -1267,6 +1332,15 @@ ALTER TABLE `payroll`
 --
 ALTER TABLE `sections`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+<<<<<<< HEAD:frontend-web/gyan_school_db.sql
+=======
+
+--
+-- AUTO_INCREMENT for table `section_subject_teachers`
+--
+ALTER TABLE `section_subject_teachers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+>>>>>>> a9de058de607b37c56ade897aecad1d8f60e71e2:gyan_school_db.sql
 
 --
 -- AUTO_INCREMENT for table `staff`
@@ -1278,7 +1352,11 @@ ALTER TABLE `staff`
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
+<<<<<<< HEAD:frontend-web/gyan_school_db.sql
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+=======
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+>>>>>>> a9de058de607b37c56ade897aecad1d8f60e71e2:gyan_school_db.sql
 
 --
 -- AUTO_INCREMENT for table `student_transport`
@@ -1339,7 +1417,11 @@ ALTER TABLE `transport_routes`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
+<<<<<<< HEAD:frontend-web/gyan_school_db.sql
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+=======
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+>>>>>>> a9de058de607b37c56ade897aecad1d8f60e71e2:gyan_school_db.sql
 
 --
 -- AUTO_INCREMENT for table `visitors`
@@ -1486,6 +1568,14 @@ ALTER TABLE `payroll`
 --
 ALTER TABLE `sections`
   ADD CONSTRAINT `sections_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `section_subject_teachers`
+--
+ALTER TABLE `section_subject_teachers`
+  ADD CONSTRAINT `fk_section_subject_teacher_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_section_subject_teacher_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_section_subject_teacher_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `staff`
