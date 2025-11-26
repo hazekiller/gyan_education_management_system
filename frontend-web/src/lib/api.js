@@ -45,9 +45,16 @@ api.interceptors.response.use(
 const toFormData = (data) => {
   const formData = new FormData();
   Object.keys(data).forEach((key) => {
-    if (data[key] !== null && data[key] !== undefined) {
-      if (key === "attachments" && Array.isArray(data[key])) {
-        data[key].forEach((file) => formData.append("attachments", file));
+    if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
+      if (key === "attachments" && data[key]) {
+        // Handle file uploads
+        if (data[key] instanceof FileList) {
+          Array.from(data[key]).forEach((file) =>
+            formData.append("attachments", file)
+          );
+        } else if (Array.isArray(data[key])) {
+          data[key].forEach((file) => formData.append("attachments", file));
+        }
       } else {
         formData.append(key, data[key]);
       }
@@ -296,6 +303,15 @@ export const assignmentsAPI = {
     }),
 
   getAll: (params) => api.get("/assignments", { params }),
+
+  getById: (id) => api.get(`/assignments/${id}`),
+
+  update: (id, data) =>
+    api.put(`/assignments/${id}`, toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  delete: (id) => api.delete(`/assignments/${id}`),
 };
 
 
