@@ -45,6 +45,8 @@ const getAllTeachers = async (req, res) => {
   }
 };
 
+
+
 // ---------------------
 // GET TEACHER BY ID
 // ---------------------
@@ -256,15 +258,111 @@ const getTeacherSchedule = async (req, res) => {
   }
 };
 
+
 // ---------------------
-// EXPORT
+// GET ROLE-SPECIFIC SCHEDULE
 // ---------------------
+const getSchedule = async (req, res) => {
+  try {
+    const user = req.user; // set by authMiddleware
+    const { day_of_week, academic_year } = req.query;
+
+    let query = `
+      SELECT tt.*, 
+        c.name AS class_name, 
+        c.grade_level,
+        sec.name AS section_name, 
+        s.name AS subject_name,
+        s.code AS subject_code,
+        t.first_name AS teacher_first_name,
+        t.last_name AS teacher_last_name
+      FROM timetable tt
+      LEFT JOIN classes c ON tt.class_id = c.id
+      LEFT JOIN sections sec ON tt.section_id = sec.id
+      LEFT JOIN subjects s ON tt.subject_id = s.id
+      LEFT JOIN teachers t ON tt.teacher_id = t.id
+      WHERE tt.is_active = 1
+    `;
+    const params = [];
+
+    // Role-based filtering
+    if (user.role === 'teacher') {
+      query += ' AND tt.teacher_id = ?';
+      params.push(user.id);
+    } else if (user.role === 'student') {
+      query += ' AND tt.class_id = ? AND tt.section_id = ?';
+      params.push(user.class_id, user.section_id);
+    }
+    // Admins (super_admin, principal) see all schedules
+
+    // Optional filters
+    if (day_of_week) {
+      query += ' AND tt.day_of_week = ?';
+      params.push(day_of_week);
+    }
+    if (academic_year) {
+      query += ' AND tt.academic_year = ?';
+      params.push(academic_year);
+    }
+
+    query += `
+      ORDER BY FIELD(tt.day_of_week, 'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'), tt.start_time
+    `;
+
+    const [schedule] = await pool.query(query, params);
+    res.json({ success: true, count: schedule.length, data: schedule });
+  } catch (error) {
+    console.error('Get schedule error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch schedule', error: error.message });
+  }
+};
+
+// ---------------------
+// GET SINGLE PERIOD DETAIL
+// ---------------------
+const getScheduleDetail = async (req, res) => {
+  try {
+    const { id } = req.params; // timetable id
+
+    const query = `
+      SELECT tt.*, 
+        c.name AS class_name, 
+        c.grade_level,
+        sec.name AS section_name, 
+        s.name AS subject_name,
+        s.code AS subject_code,
+        t.first_name AS teacher_first_name,
+        t.last_name AS teacher_last_name
+      FROM timetable tt
+      LEFT JOIN classes c ON tt.class_id = c.id
+      LEFT JOIN sections sec ON tt.section_id = sec.id
+      LEFT JOIN subjects s ON tt.subject_id = s.id
+      LEFT JOIN teachers t ON tt.teacher_id = t.id
+      WHERE tt.id = ? AND tt.is_active = 1
+    `;
+
+    const [periods] = await pool.query(query, [id]);
+
+    if (!periods.length) {
+      return res.status(404).json({ success: false, message: 'Period not found' });
+    }
+
+    res.json({ success: true, data: periods[0] });
+  } catch (err) {
+    console.error('Get schedule detail error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch period detail', error: err.message });
+  }
+};
+
 module.exports = {
   getAllTeachers,
   getTeacherById,
   createTeacher,
   updateTeacher,
   deleteTeacher,
-  getTeacherSchedule
+  getSchedule,
+  getScheduleDetail,
+  getTeacherSchedule, 
 };
+
 
