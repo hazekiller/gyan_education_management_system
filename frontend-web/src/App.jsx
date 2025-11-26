@@ -24,6 +24,8 @@ import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ClassDetails from "./pages/ClassDetails";
+import TeacherSchedule from "./pages/Schedule";
+import TeacherScheduleDetail from "./pages/ScheduleDetail";
 import Subjects from './pages/Subjects';
 
 
@@ -81,6 +83,8 @@ function App() {
         <Route path="announcements" element={<Announcements />} />
         <Route path="messages" element={<Messages />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="schedule" element={<TeacherSchedule/>}/>
+        <Route path="schedule/:id" element={<TeacherScheduleDetail/>}/>
       </Route>
 
       {/* 404 */}
