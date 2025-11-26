@@ -9,7 +9,9 @@ const {
   getTeacherById,
   createTeacher,
   updateTeacher,
-  deleteTeacher
+  deleteTeacher,
+  getTeacherSchedule,
+  getScheduleDetail
 } = require('../controllers/teachersController');
 
 router.use(authenticate);
@@ -20,11 +22,15 @@ router.get('/', requirePermission('teachers', 'read'), getAllTeachers);
 // READ single
 router.get('/:id', requirePermission('teachers', 'read'), getTeacherById);
 
+// TEACHER SCHEDULE
+router.get('/:id/schedule', requirePermission('teachers', 'read'), getTeacherSchedule);
+router.get('/schedule/:periodId', requirePermission('teachers', 'read'), getScheduleDetail);
+
 // CREATE with image
 router.post(
   '/',
   requirePermission('teachers', 'create'),
-  upload.single('profile_photo'),   // 👈 MUST MATCH FRONTEND INPUT NAME
+  upload.single('profile_photo'),
   createTeacher
 );
 
@@ -32,7 +38,7 @@ router.post(
 router.put(
   '/:id',
   requirePermission('teachers', 'update'),
-  upload.single('profile_photo'),   // 👈 MUST MATCH FRONTEND INPUT NAME
+  upload.single('profile_photo'),
   updateTeacher
 );
 
