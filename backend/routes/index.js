@@ -5,17 +5,18 @@ const router = express.Router();
 const { authenticate } = require("../middleware/auth");
 
 // ===== Route Imports =====
-const authRoutes = require("./auth.routes");
-const studentsRoutes = require("./students.routes");
-const teachersRoutes = require("./teachers.routes");
-const classesRoutes = require("./classes.routes");
-const subjectsRoutes = require("./subjects.routes");
-const attendancesRoutes = require("./attendances.routes");
-const assignmentsRoutes = require("./assignments.routes");
-const messagesRoutes = require("./messages.routes");
-const dashboardRoutes = require("./dashboard.routes");
-const classSubjectsRoutes = require("./classSubjects.routes");
-const examRoutes = require("./exam.routes");
+const authRoutes = require('./auth.routes');
+const studentsRoutes = require('./students.routes');
+const teachersRoutes = require('./teachers.routes');
+const classesRoutes = require('./classes.routes');
+const subjectsRoutes = require('./subjects.routes');
+const attendancesRoutes = require('./attendances.routes');
+const assignmentsRoutes = require('./assignments.routes');
+const messagesRoutes = require('./messages.routes');
+const dashboardRoutes = require("./dashboard.routes"); 
+const classSubjectsRoutes = require("./classSubjects.routes"); 
+const examRoutes = require("./exam.routes"); 
+const announcementsRoutes = require("./announcements.routes");
 const examSchedulesRoutes = require("./examschedule.routes");
 
 // ===== PUBLIC ROUTES =====
@@ -34,6 +35,7 @@ router.use("/messages", messagesRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/class-subjects", classSubjectsRoutes);
 router.use("/exams", examRoutes);
+router.use("/announcements", announcementsRoutes);
 router.use("/exam-schedules", examSchedulesRoutes);
 
 // ===== DEFAULT ROUTE =====
