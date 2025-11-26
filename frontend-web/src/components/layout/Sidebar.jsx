@@ -6,6 +6,7 @@ import {
   UserCheck,
   ClipboardList,
   BookOpen,
+  BookText,
   FileText,
   DollarSign,
   Calendar,
@@ -35,10 +36,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     },
     {
       name: "Classes",
-      path: "/class",
+      path: "/classes",
       icon: BookOpen,
       show: hasPermission(PERMISSIONS.VIEW_EXAMS),
     },
+    {
+  name: "Subjects",
+  path: "/subjects",
+  icon: BookText, 
+  show: hasPermission(PERMISSIONS.VIEW_CLASS_SUBJECTS),
+},
     {
       name: "Students",
       path: "/students",
@@ -86,6 +93,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       path: "/announcements",
       icon: Megaphone,
       show: hasPermission(PERMISSIONS.VIEW_ANNOUNCEMENTS),
+    },
+    {
+      name: "Schedule",
+      path: "/schedule",
+      icon: Megaphone,
+      show: hasPermission(PERMISSIONS.VIEW_SCHEDULE),
     },
     {
       name: "Messages",

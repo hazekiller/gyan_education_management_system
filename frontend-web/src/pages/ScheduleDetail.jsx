@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { teachersAPI } from "../lib/api";
+import { FaChalkboardTeacher, FaClock, FaDoorOpen, FaBook } from "react-icons/fa";
 
 const TeacherScheduleDetail = () => {
   const { id } = useParams();
@@ -8,18 +9,13 @@ const TeacherScheduleDetail = () => {
   const [period, setPeriod] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   const fetchPeriod = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_URL}/my-schedule/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        params: { _: Date.now() },
-      });
-      setPeriod(res.data?.data || null);
-    } catch (err) {
-      console.error("Schedule detail fetch error:", err);
+      const res = await teachersAPI.getScheduleDetail(id);
+      setPeriod(res.data || null);
+    } catch (error) {
+      console.error("Failed to fetch schedule detail:", error);
     } finally {
       setLoading(false);
     }
@@ -29,21 +25,45 @@ const TeacherScheduleDetail = () => {
     fetchPeriod();
   }, [id]);
 
-  if (loading) return <div>Loading...</div>;
-  if (!period) return <div>Class not found.</div>;
+  if (loading) return <div className="text-center mt-10 text-gray-600">Loading details...</div>;
+  if (!period) return <div className="text-center mt-10 text-gray-500">Period not found.</div>;
 
   return (
-    <div className="p-6">
-      <button onClick={() => navigate(-1)} className="mb-4 text-blue-600 hover:underline">
+    <div className="p-6 max-w-xl mx-auto">
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-6 text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2"
+      >
         &larr; Back
       </button>
-      <h2 className="text-2xl font-bold mb-2">{period.class_name}</h2>
-      <p className="mb-1"><strong>Subject:</strong> {period.subject_name}</p>
-      <p className="mb-1"><strong>Section:</strong> {period.section_name || "N/A"}</p>
-      <p className="mb-1"><strong>Time:</strong> {period.start_time} - {period.end_time}</p>
-      <p className="mb-1"><strong>Room:</strong> {period.room_number || "N/A"}</p>
-      <p className="mb-1"><strong>Teacher:</strong> {period.teacher_name || "N/A"}</p>
-      <p className="mt-2"><strong>Description:</strong> {period.description || "No additional info"}</p>
+
+      <div className="p-6 bg-white border rounded-2xl shadow-lg hover:shadow-2xl transition">
+        <h2 className="text-3xl font-bold mb-4 text-gray-800">{period.class_name}</h2>
+
+        <div className="grid gap-3">
+          <p className="flex items-center gap-2 text-gray-700">
+            <FaBook className="text-blue-500" /> <strong>Subject:</strong> {period.subject_name}
+          </p>
+          <p className="flex items-center gap-2 text-gray-700">
+            <FaChalkboardTeacher className="text-green-500" /> <strong>Teacher:</strong> {period.teacher_name || "N/A"}
+          </p>
+          <p className="flex items-center gap-2 text-gray-700">
+            <FaClock className="text-purple-500" /> <strong>Time:</strong> {period.start_time} - {period.end_time}
+          </p>
+          <p className="flex items-center gap-2 text-gray-700">
+            <FaDoorOpen className="text-yellow-500" /> <strong>Room:</strong> {period.room_number || "N/A"}
+          </p>
+          <p className="text-gray-600">
+            <strong>Section:</strong> {period.section_name || "N/A"}
+          </p>
+        </div>
+
+        {period.description && (
+          <p className="mt-4 text-gray-700 border-t pt-3">
+            <strong>Description:</strong> {period.description}
+          </p>
+        )}
+      </div>
     </div>
   );
 };
