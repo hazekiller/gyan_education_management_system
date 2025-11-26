@@ -3,7 +3,8 @@ const pool = require("../config/database");
 // Get all announcements
 const getAllAnnouncements = async (req, res) => {
   try {
-    const { status, priority, target_audience, class_id, section_id } = req.query;
+    const { status, priority, target_audience, class_id, section_id } =
+      req.query;
 
     let query = `
       SELECT 
@@ -28,11 +29,12 @@ const getAllAnnouncements = async (req, res) => {
 
     const params = [];
 
-    if (status === 'active') {
-      query += " AND a.is_active = 1 AND (a.expires_at IS NULL OR a.expires_at > NOW())";
-    } else if (status === 'expired') {
+    if (status === "active") {
+      query +=
+        " AND a.is_active = 1 AND (a.expires_at IS NULL OR a.expires_at > NOW())";
+    } else if (status === "expired") {
       query += " AND a.expires_at IS NOT NULL AND a.expires_at <= NOW()";
-    } else if (status === 'inactive') {
+    } else if (status === "inactive") {
       query += " AND a.is_active = 0";
     }
 
@@ -86,7 +88,7 @@ const getMyAnnouncements = async (req, res) => {
 
     // Admin roles see all active announcements
     const adminRoles = ["super_admin", "principal", "vice_principal", "hod"];
-    
+
     if (adminRoles.includes(userRole)) {
       query = `
         SELECT 
@@ -357,12 +359,12 @@ const createAnnouncement = async (req, res) => {
     }
 
     // Validate priority
-    const validPriorities = ["low", "normal", "urgent"];
+    const validPriorities = ["low", "medium", "high", "urgent"];
     const announcementPriority = priority || "normal";
     if (!validPriorities.includes(announcementPriority)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid priority. Must be low, normal, or urgent",
+        message: "Invalid priority. Must be low, medium, high, or urgent",
       });
     }
 
@@ -480,7 +482,13 @@ const updateAnnouncement = async (req, res) => {
 
     // Validate target_audience if being updated
     if (updateData.target_audience) {
-      const validAudiences = ["all", "students", "teachers", "parents", "staff"];
+      const validAudiences = [
+        "all",
+        "students",
+        "teachers",
+        "parents",
+        "staff",
+      ];
       if (!validAudiences.includes(updateData.target_audience)) {
         return res.status(400).json({
           success: false,
@@ -586,7 +594,9 @@ const toggleAnnouncementStatus = async (req, res) => {
 
     res.json({
       success: true,
-      message: `Announcement ${newStatus ? "activated" : "deactivated"} successfully`,
+      message: `Announcement ${
+        newStatus ? "activated" : "deactivated"
+      } successfully`,
       data: {
         id,
         is_active: newStatus,
