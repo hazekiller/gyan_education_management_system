@@ -267,9 +267,6 @@ export const attendanceAPI = {
 export const examsAPI = {
   create: (data) => api.post("/exams", data),
   getAll: (params) => api.get("/exams", { params }),
-  enterResults: (data) => api.post("/exam-results", data),
-  create: (data) => api.post("/exams", data),
-  getAll: (params) => api.get("/exams", { params }),
   getById: (id) => api.get(`/exams/${id}`),
   update: (id, data) => api.put(`/exams/${id}`, data),
   delete: (id) => api.delete(`/exams/${id}`),
@@ -324,8 +321,126 @@ export const eventsAPI = {
 // ANNOUNCEMENTS API
 // ============================================
 export const announcementsAPI = {
+  // ==============================
+  // BASIC CRUD OPERATIONS
+  // ==============================
+  
+  /**
+   * Get all announcements with optional filters
+   * @param {object} params - Query parameters (status, priority, target_audience, class_id, section_id)
+   */
+  getAll: (params) => api.get("/announcements", { params }),
+  
+  /**
+   * Get announcement by ID
+   * @param {number} id - Announcement ID
+   */
+  getById: (id) => api.get(`/announcements/${id}`),
+  
+  /**
+   * Create a new announcement
+   * @param {object} data - { title, content, priority?, target_audience?, class_id?, section_id?, expires_at?, is_active?, published_at? }
+   */
   create: (data) => api.post("/announcements", data),
-  getAll: () => api.get("/announcements"),
+  
+  /**
+   * Update an announcement
+   * @param {number} id - Announcement ID
+   * @param {object} data - Fields to update
+   */
+  update: (id, data) => api.put(`/announcements/${id}`, data),
+  
+  /**
+   * Delete an announcement
+   * @param {number} id - Announcement ID
+   */
+  delete: (id) => api.delete(`/announcements/${id}`),
+
+  // ==============================
+  // USER-SPECIFIC ANNOUNCEMENTS
+  // ==============================
+  
+  /**
+   * Get announcements for logged-in user (role-based filtering)
+   * - Admins see all active announcements
+   * - Teachers see announcements for teachers + their classes/sections
+   * - Students see announcements for students + their class/section
+   * - Parents see announcements for parents + their children's classes/sections
+   */
+  getMyAnnouncements: () => api.get("/announcements/my-announcements"),
+  
+  /**
+   * Get announcements created by the logged-in user
+   */
+  getMyCreated: () => api.get("/announcements/my-created"),
+
+  // ==============================
+  // FILTERED ANNOUNCEMENTS
+  // ==============================
+  
+  /**
+   * Get urgent priority announcements only
+   */
+  getUrgent: () => api.get("/announcements/urgent"),
+  
+  /**
+   * Get announcements for a specific class
+   * @param {number} classId - Class ID
+   */
+  getByClass: (classId) => api.get(`/announcements/class/${classId}`),
+  
+  /**
+   * Get announcements for a specific section
+   * @param {number} sectionId - Section ID
+   */
+  getBySection: (sectionId) => api.get(`/announcements/section/${sectionId}`),
+
+  // ==============================
+  // STATUS MANAGEMENT
+  // ==============================
+  
+  /**
+   * Toggle announcement active status (activate/deactivate)
+   * @param {number} id - Announcement ID
+   */
+  toggleStatus: (id) => api.patch(`/announcements/${id}/toggle-status`),
+  
+  /**
+   * Publish an announcement (sets published_at to now and activates it)
+   * @param {number} id - Announcement ID
+   */
+  publish: (id) => api.patch(`/announcements/${id}/publish`),
+
+  // ==============================
+  // CONVENIENCE METHODS
+  // ==============================
+  
+  /**
+   * Get active announcements only
+   */
+  getActive: () => api.get("/announcements", { params: { status: "active" } }),
+  
+  /**
+   * Get expired announcements
+   */
+  getExpired: () => api.get("/announcements", { params: { status: "expired" } }),
+  
+  /**
+   * Get inactive announcements
+   */
+  getInactive: () => api.get("/announcements", { params: { status: "inactive" } }),
+  
+  /**
+   * Get announcements by target audience
+   * @param {string} audience - Target audience (all, students, teachers, parents, staff)
+   */
+  getByAudience: (audience) => api.get("/announcements", { params: { target_audience: audience } }),
+  
+  /**
+   * Get announcements by priority
+   * @param {string} priority - Priority level (low, normal, urgent)
+   */
+  getByPriority: (priority) => api.get("/announcements", { params: { priority } }),
 };
 
 
