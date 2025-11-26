@@ -95,6 +95,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       show: hasPermission(PERMISSIONS.VIEW_ANNOUNCEMENTS),
     },
     {
+      name: "Schedule",
+      path: "/schedule",
+      icon: Megaphone,
+      show: hasPermission(PERMISSIONS.VIEW_SCHEDULE),
+    },
+    {
       name: "Messages",
       path: "/messages",
       icon: MessageSquare,
