@@ -67,7 +67,7 @@ function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="class" element={<Classes />} />
+        <Route path="classes" element={<Classes />} />
         <Route path="/classes/:id" element={<ClassDetails />} />
         <Route path="/subjects" element={<Subjects />} />
 
