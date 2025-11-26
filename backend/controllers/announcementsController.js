@@ -8,12 +8,19 @@ const getAllAnnouncements = async (req, res) => {
     let query = `
       SELECT 
         a.*,
-        CONCAT(u.first_name, ' ', u.last_name) as created_by_name,
+        u.email as created_by_email,
+        COALESCE(
+          CONCAT(t.first_name, ' ', t.last_name),
+          CONCAT(st.first_name, ' ', st.last_name),
+          u.email
+        ) as created_by_name,
         c.name as class_name,
         c.grade_level,
         sec.name as section_name
       FROM announcements a
       LEFT JOIN users u ON a.created_by = u.id
+      LEFT JOIN teachers t ON u.id = t.user_id
+      LEFT JOIN staff st ON u.id = st.user_id
       LEFT JOIN classes c ON a.class_id = c.id
       LEFT JOIN sections sec ON a.section_id = sec.id
       WHERE 1=1
@@ -49,7 +56,7 @@ const getAllAnnouncements = async (req, res) => {
       params.push(section_id);
     }
 
-    query += " ORDER BY a.priority DESC, a.published_at DESC, a.created_at DESC";
+    query += " ORDER BY a.priority DESC, a.published_at DESC, a.id DESC";
 
     const [announcements] = await pool.query(query, params);
 
@@ -84,12 +91,19 @@ const getMyAnnouncements = async (req, res) => {
       query = `
         SELECT 
           a.*,
-          CONCAT(u.first_name, ' ', u.last_name) as created_by_name,
+          u.email as created_by_email,
+          COALESCE(
+            CONCAT(t.first_name, ' ', t.last_name),
+            CONCAT(st.first_name, ' ', st.last_name),
+            u.email
+          ) as created_by_name,
           c.name as class_name,
           c.grade_level,
           sec.name as section_name
         FROM announcements a
         LEFT JOIN users u ON a.created_by = u.id
+        LEFT JOIN teachers t ON u.id = t.user_id
+        LEFT JOIN staff st ON u.id = st.user_id
         LEFT JOIN classes c ON a.class_id = c.id
         LEFT JOIN sections sec ON a.section_id = sec.id
         WHERE a.is_active = 1 
@@ -101,12 +115,19 @@ const getMyAnnouncements = async (req, res) => {
       query = `
         SELECT DISTINCT
           a.*,
-          CONCAT(u.first_name, ' ', u.last_name) as created_by_name,
+          u.email as created_by_email,
+          COALESCE(
+            CONCAT(t2.first_name, ' ', t2.last_name),
+            CONCAT(st.first_name, ' ', st.last_name),
+            u.email
+          ) as created_by_name,
           c.name as class_name,
           c.grade_level,
           sec.name as section_name
         FROM announcements a
         LEFT JOIN users u ON a.created_by = u.id
+        LEFT JOIN teachers t2 ON u.id = t2.user_id
+        LEFT JOIN staff st ON u.id = st.user_id
         LEFT JOIN classes c ON a.class_id = c.id
         LEFT JOIN sections sec ON a.section_id = sec.id
         LEFT JOIN teachers t ON t.user_id = ?
@@ -127,12 +148,19 @@ const getMyAnnouncements = async (req, res) => {
       query = `
         SELECT DISTINCT
           a.*,
-          CONCAT(u.first_name, ' ', u.last_name) as created_by_name,
+          u.email as created_by_email,
+          COALESCE(
+            CONCAT(t.first_name, ' ', t.last_name),
+            CONCAT(st.first_name, ' ', st.last_name),
+            u.email
+          ) as created_by_name,
           c.name as class_name,
           c.grade_level,
           sec.name as section_name
         FROM announcements a
         LEFT JOIN users u ON a.created_by = u.id
+        LEFT JOIN teachers t ON u.id = t.user_id
+        LEFT JOIN staff st ON u.id = st.user_id
         LEFT JOIN classes c ON a.class_id = c.id
         LEFT JOIN sections sec ON a.section_id = sec.id
         JOIN students s ON s.user_id = ?
@@ -152,12 +180,19 @@ const getMyAnnouncements = async (req, res) => {
       query = `
         SELECT DISTINCT
           a.*,
-          CONCAT(u.first_name, ' ', u.last_name) as created_by_name,
+          u.email as created_by_email,
+          COALESCE(
+            CONCAT(t.first_name, ' ', t.last_name),
+            CONCAT(st.first_name, ' ', st.last_name),
+            u.email
+          ) as created_by_name,
           c.name as class_name,
           c.grade_level,
           sec.name as section_name
         FROM announcements a
         LEFT JOIN users u ON a.created_by = u.id
+        LEFT JOIN teachers t ON u.id = t.user_id
+        LEFT JOIN staff st ON u.id = st.user_id
         LEFT JOIN classes c ON a.class_id = c.id
         LEFT JOIN sections sec ON a.section_id = sec.id
         JOIN parent_student ps ON ps.parent_id = (SELECT id FROM parents WHERE user_id = ?)
@@ -178,12 +213,19 @@ const getMyAnnouncements = async (req, res) => {
       query = `
         SELECT 
           a.*,
-          CONCAT(u.first_name, ' ', u.last_name) as created_by_name,
+          u.email as created_by_email,
+          COALESCE(
+            CONCAT(t.first_name, ' ', t.last_name),
+            CONCAT(st.first_name, ' ', st.last_name),
+            u.email
+          ) as created_by_name,
           c.name as class_name,
           c.grade_level,
           sec.name as section_name
         FROM announcements a
         LEFT JOIN users u ON a.created_by = u.id
+        LEFT JOIN teachers t ON u.id = t.user_id
+        LEFT JOIN staff st ON u.id = st.user_id
         LEFT JOIN classes c ON a.class_id = c.id
         LEFT JOIN sections sec ON a.section_id = sec.id
         WHERE a.is_active = 1 
@@ -219,13 +261,19 @@ const getAnnouncementById = async (req, res) => {
       `
       SELECT 
         a.*,
-        CONCAT(u.first_name, ' ', u.last_name) as created_by_name,
         u.email as created_by_email,
+        COALESCE(
+          CONCAT(t.first_name, ' ', t.last_name),
+          CONCAT(st.first_name, ' ', st.last_name),
+          u.email
+        ) as created_by_name,
         c.name as class_name,
         c.grade_level,
         sec.name as section_name
       FROM announcements a
       LEFT JOIN users u ON a.created_by = u.id
+      LEFT JOIN teachers t ON u.id = t.user_id
+      LEFT JOIN staff st ON u.id = st.user_id
       LEFT JOIN classes c ON a.class_id = c.id
       LEFT JOIN sections sec ON a.section_id = sec.id
       WHERE a.id = ?
@@ -444,7 +492,6 @@ const updateAnnouncement = async (req, res) => {
     // Remove fields that shouldn't be updated directly
     delete updateData.id;
     delete updateData.created_by;
-    delete updateData.created_at;
 
     const fields = Object.keys(updateData);
     const values = Object.values(updateData);
@@ -601,12 +648,19 @@ const getAnnouncementsByClass = async (req, res) => {
       `
       SELECT 
         a.*,
-        CONCAT(u.first_name, ' ', u.last_name) as created_by_name,
+        u.email as created_by_email,
+        COALESCE(
+          CONCAT(t.first_name, ' ', t.last_name),
+          CONCAT(st.first_name, ' ', st.last_name),
+          u.email
+        ) as created_by_name,
         c.name as class_name,
         c.grade_level,
         sec.name as section_name
       FROM announcements a
       LEFT JOIN users u ON a.created_by = u.id
+      LEFT JOIN teachers t ON u.id = t.user_id
+      LEFT JOIN staff st ON u.id = st.user_id
       LEFT JOIN classes c ON a.class_id = c.id
       LEFT JOIN sections sec ON a.section_id = sec.id
       WHERE a.class_id = ? 
@@ -641,12 +695,19 @@ const getAnnouncementsBySection = async (req, res) => {
       `
       SELECT 
         a.*,
-        CONCAT(u.first_name, ' ', u.last_name) as created_by_name,
+        u.email as created_by_email,
+        COALESCE(
+          CONCAT(t.first_name, ' ', t.last_name),
+          CONCAT(st.first_name, ' ', st.last_name),
+          u.email
+        ) as created_by_name,
         c.name as class_name,
         c.grade_level,
         sec.name as section_name
       FROM announcements a
       LEFT JOIN users u ON a.created_by = u.id
+      LEFT JOIN teachers t ON u.id = t.user_id
+      LEFT JOIN staff st ON u.id = st.user_id
       LEFT JOIN classes c ON a.class_id = c.id
       LEFT JOIN sections sec ON a.section_id = sec.id
       WHERE a.section_id = ? 
@@ -679,12 +740,19 @@ const getUrgentAnnouncements = async (req, res) => {
       `
       SELECT 
         a.*,
-        CONCAT(u.first_name, ' ', u.last_name) as created_by_name,
+        u.email as created_by_email,
+        COALESCE(
+          CONCAT(t.first_name, ' ', t.last_name),
+          CONCAT(st.first_name, ' ', st.last_name),
+          u.email
+        ) as created_by_name,
         c.name as class_name,
         c.grade_level,
         sec.name as section_name
       FROM announcements a
       LEFT JOIN users u ON a.created_by = u.id
+      LEFT JOIN teachers t ON u.id = t.user_id
+      LEFT JOIN staff st ON u.id = st.user_id
       LEFT JOIN classes c ON a.class_id = c.id
       LEFT JOIN sections sec ON a.section_id = sec.id
       WHERE a.priority = 'urgent' 
@@ -725,7 +793,7 @@ const getMyCreatedAnnouncements = async (req, res) => {
       LEFT JOIN classes c ON a.class_id = c.id
       LEFT JOIN sections sec ON a.section_id = sec.id
       WHERE a.created_by = ?
-      ORDER BY a.created_at DESC
+      ORDER BY a.published_at DESC, a.id DESC
     `,
       [userId]
     );
