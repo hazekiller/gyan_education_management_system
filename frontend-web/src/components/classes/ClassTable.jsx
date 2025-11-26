@@ -279,3 +279,4 @@ const ClassTable = ({ classes, isLoading, onRefetch, teachers }) => {
 };
 
 export default ClassTable;
+

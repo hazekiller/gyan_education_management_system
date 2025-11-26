@@ -11,14 +11,12 @@ import {
   TrendingUp,
   FileText,
 } from "lucide-react";
-import { dashboardAPI } from "../../lib/api";
+import api, { dashboardAPI } from "../../lib/api";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../store/slices/authSlice";
 import toast from "react-hot-toast";
-import axios from "axios";
 import { usePermission } from "../../hooks/usePermission";
 import { PERMISSIONS } from "../../utils/rbac";
-
 
 const TeacherDashboard = () => {
   const navigate = useNavigate();
@@ -29,123 +27,62 @@ const TeacherDashboard = () => {
   const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
+  try {
+    setLoading(true);
+
+    let finalStats = {};
+    let finalStudents = 0;
+    let finalSchedule = [];
+
+    // 1️⃣ Dashboard Stats
     try {
-      setLoading(true);
+      const statsRes = await dashboardAPI.getStats(hasPermission(PERMISSIONS.VIEW_ALL_STATS), currentUser.id);
+      finalStats = statsRes.data || {};
+    } catch (err) {
+      console.error("Stats fetch error:", err);
+    }
 
-      // -----------------------------
-      // 1️⃣ Fetch dashboard stats
-      // -----------------------------
-      const statsEndpoint = hasPermission(PERMISSIONS.VIEW_ALL_STATS)
-        ? `${API_URL}/dashboard/all-stats`
-        : `${API_URL}/dashboard/stats`;
-
-      let statsData = {};
+    // 2️⃣ Students Count
+    if (hasPermission(PERMISSIONS.VIEW_STUDENTS)) {
       try {
-        const statsResponse = await axios.get(statsEndpoint, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Cache-Control": "no-cache",
-          },
-          params: {
-            ...(hasPermission(PERMISSIONS.VIEW_ALL_STATS)
-              ? {}
-              : { teacherId: currentUser.id }),
-            _: Date.now(), // cache buster
-          },
+        const studentsRes = await api.get("/students", {
+          params: { teacherId: currentUser.id },
         });
 
-        statsData = statsResponse.data;
+        const list = studentsRes.data?.data || studentsRes.data || [];
+        finalStudents = Array.isArray(list) ? list.length : 0;
       } catch (err) {
-        console.error("Stats fetch error:", err);
-        statsData = {};
+        console.error("Students fetch error:", err);
       }
-
-      // -----------------------------
-      // 2️⃣ Fetch students count
-      // -----------------------------
-      let studentsCount = 0;
-      if (hasPermission(PERMISSIONS.VIEW_STUDENTS)) {
-        try {
-          const studentsRes = await axios.get(`${API_URL}/students`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-              "Cache-Control": "no-cache",
-            },
-            params: {
-              teacherId: currentUser.id,
-              _: Date.now(),
-            },
-          });
-
-          // Adjust this based on API structure: studentsRes.data.data or studentsRes.data
-          studentsCount = Array.isArray(studentsRes.data.data)
-            ? studentsRes.data.data.length
-            : Array.isArray(studentsRes.data)
-            ? studentsRes.data.length
-            : 0;
-        } catch (err) {
-          console.error("Students fetch error:", err);
-          studentsCount = 0;
-        }
-      }
-
-      // -----------------------------
-      // 3️⃣ Fetch teacher schedule
-      // -----------------------------
-      let scheduleData = [];
-      try {
-        // Use the correct backend endpoint for teacher schedule
-        const scheduleRes = await axios.get(
-          `${API_URL}/teachers/${currentUser.id}/schedule`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-              "Cache-Control": "no-cache",
-            },
-            params: { _: Date.now() },
-          }
-        );
-
-        scheduleData = scheduleRes.data?.data || [];
-      } catch (err) {
-        console.warn("Schedule fetch error:", err);
-        scheduleData = [];
-      }
-
-      // -----------------------------
-      // 4️⃣ Update state
-      // -----------------------------
-      setStats({
-        ...statsData,
-        students: studentsCount,
-      });
-      setSchedule(scheduleData);
-      const [statsResponse, scheduleResponse] = await Promise.all([
-        dashboardAPI.getStats().catch(() => null),
-        axios.get(`${import.meta.env.VITE_API_URL}/my-schedule`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }),
-      ]);
-
-      // Set stats
-      if (statsResponse?.data) {
-        setStats(statsResponse.data);
-      }
-      setSchedule(scheduleResponse.data.data || []);
-    } catch (error) {
-      console.error("Dashboard fetch error:", error);
-      toast.error("Failed to fetch dashboard data");
-    } finally {
-      setLoading(false);
     }
-  };
+
+    // 3️⃣ Teacher Schedule
+    try {
+      const scheduleRes = await api.get(`/teachers/${currentUser.id}/schedule`);
+      finalSchedule = scheduleRes.data?.data || [];
+    } catch (err) {
+      console.error("Schedule fetch error:", err);
+    }
+
+    // UPDATE UI
+    setStats({
+      ...finalStats,
+      students: finalStudents,
+    });
+    setSchedule(finalSchedule);
+  } catch (error) {
+    console.error("Dashboard fetch error:", error);
+    toast.error("Failed to load dashboard data");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Helper: Get today's schedule
   const getTodaySchedule = () => {
