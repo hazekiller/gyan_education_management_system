@@ -1,21 +1,35 @@
 // File: frontend-web/vite.config.js
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    nodePolyfills({
+      // To polyfill `node:` protocol imports.
+      protocolImports: true,
+      // To polyfill globals like Buffer and process
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+    }),
+  ],
   server: {
     port: 5173,
     proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
+      "/api": {
+        target: "http://localhost:5000",
         changeOrigin: true,
       },
-      '/socket.io': {
-        target: 'http://localhost:5000',
+      "/socket.io": {
+        target: "http://localhost:5000",
         changeOrigin: true,
         ws: true,
-      }
-    }
-  }
-})
+      },
+    },
+  },
+});
