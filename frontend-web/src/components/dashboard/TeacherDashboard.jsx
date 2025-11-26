@@ -15,6 +15,7 @@ import { dashboardAPI } from '../../lib/api';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../store/slices/authSlice';
 import toast from 'react-hot-toast';
+
 import axios from 'axios';
 
 const TeacherDashboard = () => {
@@ -31,13 +32,16 @@ const TeacherDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [statsResponse, scheduleResponse] = await Promise.all([
-        dashboardAPI.getStats(),
+        dashboardAPI.getStats().catch(() => null),
         axios.get(`${import.meta.env.VITE_API_URL}/my-schedule`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        })
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }),
       ]);
-      
-      setStats(statsResponse.data);
+
+      // Set stats
+      if (statsResponse?.data) {
+        setStats(statsResponse.data);
+      }
       setSchedule(scheduleResponse.data.data || []);
     } catch (error) {
       toast.error('Failed to fetch dashboard data');

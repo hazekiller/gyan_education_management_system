@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -15,19 +15,26 @@ import {
   Building,
   UserCheck,
   Plus,
+  Trash2,
+  BookText,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { classesAPI, teachersAPI, subjectsAPI } from "../lib/api";
 import SectionTeachersManager from "../components/sections/SectionTeachersManager";
+import ClassSubjectsManager from "../components/classes/ClassSubjectsManager";
 import Modal from "../components/common/Modal";
-// import toast from "react-hot-toast";
+import toast from "react-hot-toast";
 
 const ClassDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedSection, setSelectedSection] = useState(null);
   const [showSectionTeachersModal, setShowSectionTeachersModal] =
     useState(false);
+  const [showClassSubjectsModal, setShowClassSubjectsModal] = useState(false);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["class", id],
@@ -49,10 +56,20 @@ const ClassDetails = () => {
     queryFn: () => subjectsAPI.getAll(),
   });
 
+  // Fetch class subjects
+  const { data: classSubjectsData, isLoading: classSubjectsLoading } = useQuery(
+    {
+      queryKey: ["class-subjects", id],
+      queryFn: () => classesAPI.getClassSubjects(id),
+      enabled: !!id,
+    }
+  );
+
   const classData = data?.data;
   const students = studentsData?.data || [];
   const teachers = teachersData?.data || [];
   const subjects = subjectsData?.data || [];
+  const classSubjects = classSubjectsData?.data || [];
 
   const handleManageSectionTeachers = (section) => {
     setSelectedSection(section);
@@ -77,6 +94,7 @@ const ClassDetails = () => {
 
   const tabs = [
     { id: "overview", label: "Overview", icon: BookOpen },
+    { id: "subjects", label: "Subjects", icon: BookText }, // NEW TAB
     { id: "students", label: "Students", icon: Users },
     { id: "teachers", label: "Teachers", icon: GraduationCap },
     { id: "sections", label: "Sections", icon: Building },
@@ -209,61 +227,39 @@ const ClassDetails = () => {
             {/* Class Teacher Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                Class Teacher Information (Legacy)
+                Class Teacher
               </h3>
-
-              {classData.class_teacher_name ? (
-                <>
+              {classData.class_teacher ? (
+                <div className="bg-purple-50 rounded-lg p-4">
                   <div className="flex items-start space-x-3">
-                    <User className="w-5 h-5 text-gray-400 mt-1" />
-                    <div>
-                      <p className="text-sm text-gray-600">Name</p>
-                      <p className="font-medium text-gray-900">
-                        {classData.class_teacher_name}
-                      </p>
+                    <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                      <User className="w-6 h-6 text-purple-600" />
                     </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
-                    <User className="w-5 h-5 text-gray-400 mt-1" />
-                    <div>
-                      <p className="text-sm text-gray-600">Employee ID</p>
-                      <p className="font-medium text-gray-900">
-                        {classData.teacher_employee_id}
-                      </p>
-                    </div>
-                  </div>
-
-                  {classData.teacher_email && (
-                    <div className="flex items-start space-x-3">
-                      <Mail className="w-5 h-5 text-gray-400 mt-1" />
-                      <div>
-                        <p className="text-sm text-gray-600">Email</p>
-                        <p className="font-medium text-gray-900">
-                          {classData.teacher_email}
-                        </p>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">
+                        {classData.class_teacher.first_name}{" "}
+                        {classData.class_teacher.last_name}
+                      </h4>
+                      <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                        <span className="flex items-center">
+                          <Mail className="w-4 h-4 mr-1" />
+                          {classData.class_teacher.email}
+                        </span>
+                        {classData.class_teacher.phone && (
+                          <span className="flex items-center">
+                            <Phone className="w-4 h-4 mr-1" />
+                            {classData.class_teacher.phone}
+                          </span>
+                        )}
                       </div>
                     </div>
-                  )}
-
-                  {classData.teacher_phone && (
-                    <div className="flex items-start space-x-3">
-                      <Phone className="w-5 h-5 text-gray-400 mt-1" />
-                      <div>
-                        <p className="text-sm text-gray-600">Phone</p>
-                        <p className="font-medium text-gray-900">
-                          {classData.teacher_phone}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </>
+                  </div>
+                </div>
               ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-lg">
-                  <User className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-500">No class teacher assigned</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Class teachers are now managed at section level
+                <div className="text-center py-6 bg-gray-50 rounded-lg">
+                  <User className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-500 text-sm">
+                    No class teacher assigned
                   </p>
                 </div>
               )}
@@ -275,18 +271,18 @@ const ClassDetails = () => {
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-md">
         <div className="border-b border-gray-200">
-          <nav className="flex -mb-px">
+          <nav className="-mb-px flex space-x-8 px-6">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-6 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                  className={`${
                     activeTab === tab.id
                       ? "border-purple-500 text-purple-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
                 >
                   <Icon className="w-5 h-5" />
                   <span>{tab.label}</span>
@@ -300,13 +296,13 @@ const ClassDetails = () => {
           {/* Overview Tab */}
           {activeTab === "overview" && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+              <div className="bg-blue-50 rounded-lg p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-blue-600 font-medium">
                       Total Students
                     </p>
-                    <p className="text-3xl font-bold text-blue-900">
+                    <p className="text-3xl font-bold text-blue-900 mt-2">
                       {classData.student_count || 0}
                     </p>
                   </div>
@@ -314,13 +310,13 @@ const ClassDetails = () => {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
+              <div className="bg-purple-50 rounded-lg p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-purple-600 font-medium">
-                      Total Sections
+                      Sections
                     </p>
-                    <p className="text-3xl font-bold text-purple-900">
+                    <p className="text-3xl font-bold text-purple-900 mt-2">
                       {classData.sections?.length || 0}
                     </p>
                   </div>
@@ -328,19 +324,125 @@ const ClassDetails = () => {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+              <div className="bg-green-50 rounded-lg p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-green-600 font-medium">
-                      Subject Teachers
+                      Subjects
                     </p>
-                    <p className="text-3xl font-bold text-green-900">
-                      {classData.subject_teachers?.length || 0}
+                    <p className="text-3xl font-bold text-green-900 mt-2">
+                      {classSubjects.length || 0}
                     </p>
                   </div>
-                  <GraduationCap className="w-12 h-12 text-green-400" />
+                  <BookText className="w-12 h-12 text-green-400" />
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* NEW: Subjects Tab */}
+          {activeTab === "subjects" && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Class Subjects ({classSubjects.length})
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Manage subjects and assign teachers for this class
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowClassSubjectsModal(true)}
+                  className="btn btn-primary flex items-center space-x-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Manage Subjects</span>
+                </button>
+              </div>
+
+              {classSubjectsLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="loading"></div>
+                </div>
+              ) : classSubjects.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {classSubjects.map((subject) => (
+                    <div
+                      key={subject.assignment_id}
+                      className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-100 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <BookText className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">
+                              {subject.subject_name}
+                            </h4>
+                            <span className="text-xs text-gray-500">
+                              {subject.subject_code}
+                            </span>
+                          </div>
+                        </div>
+                        {subject.is_active === 1 ? (
+                          <CheckCircle className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <XCircle className="w-5 h-5 text-gray-400" />
+                        )}
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Teacher:</span>
+                          <span className="font-medium text-gray-900">
+                            {subject.teacher_first_name
+                              ? `${subject.teacher_first_name} ${subject.teacher_last_name}`
+                              : "Not assigned"}
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Academic Year:</span>
+                          <span className="font-medium text-gray-900">
+                            {subject.academic_year}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-blue-100">
+                        <p className="text-xs text-gray-600 mb-2">
+                          Applied to all sections by default
+                        </p>
+                        <button
+                          onClick={() => setShowClassSubjectsModal(true)}
+                          className="w-full btn btn-sm btn-outline text-xs"
+                        >
+                          Edit Assignment
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                  <BookText className="w-16 h-16 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium mb-1">
+                    No subjects assigned yet
+                  </p>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Start by adding subjects to this class
+                  </p>
+                  <button
+                    onClick={() => setShowClassSubjectsModal(true)}
+                    className="btn btn-primary inline-flex items-center space-x-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Subjects</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -351,11 +453,10 @@ const ClassDetails = () => {
                 <h3 className="text-lg font-semibold text-gray-900">
                   Students ({students.length})
                 </h3>
-                <button className="btn btn-primary btn-sm">Add Student</button>
               </div>
 
               {studentsLoading ? (
-                <div className="text-center py-8">
+                <div className="flex justify-center py-8">
                   <div className="loading"></div>
                 </div>
               ) : students.length > 0 ? (
@@ -363,33 +464,23 @@ const ClassDetails = () => {
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Roll No
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Student
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Name
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Section
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Email
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Status
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {students.map((student) => (
-                        <tr
-                          key={student.id}
-                          className="hover:bg-gray-50 cursor-pointer"
-                          onClick={() => navigate(`/students/${student.id}`)}
-                        >
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                            {student.roll_number || "N/A"}
-                          </td>
+                        <tr key={student.id} className="hover:bg-gray-50">
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
@@ -590,8 +681,27 @@ const ClassDetails = () => {
           />
         )}
       </Modal>
+
+      {/* Class Subjects Modal */}
+      <Modal
+        isOpen={showClassSubjectsModal}
+        onClose={() => setShowClassSubjectsModal(false)}
+        title={`Manage Subjects - ${classData.name}`}
+        size="xlarge"
+      >
+        <ClassSubjectsManager
+          classId={id}
+          classData={classData}
+          teachers={teachers}
+          subjects={subjects}
+          onClose={() => {
+            setShowClassSubjectsModal(false);
+            queryClient.invalidateQueries(["class-subjects", id]);
+          }}
+        />
+      </Modal>
     </div>
   );
 };
 
-export default ClassDetails;
+export default ClassDetails;  

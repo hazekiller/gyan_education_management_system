@@ -174,7 +174,73 @@ export const classesAPI = {
     api.put(`/classes/section-subject-teachers/${assignmentId}`, data),
   removeSectionSubjectTeacher: (assignmentId) =>
     api.delete(`/classes/section-subject-teachers/${assignmentId}`),
+
+ // ============================================
+  // CLASS SUBJECTS MANAGEMENT (NEW)
+  // ============================================
+  
+  /**
+   * Get all subjects assigned to a class
+   * @param {number} classId - The class ID
+   * @param {object} params - Query parameters (academic_year, is_active)
+   */
+  getClassSubjects: (classId, params) => 
+    api.get(`/class-subjects/class/${classId}`, { params }),
+  
+  /**
+   * Get subjects available for assignment (not yet assigned to class)
+   * @param {number} classId - The class ID
+   * @param {object} params - Query parameters (academic_year)
+   */
+  getAvailableSubjects: (classId, params) => 
+    api.get(`/class-subjects/available/${classId}`, { params }),
+  
+  /**
+   * Assign a single subject to a class
+   * @param {object} data - { class_id, subject_id, teacher_id?, academic_year? }
+   */
+  assignSubjectToClass: (data) => 
+    api.post('/class-subjects/assign', data),
+  
+  /**
+   * Assign multiple subjects to a class at once
+   * @param {object} data - { class_id, subjects: [{ subject_id, teacher_id? }], academic_year? }
+   */
+  assignMultipleSubjects: (data) => 
+    api.post('/class-subjects/assign-multiple', data),
+  
+  /**
+   * Update a class subject assignment (change teacher, status, etc.)
+   * @param {number} assignmentId - The class_subjects assignment ID
+   * @param {object} data - { teacher_id?, is_active? }
+   */
+  updateClassSubject: (assignmentId, data) => 
+    api.put(`/class-subjects/${assignmentId}`, data),
+  
+  /**
+   * Remove a subject from a class
+   * @param {number} assignmentId - The class_subjects assignment ID
+   */
+  removeSubjectFromClass: (assignmentId) => 
+    api.delete(`/class-subjects/${assignmentId}`),
+  
+  /**
+   * Get subjects for a specific section (with section-specific teachers)
+   * @param {number} sectionId - The section ID
+   * @param {object} params - Query parameters (academic_year)
+   */
+  getSectionSubjects: (sectionId, params) => 
+    api.get(`/class-subjects/section/${sectionId}`, { params }),
+  
+  /**
+   * Assign a teacher to a section-subject (overrides class default)
+   * @param {object} data - { section_id, subject_id, teacher_id, academic_year? }
+   */
+  assignTeacherToSectionSubject: (data) => 
+    api.post('/class-subjects/section-teacher', data),
 };
+
+
 
 
 

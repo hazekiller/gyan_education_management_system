@@ -24,6 +24,8 @@ import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ClassDetails from "./pages/ClassDetails";
+import Subjects from './pages/Subjects';
+
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -65,6 +67,8 @@ function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="class" element={<Classes />} />
         <Route path="/classes/:id" element={<ClassDetails />} />
+        <Route path="/subjects" element={<Subjects />} />
+
         <Route path="students" element={<Students />} />
         <Route path="students/:id" element={<StudentDetails />} />
         <Route path="teachers" element={<Teachers />} />
