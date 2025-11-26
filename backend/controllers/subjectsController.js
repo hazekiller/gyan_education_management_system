@@ -3,7 +3,7 @@ const pool = require('../config/database');
 // Get all subjects
 const getAllSubjects = async (req, res) => {
   try {
-    const { class_id, status } = req.query;
+    const { class_id, status, search } = req.query;
     
     let query = `
       SELECT s.*, 
@@ -15,14 +15,25 @@ const getAllSubjects = async (req, res) => {
     
     const params = [];
     
+    // FIX: Change status to is_active
     if (status) {
-      query += ' AND s.status = ?';
-      params.push(status);
+      if (status === 'active') {
+        query += ' AND s.is_active = 1';
+      } else if (status === 'inactive') {
+        query += ' AND s.is_active = 0';
+      }
     }
     
-    if (class_id) {
-      query += ' AND s.class_id = ?';
-      params.push(class_id);
+    // Remove class_id filter (subjects are global, not tied to classes)
+    // if (class_id) {
+    //   query += ' AND s.class_id = ?';
+    //   params.push(class_id);
+    // }
+
+    // NEW: Add search filter
+    if (search) {
+      query += ' AND (s.name LIKE ? OR s.code LIKE ?)';
+      params.push(`%${search}%`, `%${search}%`);
     }
     
     query += ' GROUP BY s.id ORDER BY s.name';
@@ -91,13 +102,7 @@ const createSubject = async (req, res) => {
     const {
       name,
       code,
-      class_id,
-      description,
-      theory_marks,
-      practical_marks,
-      pass_marks,
-      type,
-      status
+      description
     } = req.body;
     
     if (!name || !code) {
@@ -121,21 +126,9 @@ const createSubject = async (req, res) => {
     }
     
     const [result] = await pool.query(
-      `INSERT INTO subjects (
-        name, code, class_id, description, theory_marks, practical_marks, 
-        pass_marks, type, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        name, 
-        code, 
-        class_id || null, 
-        description || null, 
-        theory_marks || 70, 
-        practical_marks || 30, 
-        pass_marks || 35, 
-        type || 'core', 
-        status || 'active'
-      ]
+      `INSERT INTO subjects (name, code, description, is_active) 
+       VALUES (?, ?, ?, 1)`,
+      [name, code, description || null]
     );
     
     res.status(201).json({
@@ -156,7 +149,6 @@ const createSubject = async (req, res) => {
     });
   }
 };
-
 // Update subject
 const updateSubject = async (req, res) => {
   try {
