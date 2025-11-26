@@ -276,6 +276,18 @@ export const examsAPI = {
   enterResults: (data) => api.post("/exam-results", data),
 };
 
+// ============================================
+// EXAM SCHEDULE API
+// ============================================
+export const examScheduleAPI = {
+  getExamSchedules: (examId) => api.get(`/exam-schedules/exam/${examId}`),
+  getById: (id) => api.get(`/exam-schedules/${id}`),
+  create: (data) => api.post('/exam-schedules', data),
+  createBulk: (data) => api.post('/exam-schedules/bulk', data),
+  update: (id, data) => api.put(`/exam-schedules/${id}`, data),
+  delete: (id) => api.delete(`/exam-schedules/${id}`),
+  deleteExamSchedules: (examId) => api.delete(`/exam-schedules/exam/${examId}`),
+};
 
 // ============================================
 // ASSIGNMENTS API
