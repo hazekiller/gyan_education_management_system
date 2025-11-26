@@ -14,9 +14,9 @@ import {
   Award,
   Target,
   Activity,
-  Plus,
 } from "lucide-react";
 import { examsAPI } from "../lib/api";
+import ExamScheduleSection from "../components/exams/ExamScheduleSection";
 
 const ExamDetails = () => {
   const { id } = useParams();
@@ -175,7 +175,7 @@ const ExamDetails = () => {
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
         {/* Header with gradient */}
         <div
-          className={`${examStatus.bgColor} bg-gradient-to-r from-blue-600 to-blue-700 h-28 relative`}
+          className={`${examStatus.bgColor} bg-gradient-to-r from-blue-600 to-blue-700 h-24 relative`}
         >
           <div className="absolute inset-0 bg-black opacity-10"></div>
           <div className="absolute bottom-6 left-6 right-6">
@@ -195,7 +195,7 @@ const ExamDetails = () => {
         </div>
 
         <div className="px-8 pb-8">
-          <div className="flex flex-col md:flex-row md:items-end  mb-6">
+          <div className="flex flex-col md:flex-row md:items-end mb-6">
             <div className="w-32 h-32 rounded-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-4 md:mb-0 shadow-2xl">
               <BookOpen className="w-16 h-16 text-white" />
             </div>
@@ -485,26 +485,8 @@ const ExamDetails = () => {
         </div>
       </div>
 
-      {/* Exam Schedule Section (Placeholder) */}
-      <div className="bg-white rounded-xl shadow-lg p-8">
-        <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-          <Calendar className="w-6 h-6 mr-2 text-blue-600" />
-          Exam Schedule
-        </h3>
-        <div className="text-center py-12">
-          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Calendar className="w-10 h-10 text-gray-400" />
-          </div>
-          <p className="text-gray-500 mb-6 text-lg">No schedule added yet</p>
-          <button
-            className="btn btn-primary shadow-lg hover:shadow-xl transition-shadow"
-            onClick={() => navigate(`/exams/${id}/schedule/create`)}
-          >
-            <Plus className="w-5 h-5 mr-2 inline" />
-            Add Schedule
-          </button>
-        </div>
-      </div>
+      {/* Exam Schedule Section */}
+      <ExamScheduleSection examId={id} examData={exam} />
     </div>
   );
 };
