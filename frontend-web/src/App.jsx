@@ -27,6 +27,7 @@ import ClassDetails from "./pages/ClassDetails";
 import TeacherSchedule from "./pages/Schedule";
 import TeacherScheduleDetail from "./pages/ScheduleDetail";
 import Subjects from './pages/Subjects';
+import ExamDetails from "./pages/ExamDetails";
 
 
 // Protected Route Component
@@ -77,6 +78,7 @@ function App() {
         <Route path="teachers/:id" element={<TeacherDetails />} />
         <Route path="attendance" element={<Attendance />} />
         <Route path="exams" element={<Exams />} />
+        <Route path="exams/:id" element={<ExamDetails />} />
         <Route path="assignments" element={<Assignments />} />
         <Route path="fees" element={<FeeManagement />} />
         <Route path="events" element={<Events />} />
