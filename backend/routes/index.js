@@ -15,6 +15,7 @@ const assignmentsRoutes = require('./assignments.routes');
 const messagesRoutes = require('./messages.routes');
 const dashboardRoutes = require("./dashboard.routes"); 
 const classSubjectsRoutes = require("./classSubjects.routes"); 
+const examRoutes = require("./exam.routes"); 
 
 // ===== PUBLIC ROUTES =====
 router.use('/auth', authRoutes);
@@ -31,6 +32,7 @@ router.use('/assignments', assignmentsRoutes);
 router.use('/messages', messagesRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/class-subjects", classSubjectsRoutes);
+router.use("/exams", examRoutes);
 
 // ===== DEFAULT ROUTE =====
 router.get('/', (req, res) => {
