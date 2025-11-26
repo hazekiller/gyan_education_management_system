@@ -1,29 +1,29 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import { teachersAPI } from "../lib/api";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../store/slices/authSlice";
+
+const subjectColors = [
+  "border-red-400", "border-blue-400", "border-green-400",
+  "border-yellow-400", "border-purple-400", "border-pink-400",
+];
+
+const getColor = (index) => subjectColors[index % subjectColors.length];
 
 const TeacherSchedule = () => {
   const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
-  const API_URL = import.meta.env.VITE_API_URL;
-
-  const currentUser = useSelector(selectCurrentUser); // ✅ get current user from Redux
+  const currentUser = useSelector(selectCurrentUser);
 
   const fetchSchedule = async () => {
+    if (!currentUser?.id) return;
     try {
       setLoading(true);
-
-      if (!currentUser?.id) return; // safety check
-
-      const res = await axios.get(`${API_URL}/teachers/${currentUser.id}/schedule`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        params: { _: Date.now() },
-      });
-      setSchedule(res.data?.data || []);
-    } catch (err) {
-      console.error("Schedule fetch error:", err);
+      const res = await teachersAPI.getSchedule(currentUser.id);
+      setSchedule(res.data || []);
+    } catch (error) {
+      console.error("Failed to fetch schedule:", error);
     } finally {
       setLoading(false);
     }
@@ -33,40 +33,41 @@ const TeacherSchedule = () => {
     fetchSchedule();
   }, [currentUser]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="text-center mt-10 text-gray-600">Loading schedule...</div>;
 
-  // Group schedule by day
-  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  const grouped = days.map(day => ({
+  const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const grouped = daysOfWeek.map(day => ({
     day,
     periods: schedule.filter(p => p.day_of_week.toLowerCase() === day.toLowerCase())
   }));
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Weekly Schedule</h2>
-      {grouped.map((day) => (
-        <div key={day.day} className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">{day.day}</h3>
-          {day.periods.length > 0 ? (
-            <ul className="space-y-2">
-              {day.periods.map((period) => (
-                <li key={period.id} className="p-3 border rounded flex justify-between items-center">
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">Weekly Schedule</h2>
+      {grouped.map(({ day, periods }) => (
+        <div key={day} className="mb-10">
+          <h3 className="text-2xl font-semibold mb-4 text-gray-700 border-b pb-2">{day}</h3>
+          {periods.length > 0 ? (
+            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {periods.map((period, index) => (
+                <Link
+                  to={`/schedule/${period.id}`}
+                  key={period.id}
+                  className={`p-5 border-l-8 ${getColor(index)} bg-white rounded-xl shadow hover:shadow-xl transition flex flex-col justify-between`}
+                >
                   <div>
-                    <p><strong>{period.class_name}</strong> - {period.subject_name}</p>
-                    <p>{period.start_time} - {period.end_time} | Room {period.room_number}</p>
+                    <p className="font-bold text-lg text-gray-800">{period.class_name}</p>
+                    <p className="text-gray-600 mt-1">{period.subject_name}</p>
+                    <p className="text-gray-500 text-sm mt-1">
+                      {period.start_time} - {period.end_time} | Room: {period.room_number || "N/A"}
+                    </p>
                   </div>
-                  <Link
-                    to={`/schedule/${period.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    View Detail
-                  </Link>
-                </li>
+                  <span className="mt-3 text-blue-600 hover:underline text-sm font-medium">View Details →</span>
+                </Link>
               ))}
-            </ul>
+            </div>
           ) : (
-            <p>No classes.</p>
+            <p className="text-gray-400 italic mt-2">No classes scheduled.</p>
           )}
         </div>
       ))}
@@ -75,4 +76,3 @@ const TeacherSchedule = () => {
 };
 
 export default TeacherSchedule;
-

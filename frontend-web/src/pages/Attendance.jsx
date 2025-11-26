@@ -161,7 +161,11 @@ const Attendance = () => {
 
     setSubmitting(true);
     try {
-      await attendanceAPI.mark({ attendanceRecords });
+      // FIXED: Backend expects { date, attendance_records }
+      await attendanceAPI.mark({
+        date: selectedDate,
+        attendance_records: attendanceRecords,
+      });
       toast.success("Attendance saved successfully");
       refetchAttendance();
       queryClient.invalidateQueries(["attendance-submission"]);
@@ -197,8 +201,11 @@ const Attendance = () => {
 
     setSubmitting(true);
     try {
-      // Save attendance first
-      await attendanceAPI.mark({ attendanceRecords });
+      // Save attendance first - FIXED: Backend expects { date, attendance_records }
+      await attendanceAPI.mark({
+        date: selectedDate,
+        attendance_records: attendanceRecords,
+      });
 
       // Then submit it
       await attendanceAPI.submit({

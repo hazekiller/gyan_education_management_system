@@ -26,6 +26,8 @@ import NotFound from "./pages/NotFound";
 import ClassDetails from "./pages/ClassDetails";
 import TeacherSchedule from "./pages/Schedule";
 import TeacherScheduleDetail from "./pages/ScheduleDetail";
+import Subjects from './pages/Subjects';
+
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -65,8 +67,10 @@ function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="class" element={<Classes />} />
+        <Route path="classes" element={<Classes />} />
         <Route path="/classes/:id" element={<ClassDetails />} />
+        <Route path="/subjects" element={<Subjects />} />
+
         <Route path="students" element={<Students />} />
         <Route path="students/:id" element={<StudentDetails />} />
         <Route path="teachers" element={<Teachers />} />

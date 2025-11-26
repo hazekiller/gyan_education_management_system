@@ -176,7 +176,7 @@ const TeacherDashboard = () => {
         {hasPermission(PERMISSIONS.VIEW_CLASSES) && (
           <div
             className="card hover:shadow-lg transition-shadow"
-            onClick={() => navigate("/class")}
+            onClick={() => navigate("/classes")}
           >
             <div className="flex items-center justify-between">
               <div>
