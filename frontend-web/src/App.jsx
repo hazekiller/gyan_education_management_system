@@ -28,6 +28,7 @@ import TeacherSchedule from "./pages/Schedule";
 import TeacherScheduleDetail from "./pages/ScheduleDetail";
 import Subjects from './pages/Subjects';
 import ExamDetails from "./pages/ExamDetails";
+import AssignmentDetails from "./pages/AssignmentDetails";
 
 
 // Protected Route Component
@@ -80,6 +81,7 @@ function App() {
         <Route path="exams" element={<Exams />} />
         <Route path="exams/:id" element={<ExamDetails />} />
         <Route path="assignments" element={<Assignments />} />
+        <Route path="assignments/:id" element={<AssignmentDetails />} />
         <Route path="fees" element={<FeeManagement />} />
         <Route path="events" element={<Events />} />
         <Route path="announcements" element={<Announcements />} />

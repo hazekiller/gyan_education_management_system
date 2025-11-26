@@ -1,56 +1,160 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { classesAPI } from '../../lib/api';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
+import { classesAPI, teachersAPI, subjectsAPI } from "../../lib/api";
+import { selectUserRole } from "../../store/slices/authSlice";
+import toast from "react-hot-toast";
 
-const AssignmentForm = ({ assignment = null, onSubmit, onCancel, isSubmitting }) => {
+const AssignmentForm = ({
+  assignment = null,
+  onSubmit,
+  onCancel,
+  isSubmitting,
+}) => {
+  // Get user role from Redux store
+  const userRole = useSelector(selectUserRole);
+
   const [formData, setFormData] = useState({
-    title: assignment?.title || '',
-    description: assignment?.description || '',
-    class_id: assignment?.class_id || '',
-    section_id: assignment?.section_id || '',
-    subject_id: assignment?.subject_id || '',
-    due_date: assignment?.due_date?.split('T')[0] || '',
-    total_marks: assignment?.total_marks || '',
-    attachments: null
+    title: assignment?.title || "",
+    description: assignment?.description || "",
+    class_id: assignment?.class_id || "",
+    section_id: assignment?.section_id || "",
+    subject_id: assignment?.subject_id || "",
+    due_date: assignment?.due_date?.split("T")[0] || "",
+    total_marks: assignment?.total_marks || "",
+    teacher_id: assignment?.teacher_id || "", // For admin to select teacher
+    attachments: null,
   });
 
+  // Fetch classes
   const { data: classesData } = useQuery({
-    queryKey: ['classes'],
-    queryFn: classesAPI.getAll
+    queryKey: ["classes"],
+    queryFn: classesAPI.getAll,
   });
 
+  // Fetch sections based on selected class
   const { data: sectionsData } = useQuery({
-    queryKey: ['sections', formData.class_id],
+    queryKey: ["sections", formData.class_id],
     queryFn: () => classesAPI.getSections(formData.class_id),
-    enabled: !!formData.class_id
+    enabled: !!formData.class_id,
+  });
+
+  // Fetch subjects
+  const { data: subjectsData } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: subjectsAPI.getAll,
+  });
+
+  // Fetch teachers (only for admin or super_admin)
+  const { data: teachersData } = useQuery({
+    queryKey: ["teachers"],
+    queryFn: () => teachersAPI.getAll(),
+    enabled: userRole === "admin" || userRole === "super_admin",
   });
 
   const classes = classesData?.data || [];
   const sections = sectionsData?.data || [];
+  const subjects = subjectsData?.data || [];
+  const teachers = teachersData?.data || [];
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setFormData({
-      ...formData,
-      [name]: files ? files : value
-    });
+
+    // Reset section when class changes
+    if (name === "class_id") {
+      setFormData({
+        ...formData,
+        class_id: value,
+        section_id: "",
+      });
+    } else if (name === "attachments") {
+      // Handle file input
+      setFormData({
+        ...formData,
+        [name]: files,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (!formData.title || !formData.class_id || !formData.section_id || !formData.due_date) {
-      toast.error('Please fill all required fields');
+
+    // Validate required fields
+    if (
+      !formData.title ||
+      !formData.class_id ||
+      !formData.section_id ||
+      !formData.due_date
+    ) {
+      toast.error("Please fill all required fields");
       return;
     }
 
-    onSubmit(formData);
+    // For admin, check if teacher is selected
+    if (
+      (userRole === "admin" || userRole === "super_admin") &&
+      !formData.teacher_id
+    ) {
+      toast.error("Please select a teacher");
+      return;
+    }
+
+    // Create a clean data object - only include non-empty values
+    const submitData = {
+      title: formData.title,
+      description: formData.description || "",
+      class_id: formData.class_id,
+      section_id: formData.section_id,
+      due_date: formData.due_date,
+    };
+
+    // Add optional fields only if they have values
+    if (formData.subject_id) submitData.subject_id = formData.subject_id;
+    if (formData.total_marks) submitData.total_marks = formData.total_marks;
+    if (
+      formData.teacher_id &&
+      (userRole === "admin" || userRole === "super_admin")
+    )
+      submitData.teacher_id = formData.teacher_id;
+    if (formData.attachments) submitData.attachments = formData.attachments;
+
+    onSubmit(submitData);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Teacher Selection - Only for Admin */}
+        {(userRole === "admin" || userRole === "super_admin") && (
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Teacher *
+            </label>
+            <select
+              name="teacher_id"
+              value={formData.teacher_id}
+              onChange={handleChange}
+              className="input"
+              required
+            >
+              <option value="">Select Teacher</option>
+              {teachers.map((teacher) => (
+                <option key={teacher.id} value={teacher.id}>
+                  {teacher.first_name} {teacher.last_name} - {teacher.email}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              The assignment will be created on behalf of this teacher
+            </p>
+          </div>
+        )}
+
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Assignment Title *
@@ -68,7 +172,7 @@ const AssignmentForm = ({ assignment = null, onSubmit, onCancel, isSubmitting })
 
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description *
+            Description
           </label>
           <textarea
             name="description"
@@ -77,7 +181,6 @@ const AssignmentForm = ({ assignment = null, onSubmit, onCancel, isSubmitting })
             className="input"
             rows="4"
             placeholder="Enter assignment instructions and details..."
-            required
           />
         </div>
 
@@ -124,6 +227,25 @@ const AssignmentForm = ({ assignment = null, onSubmit, onCancel, isSubmitting })
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
+            Subject
+          </label>
+          <select
+            name="subject_id"
+            value={formData.subject_id}
+            onChange={handleChange}
+            className="input"
+          >
+            <option value="">Select Subject (Optional)</option>
+            {subjects.map((subject) => (
+              <option key={subject.id} value={subject.id}>
+                {subject.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Due Date *
           </label>
           <input
@@ -132,14 +254,14 @@ const AssignmentForm = ({ assignment = null, onSubmit, onCancel, isSubmitting })
             value={formData.due_date}
             onChange={handleChange}
             className="input"
-            min={new Date().toISOString().split('T')[0]}
+            min={new Date().toISOString().split("T")[0]}
             required
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Total Marks *
+            Total Marks
           </label>
           <input
             type="number"
@@ -148,8 +270,7 @@ const AssignmentForm = ({ assignment = null, onSubmit, onCancel, isSubmitting })
             onChange={handleChange}
             className="input"
             min="1"
-            placeholder="e.g., 100"
-            required
+            placeholder="Default: 100"
           />
         </div>
 
@@ -186,7 +307,11 @@ const AssignmentForm = ({ assignment = null, onSubmit, onCancel, isSubmitting })
           className="btn btn-primary"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Creating...' : 'Create Assignment'}
+          {isSubmitting
+            ? "Creating..."
+            : assignment
+            ? "Update Assignment"
+            : "Create Assignment"}
         </button>
       </div>
     </form>
