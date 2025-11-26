@@ -105,7 +105,7 @@ const ClassDetails = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <button
-          onClick={() => navigate("/class")}
+          onClick={() => navigate("/classesx")}
           className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-5 h-5" />

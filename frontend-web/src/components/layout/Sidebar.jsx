@@ -36,7 +36,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     },
     {
       name: "Classes",
-      path: "/class",
+      path: "/classes",
       icon: BookOpen,
       show: hasPermission(PERMISSIONS.VIEW_EXAMS),
     },
