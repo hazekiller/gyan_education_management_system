@@ -260,9 +260,12 @@ export const attendanceAPI = {
 // EXAMS API
 // ============================================
 export const examsAPI = {
-  create: (data) => api.post('/exams', data),
-  getAll: (params) => api.get('/exams', { params }),
-  enterResults: (data) => api.post('/exam-results', data),
+  create: (data) => api.post("/exams", data),
+  getAll: (params) => api.get("/exams", { params }),
+  getById: (id) => api.get(`/exams/${id}`),
+  update: (id, data) => api.put(`/exams/${id}`, data),
+  delete: (id) => api.delete(`/exams/${id}`),
+  enterResults: (data) => api.post("/exam-results", data),
 };
 
 // ============================================
