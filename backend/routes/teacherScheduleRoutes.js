@@ -1,17 +1,12 @@
-// src/routes/teacherScheduleRoutes.js
 const express = require('express');
 const router = express.Router();
-const teacherController = require('../controllers/teacherController'); // adjust path if needed
-const authMiddleware = require('../middlewares/authMiddleware'); // optional, if you have auth
+const teacherController = require('../controllers/teacherController');
+const authMiddleware = require('../middlewares/authMiddleware');
 
-// ---------------------
-// TEACHER SCHEDULE ROUTES
-// ---------------------
-
-// Get full schedule of a teacher (optionally filter by day or academic_year)
+// Weekly schedule for a teacher
 router.get('/:id/schedule', authMiddleware, teacherController.getTeacherSchedule);
 
-// Get single period detail
+// Schedule detail for a single period
 router.get('/schedule/:id', authMiddleware, teacherController.getScheduleDetail);
 
 module.exports = router;
