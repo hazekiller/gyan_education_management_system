@@ -31,10 +31,9 @@ export const PERMISSIONS = {
   EDIT_CLASSES: 'edit_classes',
   DELETE_CLASSES: 'delete_classes',
   
-  // Class Subjects (NEW)
+  // Class Subjects
   VIEW_CLASS_SUBJECTS: 'view_class_subjects',
   MANAGE_CLASS_SUBJECTS: 'manage_class_subjects',
-  
   
   // Attendance
   VIEW_ATTENDANCE: 'view_attendance',
@@ -66,16 +65,19 @@ export const PERMISSIONS = {
   // Messages
   SEND_MESSAGES: 'send_messages',
   VIEW_MESSAGES: 'view_messages',
+
+  // Schedules
+  VIEW_SCHEDULE: 'view_schedule',        
+  MANAGE_SCHEDULE: 'manage_schedule',     
 };
 
 // Role-Permission mapping
 export const ROLE_PERMISSIONS = {
   [ROLES.SUPER_ADMIN]: [
-    // Has all permissions
     ...Object.values(PERMISSIONS),
   ],
   
- [ROLES.PRINCIPAL]: [
+  [ROLES.PRINCIPAL]: [
     PERMISSIONS.VIEW_STUDENTS,
     PERMISSIONS.CREATE_STUDENTS,
     PERMISSIONS.EDIT_STUDENTS,
@@ -88,8 +90,8 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.CREATE_CLASSES,
     PERMISSIONS.EDIT_CLASSES,
     PERMISSIONS.DELETE_CLASSES,
-    PERMISSIONS.VIEW_CLASS_SUBJECTS,  // NEW
-    PERMISSIONS.MANAGE_CLASS_SUBJECTS, // NEW
+    PERMISSIONS.VIEW_CLASS_SUBJECTS,
+    PERMISSIONS.MANAGE_CLASS_SUBJECTS,
     PERMISSIONS.VIEW_ATTENDANCE,
     PERMISSIONS.VIEW_EXAMS,
     PERMISSIONS.CREATE_EXAMS,
@@ -105,6 +107,8 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.CREATE_ANNOUNCEMENTS,
     PERMISSIONS.SEND_MESSAGES,
     PERMISSIONS.VIEW_MESSAGES,
+    PERMISSIONS.VIEW_SCHEDULE,     
+    PERMISSIONS.MANAGE_SCHEDULE,    
   ],
   
   [ROLES.VICE_PRINCIPAL]: [
@@ -113,8 +117,8 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_TEACHERS,
     PERMISSIONS.VIEW_CLASSES,
     PERMISSIONS.EDIT_CLASSES,
-    PERMISSIONS.VIEW_CLASS_SUBJECTS,  // NEW
-    PERMISSIONS.MANAGE_CLASS_SUBJECTS, // NEW
+    PERMISSIONS.VIEW_CLASS_SUBJECTS,
+    PERMISSIONS.MANAGE_CLASS_SUBJECTS,
     PERMISSIONS.VIEW_ATTENDANCE,
     PERMISSIONS.VIEW_EXAMS,
     PERMISSIONS.CREATE_EXAMS,
@@ -127,13 +131,15 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.CREATE_ANNOUNCEMENTS,
     PERMISSIONS.SEND_MESSAGES,
     PERMISSIONS.VIEW_MESSAGES,
+    PERMISSIONS.VIEW_SCHEDULE,
+    PERMISSIONS.MANAGE_SCHEDULE,
   ],
   
   [ROLES.HOD]: [
     PERMISSIONS.VIEW_STUDENTS,
     PERMISSIONS.VIEW_TEACHERS,
     PERMISSIONS.VIEW_CLASSES,
-    PERMISSIONS.VIEW_CLASS_SUBJECTS, // NEW
+    PERMISSIONS.VIEW_CLASS_SUBJECTS,
     PERMISSIONS.VIEW_ATTENDANCE,
     PERMISSIONS.MARK_ATTENDANCE,
     PERMISSIONS.VIEW_EXAMS,
@@ -145,12 +151,13 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_ANNOUNCEMENTS,
     PERMISSIONS.SEND_MESSAGES,
     PERMISSIONS.VIEW_MESSAGES,
+    PERMISSIONS.VIEW_SCHEDULE,  
   ],
   
   [ROLES.TEACHER]: [
     PERMISSIONS.VIEW_STUDENTS,
     PERMISSIONS.VIEW_CLASSES,
-    PERMISSIONS.VIEW_CLASS_SUBJECTS, // NEW
+    PERMISSIONS.VIEW_CLASS_SUBJECTS,
     PERMISSIONS.VIEW_ATTENDANCE,
     PERMISSIONS.MARK_ATTENDANCE,
     PERMISSIONS.VIEW_EXAMS,
@@ -162,11 +169,12 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_ANNOUNCEMENTS,
     PERMISSIONS.SEND_MESSAGES,
     PERMISSIONS.VIEW_MESSAGES,
+    PERMISSIONS.VIEW_SCHEDULE, 
   ],
   
   [ROLES.STUDENT]: [
     PERMISSIONS.VIEW_CLASSES,
-    PERMISSIONS.VIEW_CLASS_SUBJECTS, // NEW
+    PERMISSIONS.VIEW_CLASS_SUBJECTS,
     PERMISSIONS.VIEW_ATTENDANCE,
     PERMISSIONS.VIEW_EXAMS,
     PERMISSIONS.VIEW_ASSIGNMENTS,
@@ -176,8 +184,9 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_ANNOUNCEMENTS,
     PERMISSIONS.SEND_MESSAGES,
     PERMISSIONS.VIEW_MESSAGES,
+    PERMISSIONS.VIEW_SCHEDULE,  
   ],
-  
+
   [ROLES.ACCOUNTANT]: [
     PERMISSIONS.VIEW_STUDENTS,
     PERMISSIONS.VIEW_FEES,
@@ -197,24 +206,21 @@ export const ROLE_PERMISSIONS = {
   ],
 };
 
-// Check if user has permission
+// Utility functions (unchanged)
 export const hasPermission = (userRole, permission) => {
   if (!userRole || !permission) return false;
   const rolePermissions = ROLE_PERMISSIONS[userRole] || [];
   return rolePermissions.includes(permission);
 };
 
-// Check if user has any of the permissions
 export const hasAnyPermission = (userRole, permissions = []) => {
   return permissions.some(permission => hasPermission(userRole, permission));
 };
 
-// Check if user has all permissions
 export const hasAllPermissions = (userRole, permissions = []) => {
   return permissions.every(permission => hasPermission(userRole, permission));
 };
 
-// Get all permissions for a role
 export const getRolePermissions = (role) => {
   return ROLE_PERMISSIONS[role] || [];
 };
