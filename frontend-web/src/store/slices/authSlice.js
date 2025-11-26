@@ -16,7 +16,7 @@ export const login = createAsyncThunk(
 
 export const getProfile = createAsyncThunk(
   'auth/getProfile',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => { 
     try {
       const response = await authAPI.getProfile();
       return response;
