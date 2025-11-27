@@ -498,12 +498,10 @@ const CollectFeeTab = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   // Fetch all students for dropdown (or search in future)
-  const { data: studentsResponse } = useQuery({
+  const { data: students = [] } = useQuery({
     queryKey: ['all-students'],
-    queryFn: () => studentsAPI.getAll().then(res => res.data)
+    queryFn: () => studentsAPI.getAll().then(res => res.data || [])
   });
-
-  const students = studentsResponse?.data || [];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
