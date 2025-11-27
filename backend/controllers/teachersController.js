@@ -1,7 +1,7 @@
-const bcrypt = require('bcryptjs');
-const pool = require('../config/database');
-const path = require('path');
-const fs = require('fs');
+const bcrypt = require("bcryptjs");
+const pool = require("../config/database");
+const path = require("path");
+const fs = require("fs");
 
 // ---------------------
 // GET ALL TEACHERS
@@ -18,34 +18,194 @@ const getAllTeachers = async (req, res) => {
     const params = [];
 
     if (status) {
-      query += ' AND t.status = ?';
+      query += " AND t.status = ?";
       params.push(status);
     }
     if (search) {
       const searchTerm = `%${search}%`;
-      query += ' AND (t.first_name LIKE ? OR t.last_name LIKE ? OR t.employee_id LIKE ?)';
+      query +=
+        " AND (t.first_name LIKE ? OR t.last_name LIKE ? OR t.employee_id LIKE ?)";
       params.push(searchTerm, searchTerm, searchTerm);
     }
 
-    query += ' ORDER BY t.first_name, t.last_name';
+    query += " ORDER BY t.first_name, t.last_name";
     const [teachers] = await pool.query(query, params);
 
     res.json({
       success: true,
       count: teachers.length,
-      data: teachers
+      data: teachers,
     });
   } catch (error) {
-    console.error('Get teachers error:', error);
+    console.error("Get teachers error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch teachers',
-      error: error.message
+      message: "Failed to fetch teachers",
+      error: error.message,
     });
   }
 };
 
+// ---------------------
+// ASSIGN SCHEDULE
+// ---------------------
+const assignSchedule = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
 
+    const {
+      teacher_id,
+      class_id,
+      section_id,
+      subject_id,
+      day_of_week,
+      start_time,
+      end_time,
+      room_number,
+      academic_year,
+    } = req.body;
+
+    if (
+      !teacher_id ||
+      !class_id ||
+      !section_id ||
+      !subject_id ||
+      !day_of_week ||
+      !start_time ||
+      !end_time ||
+      !academic_year
+    ) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    // 1. Verify Teacher-Class-Subject Assignment
+    // Check if teacher is assigned to this section-subject combination (section level)
+    // OR assigned to this class-subject combination (class level)
+    const [sectionAssignment] = await connection.query(
+      `SELECT id FROM section_subject_teachers 
+       WHERE teacher_id = ? AND section_id = ? AND subject_id = ? AND is_active = 1`,
+      [teacher_id, section_id, subject_id]
+    );
+
+    const [classAssignment] = await connection.query(
+      `SELECT id FROM class_subjects 
+       WHERE teacher_id = ? AND class_id = ? AND subject_id = ? AND is_active = 1`,
+      [teacher_id, class_id, subject_id]
+    );
+
+    if (sectionAssignment.length === 0 && classAssignment.length === 0) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        message:
+          "Teacher is not assigned to this class/section and subject. Please assign the teacher via Class Details > Sections > Manage Teachers or Class Details > Subjects tab.",
+      });
+    }
+
+    // 2. Check for conflicts (Teacher availability)
+    const [teacherConflict] = await connection.query(
+      `SELECT id FROM timetable 
+       WHERE teacher_id = ? 
+       AND day_of_week = ? 
+       AND is_active = 1
+       AND (
+         (start_time <= ? AND end_time > ?) OR 
+         (start_time < ? AND end_time >= ?) OR
+         (start_time >= ? AND end_time <= ?)
+       )`,
+      [
+        teacher_id,
+        day_of_week,
+        start_time,
+        start_time,
+        end_time,
+        end_time,
+        start_time,
+        end_time,
+      ]
+    );
+
+    if (teacherConflict.length > 0) {
+      await connection.rollback();
+      return res.status(409).json({
+        success: false,
+        message: "Teacher is already booked for this time slot.",
+      });
+    }
+
+    // 3. Check for conflicts (Class availability)
+    const [classConflict] = await connection.query(
+      `SELECT id FROM timetable 
+       WHERE class_id = ? 
+       AND day_of_week = ? 
+       AND is_active = 1
+       AND (
+         (start_time <= ? AND end_time > ?) OR 
+         (start_time < ? AND end_time >= ?) OR
+         (start_time >= ? AND end_time <= ?)
+       )`,
+      [
+        class_id,
+        day_of_week,
+        start_time,
+        start_time,
+        end_time,
+        end_time,
+        start_time,
+        end_time,
+      ]
+    );
+
+    if (classConflict.length > 0) {
+      await connection.rollback();
+      return res.status(409).json({
+        success: false,
+        message: "Class already has a schedule for this time slot.",
+      });
+    }
+
+    // 4. Insert into timetable
+    await connection.query(
+      `INSERT INTO timetable (
+        teacher_id, class_id, section_id, subject_id, 
+        day_of_week, start_time, end_time, room_number, 
+        academic_year, is_active
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+      [
+        teacher_id,
+        class_id,
+        section_id,
+        subject_id,
+        day_of_week,
+        start_time,
+        end_time,
+        room_number || null,
+        academic_year,
+      ]
+    );
+
+    await connection.commit();
+    res.status(201).json({
+      success: true,
+      message: "Schedule assigned successfully",
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error("Assign schedule error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to assign schedule",
+      error: error.message,
+    });
+  } finally {
+    connection.release();
+  }
+};
 
 // ---------------------
 // GET TEACHER BY ID
@@ -63,7 +223,9 @@ const getTeacherById = async (req, res) => {
     );
 
     if (teachers.length === 0) {
-      return res.status(404).json({ success: false, message: 'Teacher not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Teacher not found" });
     }
 
     // Get assigned classes and subjects
@@ -78,8 +240,12 @@ const getTeacherById = async (req, res) => {
 
     res.json({ success: true, data: { ...teachers[0], assignments } });
   } catch (error) {
-    console.error('Get teacher error:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch teacher', error: error.message });
+    console.error("Get teacher error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch teacher",
+      error: error.message,
+    });
   }
 };
 
@@ -92,45 +258,83 @@ const createTeacher = async (req, res) => {
     await connection.beginTransaction();
 
     const {
-      email, password, employee_id, first_name, middle_name, last_name,
-      date_of_birth, gender, blood_group, address, city, state, pincode,
-      phone, emergency_contact, qualification, experience_years, specialization,
-      joining_date, salary, status
+      email,
+      password,
+      employee_id,
+      first_name,
+      middle_name,
+      last_name,
+      date_of_birth,
+      gender,
+      blood_group,
+      address,
+      city,
+      state,
+      pincode,
+      phone,
+      emergency_contact,
+      qualification,
+      experience_years,
+      specialization,
+      joining_date,
+      salary,
+      status,
     } = req.body;
 
-    if (!email || !employee_id || !first_name || !last_name || !date_of_birth || !gender || !phone || !qualification) {
+    if (
+      !email ||
+      !employee_id ||
+      !first_name ||
+      !last_name ||
+      !date_of_birth ||
+      !gender ||
+      !phone ||
+      !qualification
+    ) {
       await connection.rollback();
-      return res.status(400).json({ success: false, message: 'Missing required fields' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
     }
 
     // Check existing email
-    const [existing] = await connection.query('SELECT id FROM users WHERE email = ?', [email]);
+    const [existing] = await connection.query(
+      "SELECT id FROM users WHERE email = ?",
+      [email]
+    );
     if (existing.length > 0) {
       await connection.rollback();
-      return res.status(409).json({ success: false, message: 'Email already exists' });
+      return res
+        .status(409)
+        .json({ success: false, message: "Email already exists" });
     }
 
     // Check existing employee_id
-    const [existingEmp] = await connection.query('SELECT id FROM teachers WHERE employee_id = ?', [employee_id]);
+    const [existingEmp] = await connection.query(
+      "SELECT id FROM teachers WHERE employee_id = ?",
+      [employee_id]
+    );
     if (existingEmp.length > 0) {
       await connection.rollback();
-      return res.status(409).json({ success: false, message: 'Employee ID already exists' });
+      return res
+        .status(409)
+        .json({ success: false, message: "Employee ID already exists" });
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password || 'Teacher@123', 10);
+    const hashedPassword = await bcrypt.hash(password || "Teacher@123", 10);
 
     // Create user
     const [userResult] = await connection.query(
-      'INSERT INTO users (email, password, role, is_active) VALUES (?, ?, ?, ?)',
-      [email, hashedPassword, 'teacher', true]
+      "INSERT INTO users (email, password, role, is_active) VALUES (?, ?, ?, ?)",
+      [email, hashedPassword, "teacher", true]
     );
     const userId = userResult.insertId;
 
     // Handle profile photo
     let profilePhotoPath = null;
     if (req.file) {
-      profilePhotoPath = req.file.path.replace(/\\/g, '/'); // Windows fix
+      profilePhotoPath = req.file.path.replace(/\\/g, "/"); // Windows fix
     }
 
     // Create teacher record
@@ -142,20 +346,44 @@ const createTeacher = async (req, res) => {
         joining_date, salary, profile_photo, status
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        userId, employee_id, first_name, middle_name || null, last_name,
-        date_of_birth, gender, blood_group || null, address || null,
-        city || null, state || null, pincode || null, phone, emergency_contact || null,
-        qualification, experience_years || null, specialization || null,
-        joining_date || new Date(), salary || null, profilePhotoPath, status || 'active'
+        userId,
+        employee_id,
+        first_name,
+        middle_name || null,
+        last_name,
+        date_of_birth,
+        gender,
+        blood_group || null,
+        address || null,
+        city || null,
+        state || null,
+        pincode || null,
+        phone,
+        emergency_contact || null,
+        qualification,
+        experience_years || null,
+        specialization || null,
+        joining_date || new Date(),
+        salary || null,
+        profilePhotoPath,
+        status || "active",
       ]
     );
 
     await connection.commit();
-    res.status(201).json({ success: true, message: 'Teacher created successfully', data: { id: teacherResult.insertId, user_id: userId, email } });
+    res.status(201).json({
+      success: true,
+      message: "Teacher created successfully",
+      data: { id: teacherResult.insertId, user_id: userId, email },
+    });
   } catch (error) {
     await connection.rollback();
-    console.error('Create teacher error:', error);
-    res.status(500).json({ success: false, message: 'Failed to create teacher', error: error.message });
+    console.error("Create teacher error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create teacher",
+      error: error.message,
+    });
   } finally {
     connection.release();
   }
@@ -169,28 +397,44 @@ const updateTeacher = async (req, res) => {
     const { id } = req.params;
     const updateData = { ...req.body };
 
-    const [existing] = await pool.query('SELECT id FROM teachers WHERE id = ?', [id]);
-    if (existing.length === 0) return res.status(404).json({ success: false, message: 'Teacher not found' });
+    const [existing] = await pool.query(
+      "SELECT id FROM teachers WHERE id = ?",
+      [id]
+    );
+    if (existing.length === 0)
+      return res
+        .status(404)
+        .json({ success: false, message: "Teacher not found" });
 
     // Remove protected fields
     delete updateData.user_id;
     delete updateData.password;
 
     // Handle profile photo
-    if (req.file) updateData.profile_photo = req.file.path.replace(/\\/g, '/');
+    if (req.file) updateData.profile_photo = req.file.path.replace(/\\/g, "/");
 
     const fields = Object.keys(updateData);
-    if (!fields.length) return res.status(400).json({ success: false, message: 'No fields to update' });
+    if (!fields.length)
+      return res
+        .status(400)
+        .json({ success: false, message: "No fields to update" });
 
     const values = Object.values(updateData);
-    const setClause = fields.map(f => `${f} = ?`).join(', ');
+    const setClause = fields.map((f) => `${f} = ?`).join(", ");
     values.push(id);
 
-    await pool.query(`UPDATE teachers SET ${setClause}, updated_at = NOW() WHERE id = ?`, values);
-    res.json({ success: true, message: 'Teacher updated successfully' });
+    await pool.query(
+      `UPDATE teachers SET ${setClause}, updated_at = NOW() WHERE id = ?`,
+      values
+    );
+    res.json({ success: true, message: "Teacher updated successfully" });
   } catch (error) {
-    console.error('Update teacher error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update teacher', error: error.message });
+    console.error("Update teacher error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update teacher",
+      error: error.message,
+    });
   }
 };
 
@@ -203,22 +447,32 @@ const deleteTeacher = async (req, res) => {
     await connection.beginTransaction();
     const { id } = req.params;
 
-    const [teachers] = await connection.query('SELECT user_id FROM teachers WHERE id = ?', [id]);
+    const [teachers] = await connection.query(
+      "SELECT user_id FROM teachers WHERE id = ?",
+      [id]
+    );
     if (!teachers.length) {
       await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Teacher not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Teacher not found" });
     }
 
     const userId = teachers[0].user_id;
-    await connection.query('DELETE FROM teachers WHERE id = ?', [id]);
-    if (userId) await connection.query('DELETE FROM users WHERE id = ?', [userId]);
+    await connection.query("DELETE FROM teachers WHERE id = ?", [id]);
+    if (userId)
+      await connection.query("DELETE FROM users WHERE id = ?", [userId]);
 
     await connection.commit();
-    res.json({ success: true, message: 'Teacher deleted successfully' });
+    res.json({ success: true, message: "Teacher deleted successfully" });
   } catch (error) {
     await connection.rollback();
-    console.error('Delete teacher error:', error);
-    res.status(500).json({ success: false, message: 'Failed to delete teacher', error: error.message });
+    console.error("Delete teacher error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete teacher",
+      error: error.message,
+    });
   } finally {
     connection.release();
   }
@@ -244,20 +498,23 @@ const getTeacherSchedule = async (req, res) => {
 
     const params = [id];
     if (day_of_week) {
-      query += ' AND tt.day_of_week = ?';
+      query += " AND tt.day_of_week = ?";
       params.push(day_of_week);
     }
 
-    query += ' ORDER BY tt.day_of_week, tt.start_time';
+    query += " ORDER BY tt.day_of_week, tt.start_time";
     const [schedule] = await pool.query(query, params);
 
     res.json({ success: true, count: schedule.length, data: schedule });
   } catch (error) {
-    console.error('Get teacher schedule error:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch schedule', error: error.message });
+    console.error("Get teacher schedule error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch schedule",
+      error: error.message,
+    });
   }
 };
-
 
 // ---------------------
 // GET ROLE-SPECIFIC SCHEDULE
@@ -286,22 +543,22 @@ const getSchedule = async (req, res) => {
     const params = [];
 
     // Role-based filtering
-    if (user.role === 'teacher') {
-      query += ' AND tt.teacher_id = ?';
+    if (user.role === "teacher") {
+      query += " AND tt.teacher_id = ?";
       params.push(user.id);
-    } else if (user.role === 'student') {
-      query += ' AND tt.class_id = ? AND tt.section_id = ?';
+    } else if (user.role === "student") {
+      query += " AND tt.class_id = ? AND tt.section_id = ?";
       params.push(user.class_id, user.section_id);
     }
     // Admins (super_admin, principal) see all schedules
 
     // Optional filters
     if (day_of_week) {
-      query += ' AND tt.day_of_week = ?';
+      query += " AND tt.day_of_week = ?";
       params.push(day_of_week);
     }
     if (academic_year) {
-      query += ' AND tt.academic_year = ?';
+      query += " AND tt.academic_year = ?";
       params.push(academic_year);
     }
 
@@ -312,8 +569,12 @@ const getSchedule = async (req, res) => {
     const [schedule] = await pool.query(query, params);
     res.json({ success: true, count: schedule.length, data: schedule });
   } catch (error) {
-    console.error('Get schedule error:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch schedule', error: error.message });
+    console.error("Get schedule error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch schedule",
+      error: error.message,
+    });
   }
 };
 
@@ -344,13 +605,19 @@ const getScheduleDetail = async (req, res) => {
     const [periods] = await pool.query(query, [id]);
 
     if (!periods.length) {
-      return res.status(404).json({ success: false, message: 'Period not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Period not found" });
     }
 
     res.json({ success: true, data: periods[0] });
   } catch (err) {
-    console.error('Get schedule detail error:', err);
-    res.status(500).json({ success: false, message: 'Failed to fetch period detail', error: err.message });
+    console.error("Get schedule detail error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch period detail",
+      error: err.message,
+    });
   }
 };
 
@@ -362,7 +629,6 @@ module.exports = {
   deleteTeacher,
   getSchedule,
   getScheduleDetail,
-  getTeacherSchedule, 
+  getTeacherSchedule,
+  assignSchedule,
 };
-
-

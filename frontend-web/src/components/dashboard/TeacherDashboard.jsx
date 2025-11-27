@@ -11,7 +11,7 @@ import {
   TrendingUp,
   FileText,
 } from "lucide-react";
-import api, { dashboardAPI } from "../../lib/api";
+import api, { dashboardAPI, teachersAPI } from "../../lib/api";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../store/slices/authSlice";
 import toast from "react-hot-toast";
@@ -32,57 +32,87 @@ const TeacherDashboard = () => {
   }, []);
 
   const fetchDashboardData = async () => {
-  try {
-    setLoading(true);
-
-    let finalStats = {};
-    let finalStudents = 0;
-    let finalSchedule = [];
-
-    // 1️⃣ Dashboard Stats
     try {
-      const statsRes = await dashboardAPI.getStats(hasPermission(PERMISSIONS.VIEW_ALL_STATS), currentUser.id);
-      finalStats = statsRes.data || {};
-    } catch (err) {
-      console.error("Stats fetch error:", err);
-    }
+      setLoading(true);
 
-    // 2️⃣ Students Count
-    if (hasPermission(PERMISSIONS.VIEW_STUDENTS)) {
+      let finalStats = {};
+      let finalStudents = 0;
+      let finalSchedule = [];
+      let teacherId = null;
+
+      // 0️⃣ Get Teacher ID from user_id
       try {
-        const studentsRes = await api.get("/students", {
-          params: { teacherId: currentUser.id },
-        });
-
-        const list = studentsRes.data?.data || studentsRes.data || [];
-        finalStudents = Array.isArray(list) ? list.length : 0;
+        const teachersRes = await teachersAPI.getAll();
+        const teacherRecord = teachersRes.data?.find(
+          (t) => t.user_id === currentUser.id
+        );
+        if (teacherRecord) {
+          teacherId = teacherRecord.id;
+          console.log(
+            "Found teacher ID:",
+            teacherId,
+            "for user:",
+            currentUser.id
+          );
+        } else {
+          console.error("Teacher record not found for user:", currentUser.id);
+        }
       } catch (err) {
-        console.error("Students fetch error:", err);
+        console.error("Teacher fetch error:", err);
       }
+
+      if (!teacherId) {
+        setLoading(false);
+        toast.error("Teacher profile not found");
+        return;
+      }
+
+      // 1️⃣ Dashboard Stats
+      try {
+        const statsRes = await dashboardAPI.getStats(
+          hasPermission(PERMISSIONS.VIEW_ALL_STATS),
+          currentUser.id
+        );
+        finalStats = statsRes.data || {};
+      } catch (err) {
+        console.error("Stats fetch error:", err);
+      }
+
+      // 2️⃣ Students Count
+      if (hasPermission(PERMISSIONS.VIEW_STUDENTS)) {
+        try {
+          const studentsRes = await api.get("/students", {
+            params: { teacherId: teacherId },
+          });
+
+          const list = studentsRes.data?.data || studentsRes.data || [];
+          finalStudents = Array.isArray(list) ? list.length : 0;
+        } catch (err) {
+          console.error("Students fetch error:", err);
+        }
+      }
+
+      // 3️⃣ Teacher Schedule
+      try {
+        const scheduleRes = await teachersAPI.getSchedule(teacherId);
+        finalSchedule = scheduleRes.data || [];
+      } catch (err) {
+        console.error("Schedule fetch error:", err);
+      }
+
+      // UPDATE UI
+      setStats({
+        ...finalStats,
+        students: finalStudents,
+      });
+      setSchedule(finalSchedule);
+    } catch (error) {
+      console.error("Dashboard fetch error:", error);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
     }
-
-    // 3️⃣ Teacher Schedule
-    try {
-      const scheduleRes = await api.get(`/teachers/${currentUser.id}/schedule`);
-      finalSchedule = scheduleRes.data?.data || [];
-    } catch (err) {
-      console.error("Schedule fetch error:", err);
-    }
-
-    // UPDATE UI
-    setStats({
-      ...finalStats,
-      students: finalStudents,
-    });
-    setSchedule(finalSchedule);
-  } catch (error) {
-    console.error("Dashboard fetch error:", error);
-    toast.error("Failed to load dashboard data");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   // Helper: Get today's schedule
   const getTodaySchedule = () => {
@@ -96,7 +126,12 @@ const TeacherDashboard = () => {
       "saturday",
     ];
     const today = days[new Date().getDay()];
-    return schedule.filter((s) => s.day_of_week === today);
+    // console.log("Today is:", today);
+    // console.log(
+    //   "Schedule items:",
+    //   schedule.map((s) => ({ day: s.day_of_week, subject: s.subject_name }))
+    // );
+    return schedule.filter((s) => s.day_of_week?.toLowerCase() === today);
   };
 
   // Helper: Get upcoming class
