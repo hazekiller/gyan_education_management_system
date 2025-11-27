@@ -20,6 +20,7 @@ const announcementsRoutes = require("./announcements.routes");
 const examSchedulesRoutes = require("./examschedule.routes");
 const eventsRoutes = require("./events.routes");
 const feesRoutes = require("./fees.routes");
+const libraryRoutes = require("./library.routes");
 
 // ===== PUBLIC ROUTES =====
 router.use("/auth", authRoutes);
@@ -41,6 +42,7 @@ router.use("/announcements", announcementsRoutes);
 router.use("/exam-schedules", examSchedulesRoutes);
 router.use("/events", eventsRoutes);
 router.use("/fees", feesRoutes);
+router.use("/library", libraryRoutes);
 
 // ===== DEFAULT ROUTE =====
 router.get("/", (req, res) => {

@@ -30,6 +30,7 @@ import Subjects from "./pages/Subjects";
 import ExamDetails from "./pages/ExamDetails";
 import AssignmentDetails from "./pages/AssignmentDetails";
 import AnnouncementDetails from "./pages/AnnouncementDetails";
+import LibraryManagement from "./pages/LibraryManagement";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -90,6 +91,7 @@ function App() {
         <Route path="profile" element={<Profile />} />
         <Route path="schedule" element={<TeacherSchedule />} />
         <Route path="schedule/:id" element={<TeacherScheduleDetail />} />
+        <Route path="library" element={<LibraryManagement />} />
       </Route>
 
       {/* 404 */}
