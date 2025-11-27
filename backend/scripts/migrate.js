@@ -5,7 +5,7 @@ require('dotenv').config();
 
 const migrate = async () => {
   let connection;
-  
+
   try {
     console.log('\n🔄 Starting database migration...\n');
 
@@ -28,6 +28,10 @@ const migrate = async () => {
 
     // Drop tables if they exist (for fresh migration)
     console.log('\n🗑️  Dropping existing tables...');
+
+    // Disable foreign key checks
+    await connection.query('SET FOREIGN_KEY_CHECKS = 0');
+
     const dropTables = [
       'assignment_submissions',
       'assignments',
@@ -40,6 +44,7 @@ const migrate = async () => {
       'subjects',
       'fee_payments',
       'fee_structure',
+      'fee_heads', // Added fee_heads to drop list
       'payroll',
       'study_materials',
       'syllabus',
@@ -64,6 +69,10 @@ const migrate = async () => {
     for (const table of dropTables) {
       await connection.query(`DROP TABLE IF EXISTS ${table}`);
     }
+
+    // Re-enable foreign key checks
+    await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+
     console.log('✅ Old tables dropped');
 
     console.log('\n📦 Creating tables...\n');
@@ -426,26 +435,42 @@ const migrate = async () => {
     `);
     console.log('✅ Table: assignment_submissions');
 
-    // 16. Fee Structure table
+    // 16. Fee Heads table
+    await connection.query(`
+      CREATE TABLE fee_heads (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(100) NOT NULL UNIQUE,
+        description TEXT,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ Table: fee_heads');
+
+    // 17. Fee Structure table
     await connection.query(`
       CREATE TABLE fee_structure (
         id INT PRIMARY KEY AUTO_INCREMENT,
         class_id INT NOT NULL,
-        fee_type ENUM('tuition', 'admission', 'exam', 'library', 'transport', 'sports', 'laboratory', 'development', 'other') NOT NULL,
+        fee_head_id INT NOT NULL,
         amount DECIMAL(10, 2) NOT NULL,
         academic_year VARCHAR(20) NOT NULL,
+        period_type ENUM('monthly', 'one_time', 'semester', 'yearly', 'custom') NOT NULL DEFAULT 'monthly',
+        period_value VARCHAR(50), -- Stores '1' to '12' for months, or 'Semester 1', etc.
         due_date DATE,
         description TEXT,
         is_active BOOLEAN DEFAULT true,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
+        FOREIGN KEY (fee_head_id) REFERENCES fee_heads(id) ON DELETE CASCADE,
         INDEX idx_class_year (class_id, academic_year)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
     console.log('✅ Table: fee_structure');
 
-    // 17. Fee Payments table
+    // 18. Fee Payments table
     await connection.query(`
       CREATE TABLE fee_payments (
         id INT PRIMARY KEY AUTO_INCREMENT,

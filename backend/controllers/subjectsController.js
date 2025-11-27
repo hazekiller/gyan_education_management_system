@@ -4,17 +4,17 @@ const pool = require('../config/database');
 const getAllSubjects = async (req, res) => {
   try {
     const { class_id, status, search } = req.query;
-    
+
     let query = `
       SELECT s.*, 
         COUNT(DISTINCT tca.teacher_id) as teacher_count
       FROM subjects s
-      LEFT JOIN teacher_class_assignments tca ON s.id = tca.subject_id
+      LEFT JOIN class_subjects tca ON s.id = tca.subject_id
       WHERE 1=1
     `;
-    
+
     const params = [];
-    
+
     // FIX: Change status to is_active
     if (status) {
       if (status === 'active') {
@@ -23,7 +23,7 @@ const getAllSubjects = async (req, res) => {
         query += ' AND s.is_active = 0';
       }
     }
-    
+
     // Remove class_id filter (subjects are global, not tied to classes)
     // if (class_id) {
     //   query += ' AND s.class_id = ?';
@@ -35,11 +35,11 @@ const getAllSubjects = async (req, res) => {
       query += ' AND (s.name LIKE ? OR s.code LIKE ?)';
       params.push(`%${search}%`, `%${search}%`);
     }
-    
+
     query += ' GROUP BY s.id ORDER BY s.name';
-    
+
     const [subjects] = await pool.query(query, params);
-    
+
     res.json({
       success: true,
       count: subjects.length,
@@ -59,26 +59,26 @@ const getAllSubjects = async (req, res) => {
 const getSubjectById = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const [subjects] = await pool.query('SELECT * FROM subjects WHERE id = ?', [id]);
-    
+
     if (subjects.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Subject not found'
       });
     }
-    
+
     // Get assigned teachers
     const [teachers] = await pool.query(`
       SELECT t.*, u.email, tca.class_id, c.name as class_name
-      FROM teacher_class_assignments tca
+      FROM class_subjects tca
       JOIN teachers t ON tca.teacher_id = t.id
       LEFT JOIN users u ON t.user_id = u.id
       LEFT JOIN classes c ON tca.class_id = c.id
       WHERE tca.subject_id = ?
     `, [id]);
-    
+
     res.json({
       success: true,
       data: {
@@ -104,33 +104,33 @@ const createSubject = async (req, res) => {
       code,
       description
     } = req.body;
-    
+
     if (!name || !code) {
       return res.status(400).json({
         success: false,
         message: 'Name and code are required'
       });
     }
-    
+
     // Check if subject code already exists
     const [existing] = await pool.query(
       'SELECT id FROM subjects WHERE code = ?',
       [code]
     );
-    
+
     if (existing.length > 0) {
       return res.status(409).json({
         success: false,
         message: 'Subject code already exists'
       });
     }
-    
+
     const [result] = await pool.query(
       `INSERT INTO subjects (name, code, description, is_active) 
        VALUES (?, ?, ?, 1)`,
       [name, code, description || null]
     );
-    
+
     res.status(201).json({
       success: true,
       message: 'Subject created successfully',
@@ -154,24 +154,24 @@ const updateSubject = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    
+
     // Check if subject exists
     const [existing] = await pool.query('SELECT id FROM subjects WHERE id = ?', [id]);
-    
+
     if (existing.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Subject not found'
       });
     }
-    
+
     // If updating code, check if new code is unique
     if (updateData.code) {
       const [duplicate] = await pool.query(
         'SELECT id FROM subjects WHERE code = ? AND id != ?',
         [updateData.code, id]
       );
-      
+
       if (duplicate.length > 0) {
         return res.status(409).json({
           success: false,
@@ -179,25 +179,25 @@ const updateSubject = async (req, res) => {
         });
       }
     }
-    
+
     const fields = Object.keys(updateData);
     const values = Object.values(updateData);
-    
+
     if (fields.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'No fields to update'
       });
     }
-    
+
     const setClause = fields.map(field => `${field} = ?`).join(', ');
     values.push(id);
-    
+
     await pool.query(
       `UPDATE subjects SET ${setClause}, updated_at = NOW() WHERE id = ?`,
       values
     );
-    
+
     res.json({
       success: true,
       message: 'Subject updated successfully'
@@ -216,22 +216,22 @@ const updateSubject = async (req, res) => {
 const deleteSubject = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Check if subject is assigned to any teacher
     const [assignments] = await pool.query(
-      'SELECT COUNT(*) as count FROM teacher_class_assignments WHERE subject_id = ?',
+      'SELECT COUNT(*) as count FROM class_subjects WHERE subject_id = ?',
       [id]
     );
-    
+
     if (assignments[0].count > 0) {
       return res.status(400).json({
         success: false,
         message: 'Cannot delete subject. It is assigned to teachers. Please remove assignments first.'
       });
     }
-    
+
     await pool.query('DELETE FROM subjects WHERE id = ?', [id]);
-    
+
     res.json({
       success: true,
       message: 'Subject deleted successfully'

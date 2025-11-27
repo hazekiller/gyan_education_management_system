@@ -13,12 +13,13 @@ const subjectsRoutes = require('./subjects.routes');
 const attendancesRoutes = require('./attendances.routes');
 const assignmentsRoutes = require('./assignments.routes');
 const messagesRoutes = require('./messages.routes');
-const dashboardRoutes = require("./dashboard.routes"); 
-const classSubjectsRoutes = require("./classSubjects.routes"); 
-const examRoutes = require("./exam.routes"); 
+const dashboardRoutes = require("./dashboard.routes");
+const classSubjectsRoutes = require("./classSubjects.routes");
+const examRoutes = require("./exam.routes");
 const announcementsRoutes = require("./announcements.routes");
 const examSchedulesRoutes = require("./examschedule.routes");
 const eventsRoutes = require("./events.routes");
+const feesRoutes = require("./fees.routes");
 
 // ===== PUBLIC ROUTES =====
 router.use("/auth", authRoutes);
@@ -39,6 +40,7 @@ router.use("/exams", examRoutes);
 router.use("/announcements", announcementsRoutes);
 router.use("/exam-schedules", examSchedulesRoutes);
 router.use("/events", eventsRoutes);
+router.use("/fees", feesRoutes);
 
 // ===== DEFAULT ROUTE =====
 router.get("/", (req, res) => {
