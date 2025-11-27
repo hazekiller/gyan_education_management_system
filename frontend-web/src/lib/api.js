@@ -468,6 +468,22 @@ export const announcementsAPI = {
 // ============================================
 // DASHBOARD API
 // ============================================
+// ============================================
+// LIBRARY API
+// ============================================
+export const libraryAPI = {
+  getAllBooks: (params) => api.get("/library/books", { params }),
+  getBookById: (id) => api.get(`/library/books/${id}`),
+  addBook: (data) => api.post("/library/books", data),
+  updateBook: (id, data) => api.put(`/library/books/${id}`, data),
+  deleteBook: (id) => api.delete(`/library/books/${id}`),
+
+  issueBook: (data) => api.post("/library/issue", data),
+  returnBook: (data) => api.post("/library/return", data),
+  getTransactions: (params) => api.get("/library/transactions", { params }),
+  getMyBooks: () => api.get("/library/my-books"),
+};
+
 export const dashboardAPI = {
   getStats: () => api.get("/dashboard/stats"),
   getRecentRegistrations: (limit = 5) =>
