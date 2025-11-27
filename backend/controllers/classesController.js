@@ -10,24 +10,21 @@ const getAllClasses = async (req, res) => {
     let query = `
       SELECT 
         c.*,
-        CONCAT(t.first_name, ' ', t.last_name) as class_teacher_name,
-        t.employee_id as teacher_employee_id,
         COUNT(DISTINCT s.id) as student_count,
         COUNT(DISTINCT sec.id) as section_count,
         COUNT(DISTINCT tca.teacher_id) as subject_teacher_count
       FROM classes c
-      LEFT JOIN teachers t ON c.class_teacher_id = t.id
       LEFT JOIN students s ON c.id = s.class_id
       LEFT JOIN sections sec ON c.id = sec.class_id
-      LEFT JOIN teacher_class_assignments tca ON c.id = tca.class_id
+      LEFT JOIN class_subjects tca ON c.id = tca.class_id
       WHERE 1=1
     `;
 
     const params = [];
 
     if (status) {
-      query += " AND c.status = ?";
-      params.push(status);
+      query += " AND c.is_active = ?";
+      params.push(status === 'active' ? 1 : 0);
     }
 
     if (grade_level) {
@@ -252,7 +249,7 @@ const getClassById = async (req, res) => {
         u.email as teacher_email,
         s.name as subject_name,
         s.code as subject_code
-      FROM teacher_class_assignments tca
+      FROM class_subjects tca
       JOIN teachers t ON tca.teacher_id = t.id
       LEFT JOIN users u ON t.user_id = u.id
       LEFT JOIN subjects s ON tca.subject_id = s.id
