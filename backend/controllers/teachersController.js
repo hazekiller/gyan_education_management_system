@@ -231,7 +231,7 @@ const getTeacherById = async (req, res) => {
     // Get assigned classes and subjects
     const [assignments] = await pool.query(
       `SELECT tca.*, c.name as class_name, c.grade_level, s.name as subject_name, s.code as subject_code
-       FROM teacher_class_assignments tca
+       FROM class_subjects tca
        LEFT JOIN classes c ON tca.class_id = c.id
        LEFT JOIN subjects s ON tca.subject_id = s.id
        WHERE tca.teacher_id = ?`,

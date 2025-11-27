@@ -311,8 +311,20 @@ export const assignmentsAPI = {
 // FEE MANAGEMENT API
 // ============================================
 export const feeAPI = {
-  recordPayment: (data) => api.post("/fee-payments", data),
-  getPayments: (params) => api.get("/fee-payments", { params }),
+  // Fee Heads
+  createHead: (data) => api.post("/fees/heads", data),
+  getHeads: () => api.get("/fees/heads"),
+
+  // Fee Structure
+  createStructure: (data) => api.post("/fees/structure", data),
+  getStructure: (params) => api.get("/fees/structure", { params }),
+
+  // Collection
+  getStudentStatus: (studentId) => api.get(`/fees/student/${studentId}`),
+  collectFee: (data) => api.post("/fees/collect", data),
+
+  // Transactions
+  getPayments: (params) => api.get("/fees/payments", { params }),
 };
 
 // ============================================
