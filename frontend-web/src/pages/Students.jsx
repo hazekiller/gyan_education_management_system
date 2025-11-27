@@ -126,7 +126,7 @@ const Students = () => {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         title="Add New Student"
-        size="large"
+        size="md"
       >
         <StudentForm
           onSubmit={handleAddStudent}
