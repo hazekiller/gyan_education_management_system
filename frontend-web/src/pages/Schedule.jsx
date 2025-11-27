@@ -1,162 +1,563 @@
-// import { useEffect, useState } from "react";
-// import { Link } from "react-router-dom";
-// import { teachersAPI } from "../lib/api";
-// import { useSelector } from "react-redux";
-// import { selectCurrentUser } from "../store/slices/authSlice";
-
-// const subjectColors = [
-//   "border-red-400", "border-blue-400", "border-green-400",
-//   "border-yellow-400", "border-purple-400", "border-pink-400",
-// ];
-
-// const getColor = (index) => subjectColors[index % subjectColors.length];
-
-// const TeacherSchedule = () => {
-//   const [schedule, setSchedule] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const currentUser = useSelector(selectCurrentUser);
-
-//   const fetchSchedule = async () => {
-//     if (!currentUser?.id) return;
-//     try {
-//       setLoading(true);
-//       const res = await teachersAPI.getSchedule(currentUser.id);
-//       setSchedule(res.data || []);
-//     } catch (error) {
-//       console.error("Failed to fetch schedule:", error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchSchedule();
-//   }, [currentUser]);
-
-//   if (loading) return <div className="text-center mt-10 text-gray-600">Loading schedule...</div>;
-
-//   const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-//   const grouped = daysOfWeek.map(day => ({
-//     day,
-//     periods: schedule.filter(p => p.day_of_week.toLowerCase() === day.toLowerCase())
-//   }));
-
-//   return (
-//     <div className="p-6">
-//       <h2 className="text-3xl font-bold mb-6 text-gray-800">Weekly Schedule</h2>
-//       {grouped.map(({ day, periods }) => (
-//         <div key={day} className="mb-10">
-//           <h3 className="text-2xl font-semibold mb-4 text-gray-700 border-b pb-2">{day}</h3>
-//           {periods.length > 0 ? (
-//             <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-//               {periods.map((period, index) => (
-//                 <Link
-//                   to={`/schedule/${period.id}`}
-//                   key={period.id}
-//                   className={`p-5 border-l-8 ${getColor(index)} bg-white rounded-xl shadow hover:shadow-xl transition flex flex-col justify-between`}
-//                 >
-//                   <div>
-//                     <p className="font-bold text-lg text-gray-800">{period.class_name}</p>
-//                     <p className="text-gray-600 mt-1">{period.subject_name}</p>
-//                     <p className="text-gray-500 text-sm mt-1">
-//                       {period.start_time} - {period.end_time} | Room: {period.room_number || "N/A"}
-//                     </p>
-//                   </div>
-//                   <span className="mt-3 text-blue-600 hover:underline text-sm font-medium">View Details →</span>
-//                 </Link>
-//               ))}
-//             </div>
-//           ) : (
-//             <p className="text-gray-400 italic mt-2">No classes scheduled.</p>
-//           )}
-//         </div>
-//       ))}
-//     </div>
-//   );
-// };
-
-// export default TeacherSchedule;
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { teachersAPI, classesAPI, subjectsAPI } from "../lib/api";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../store/slices/authSlice";
+import { Calendar, Clock, MapPin, Plus, User, Loader } from "lucide-react";
+import Modal from "../components/common/Modal";
+import toast from "react-hot-toast";
 
-const AdminTeacherScheduleForm = () => {
+const subjectColors = [
+  "border-red-400",
+  "border-blue-400",
+  "border-green-400",
+  "border-yellow-400",
+  "border-purple-400",
+  "border-pink-400",
+];
+
+const getColor = (index) => subjectColors[index % subjectColors.length];
+
+const Schedule = () => {
+  const currentUser = useSelector(selectCurrentUser);
+  const [schedule, setSchedule] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Admin specific state
   const [teachers, setTeachers] = useState([]);
+  const [selectedTeacher, setSelectedTeacher] = useState("");
+  const [showModal, setShowModal] = useState(false);
+
+  // Form State
   const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     teacher_id: "",
     class_id: "",
+    section_id: "",
     subject_id: "",
     day_of_week: "",
     start_time: "",
     end_time: "",
     room_number: "",
+    academic_year: new Date().getFullYear().toString(),
   });
-  const [loading, setLoading] = useState(false);
 
+  const isAdmin = [
+    "super_admin",
+    "principal",
+    "vice_principal",
+    "hod",
+  ].includes(currentUser?.role);
+  const isTeacher = currentUser?.role === "teacher";
+
+  // Initial Data Fetch
   useEffect(() => {
-    const fetchData = async () => {
-      const t = await teachersAPI.getAll();
-      const c = await classesAPI.getAll();
-      const s = await subjectsAPI.getAll();
-      setTeachers(t.data);
-      setClasses(c.data);
-      setSubjects(s.data);
-    };
-    fetchData();
-  }, []);
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
 
-  const handleChange = (e) => setForm({...form, [e.target.name]: e.target.value});
+        if (isAdmin) {
+          const [tRes, cRes, sRes] = await Promise.all([
+            teachersAPI.getAll(),
+            classesAPI.getAll(),
+            subjectsAPI.getAll(),
+          ]);
+          setTeachers(tRes.data || []);
+          setClasses(cRes.data || []);
+          setSubjects(sRes.data || []);
+          setLoading(false);
+        } else if (isTeacher) {
+          // Fetch teacher record using user_id to get teacher ID
+          try {
+            const teachersRes = await teachersAPI.getAll();
+            const teacherRecord = teachersRes.data?.find(
+              (t) => t.user_id === currentUser.id
+            );
+
+            if (teacherRecord) {
+              setSelectedTeacher(teacherRecord.id);
+            } else {
+              console.error(
+                "Teacher record not found for user:",
+                currentUser.id
+              );
+              toast.error("Teacher profile not found");
+              setLoading(false);
+            }
+          } catch (error) {
+            console.error("Failed to fetch teacher record:", error);
+            toast.error("Failed to load teacher profile");
+            setLoading(false);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch initial data:", error);
+        toast.error("Failed to load data");
+        setLoading(false);
+      }
+    };
+
+    if (currentUser) {
+      fetchInitialData();
+    }
+  }, [currentUser, isAdmin, isTeacher]);
+
+  // Fetch schedule when teacher selected
+  useEffect(() => {
+    if (!selectedTeacher) {
+      if (!loading) setSchedule([]);
+      return;
+    }
+
+    const fetchSchedule = async () => {
+      try {
+        setLoading(true);
+        const res = await teachersAPI.getSchedule(selectedTeacher);
+        setSchedule(res.data || []);
+      } catch (error) {
+        console.error("Failed to fetch schedule:", error);
+        toast.error("Failed to fetch schedule");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSchedule();
+  }, [selectedTeacher]);
+
+  // Fetch sections when class changes (for form)
+  useEffect(() => {
+    if (form.class_id) {
+      const fetchSections = async () => {
+        try {
+          const res = await classesAPI.getSections(form.class_id);
+          setSections(res.data || []);
+        } catch (error) {
+          console.error("Failed to fetch sections:", error);
+        }
+      };
+      fetchSections();
+    } else {
+      setSections([]);
+    }
+  }, [form.class_id]);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     try {
-      await teachersAPI.assignSchedule(form); // POST /teachers/schedule
-      alert("Schedule created successfully!");
-      setForm({ teacher_id: "", class_id: "", subject_id: "", day_of_week: "", start_time: "", end_time: "", room_number: "" });
+      // Convert day_of_week to lowercase to match database ENUM
+      const scheduleData = {
+        ...form,
+        day_of_week: form.day_of_week.toLowerCase(),
+      };
+      await teachersAPI.assignSchedule(scheduleData);
+      toast.success("Schedule created successfully!");
+      setShowModal(false);
+      // Refresh schedule if the assigned teacher is currently selected
+      if (selectedTeacher == form.teacher_id) {
+        const res = await teachersAPI.getSchedule(selectedTeacher);
+        setSchedule(res.data || []);
+      }
+      // Reset form
+      setForm((prev) => ({
+        ...prev,
+        class_id: "",
+        section_id: "",
+        subject_id: "",
+        day_of_week: "",
+        start_time: "",
+        end_time: "",
+        room_number: "",
+      }));
     } catch (err) {
       console.error(err);
-      alert("Failed to create schedule");
+      toast.error(err.response?.data?.message || "Failed to create schedule");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  const groupedSchedule = daysOfWeek.map((day) => ({
+    day,
+    periods: schedule
+      .filter((p) => p.day_of_week?.toLowerCase() === day.toLowerCase())
+      .sort((a, b) => {
+        // Sort by start time
+        return a.start_time.localeCompare(b.start_time);
+      }),
+  }));
+
   return (
-    <div className="p-6 max-w-lg mx-auto bg-white shadow rounded-xl">
-      <h2 className="text-2xl font-bold mb-4">Add Teacher Schedule</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <select name="teacher_id" value={form.teacher_id} onChange={handleChange} required>
-          <option value="">Select Teacher</option>
-          {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </select>
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Calendar className="w-8 h-8 text-blue-600" />
+            {isAdmin ? "Teacher Schedule Management" : "My Weekly Schedule"}
+          </h1>
+          <p className="text-gray-500 mt-1">
+            {isAdmin
+              ? "View and manage weekly schedules for teachers"
+              : "View your weekly class schedule"}
+          </p>
+        </div>
 
-        <select name="class_id" value={form.class_id} onChange={handleChange} required>
-          <option value="">Select Class</option>
-          {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        {isAdmin && (
+          <button
+            onClick={() => {
+              setForm((prev) => ({
+                ...prev,
+                teacher_id: selectedTeacher || "",
+              }));
+              setShowModal(true);
+            }}
+            className="btn btn-primary flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Schedule
+          </button>
+        )}
+      </div>
 
-        <select name="subject_id" value={form.subject_id} onChange={handleChange} required>
-          <option value="">Select Subject</option>
-          {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
+      {/* Admin Filters */}
+      {isAdmin && (
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 max-w-md">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Select Teacher
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <select
+                  value={selectedTeacher}
+                  onChange={(e) => setSelectedTeacher(e.target.value)}
+                  className="input pl-10 w-full"
+                >
+                  <option value="">Select a teacher to view schedule</option>
+                  {teachers.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.first_name} {t.last_name} ({t.employee_id})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-        <select name="day_of_week" value={form.day_of_week} onChange={handleChange} required>
-          <option value="">Select Day</option>
-          {["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
+      {/* Schedule Grid */}
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader className="w-8 h-8 text-blue-600 animate-spin" />
+        </div>
+      ) : !selectedTeacher && isAdmin ? (
+        <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+          <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900">
+            No Teacher Selected
+          </h3>
+          <p className="text-gray-500 mt-1">
+            Please select a teacher to view their schedule
+          </p>
+        </div>
+      ) : schedule.length === 0 ? (
+        <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+          <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900">
+            No Schedule Found
+          </h3>
+          <p className="text-gray-500 mt-1">
+            {isAdmin
+              ? "This teacher has no classes scheduled yet."
+              : "You have no classes scheduled yet."}
+          </p>
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setForm((prev) => ({ ...prev, teacher_id: selectedTeacher }));
+                setShowModal(true);
+              }}
+              className="mt-4 text-blue-600 font-medium hover:text-blue-700"
+            >
+              Add first class
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {groupedSchedule.map(({ day, periods }) => (
+            <div
+              key={day}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full"
+            >
+              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h3 className="font-semibold text-gray-900">{day}</h3>
+              </div>
+              <div className="p-4 flex-1 space-y-4">
+                {periods.length > 0 ? (
+                  periods.map((period, index) => (
+                    <div
+                      key={period.id}
+                      className={`p-3 rounded-lg border-l-4 ${getColor(
+                        index
+                      )} bg-gray-50 hover:bg-white hover:shadow-md transition-all duration-200 border border-gray-100`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-bold text-gray-900">
+                            {period.subject_name}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {period.class_name} - {period.section_name}
+                          </p>
+                        </div>
+                        <span className="text-xs font-medium px-2 py-1 bg-white rounded border border-gray-200 text-gray-600">
+                          Period {period.period_number}
+                        </span>
+                      </div>
 
-        <input type="time" name="start_time" value={form.start_time} onChange={handleChange} required />
-        <input type="time" name="end_time" value={form.end_time} onChange={handleChange} required />
-        <input type="text" name="room_number" value={form.room_number} onChange={handleChange} placeholder="Room Number (optional)" />
+                      <div className="space-y-1">
+                        <div className="flex items-center text-xs text-gray-500">
+                          <Clock className="w-3 h-3 mr-1.5" />
+                          {period.start_time} - {period.end_time}
+                        </div>
+                        <div className="flex items-center text-xs text-gray-500">
+                          <MapPin className="w-3 h-3 mr-1.5" />
+                          Room: {period.room_number || "N/A"}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-400 italic text-center py-4">
+                    No classes
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded" disabled={loading}>
-          {loading ? "Saving..." : "Add Schedule"}
-        </button>
-      </form>
+      {/* Add Schedule Modal (Admin Only) */}
+      {isAdmin && (
+        <Modal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          title="Add Class Schedule"
+        >
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Teacher Selection */}
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Teacher
+                </label>
+                <select
+                  name="teacher_id"
+                  value={form.teacher_id}
+                  onChange={handleChange}
+                  required
+                  className="input w-full"
+                >
+                  <option value="">Select Teacher</option>
+                  {teachers.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.first_name} {t.last_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Class & Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Class
+                </label>
+                <select
+                  name="class_id"
+                  value={form.class_id}
+                  onChange={handleChange}
+                  required
+                  className="input w-full"
+                >
+                  <option value="">Select Class</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Section
+                </label>
+                <select
+                  name="section_id"
+                  value={form.section_id}
+                  onChange={handleChange}
+                  required
+                  className="input w-full"
+                  disabled={!form.class_id}
+                >
+                  <option value="">Select Section</option>
+                  {sections.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Subject & Day */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subject
+                </label>
+                <select
+                  name="subject_id"
+                  value={form.subject_id}
+                  onChange={handleChange}
+                  required
+                  className="input w-full"
+                >
+                  <option value="">Select Subject</option>
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Day
+                </label>
+                <select
+                  name="day_of_week"
+                  value={form.day_of_week}
+                  onChange={handleChange}
+                  required
+                  className="input w-full"
+                >
+                  <option value="">Select Day</option>
+                  {daysOfWeek.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Time & Period */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Time
+                </label>
+                <input
+                  type="time"
+                  name="start_time"
+                  value={form.start_time}
+                  onChange={handleChange}
+                  required
+                  className="input w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  End Time
+                </label>
+                <input
+                  type="time"
+                  name="end_time"
+                  value={form.end_time}
+                  onChange={handleChange}
+                  required
+                  className="input w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Room Number
+                </label>
+                <input
+                  type="text"
+                  name="room_number"
+                  value={form.room_number}
+                  onChange={handleChange}
+                  className="input w-full"
+                  placeholder="Optional"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Academic Year
+                </label>
+                <input
+                  type="text"
+                  name="academic_year"
+                  value={form.academic_year}
+                  onChange={handleChange}
+                  required
+                  className="input w-full"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="btn btn-ghost"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Schedule"
+                )}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 };
 
-export default AdminTeacherScheduleForm;
+export default Schedule;
