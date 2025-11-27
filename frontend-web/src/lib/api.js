@@ -63,8 +63,6 @@ const toFormData = (data) => {
   return formData;
 };
 
-
-
 // ============================================
 // AUTH API
 // ============================================
@@ -74,7 +72,6 @@ export const authAPI = {
   changePassword: (data) => api.put("/auth/change-password", data),
   logout: () => api.post("/auth/logout"),
 };
-
 
 // ============================================
 // STUDENT API
@@ -98,10 +95,8 @@ export const studentsAPI = {
   getAttendance: (id, params) =>
     api.get(`/students/${id}/attendance`, { params }),
 
-  getResults: (id, params) =>
-    api.get(`/students/${id}/results`, { params }),
+  getResults: (id, params) => api.get(`/students/${id}/results`, { params }),
 };
-
 
 // ============================================
 // TEACHERS API
@@ -127,14 +122,15 @@ export const teachersAPI = {
   // ==============================
   getSchedule: (id, params) => api.get(`/teachers/${id}/schedule`, { params }),
   getScheduleDetail: (periodId) => api.get(`/teachers/my-schedule/${periodId}`),
+  assignSchedule: (data) => api.post("/teachers/schedule", data),
 };
 
 // SUBJECTS API
 // ============================================
 export const subjectsAPI = {
-  getAll: (params) => api.get('/subjects', { params }),
+  getAll: (params) => api.get("/subjects", { params }),
   getById: (id) => api.get(`/subjects/${id}`),
-  create: (data) => api.post('/subjects', data),
+  create: (data) => api.post("/subjects", data),
   update: (id, data) => api.put(`/subjects/${id}`, data),
   delete: (id) => api.delete(`/subjects/${id}`),
 };
@@ -213,15 +209,14 @@ export const classesAPI = {
    * Assign a single subject to a class
    * @param {object} data - { class_id, subject_id, teacher_id?, academic_year? }
    */
-  assignSubjectToClass: (data) =>
-    api.post('/class-subjects/assign', data),
+  assignSubjectToClass: (data) => api.post("/class-subjects/assign", data),
 
   /**
    * Assign multiple subjects to a class at once
    * @param {object} data - { class_id, subjects: [{ subject_id, teacher_id? }], academic_year? }
    */
   assignMultipleSubjects: (data) =>
-    api.post('/class-subjects/assign-multiple', data),
+    api.post("/class-subjects/assign-multiple", data),
 
   /**
    * Update a class subject assignment (change teacher, status, etc.)
@@ -251,9 +246,8 @@ export const classesAPI = {
    * @param {object} data - { section_id, subject_id, teacher_id, academic_year? }
    */
   assignTeacherToSectionSubject: (data) =>
-    api.post('/class-subjects/section-teacher', data),
+    api.post("/class-subjects/section-teacher", data),
 };
-
 
 // ============================================
 // ATTENDANCE API
@@ -266,7 +260,6 @@ export const attendanceAPI = {
   submit: (data) => api.post("/attendance/submit", data),
   unlock: (data) => api.post("/attendance/unlock", data),
 };
-
 
 // ============================================
 // EXAMS API
@@ -286,8 +279,8 @@ export const examsAPI = {
 export const examScheduleAPI = {
   getExamSchedules: (examId) => api.get(`/exam-schedules/exam/${examId}`),
   getById: (id) => api.get(`/exam-schedules/${id}`),
-  create: (data) => api.post('/exam-schedules', data),
-  createBulk: (data) => api.post('/exam-schedules/bulk', data),
+  create: (data) => api.post("/exam-schedules", data),
+  createBulk: (data) => api.post("/exam-schedules/bulk", data),
   update: (id, data) => api.put(`/exam-schedules/${id}`, data),
   delete: (id) => api.delete(`/exam-schedules/${id}`),
   deleteExamSchedules: (examId) => api.delete(`/exam-schedules/exam/${examId}`),
@@ -314,7 +307,6 @@ export const assignmentsAPI = {
   delete: (id) => api.delete(`/assignments/${id}`),
 };
 
-
 // ============================================
 // FEE MANAGEMENT API
 // ============================================
@@ -335,7 +327,6 @@ export const feeAPI = {
   getPayments: (params) => api.get("/fees/payments", { params }),
 };
 
-
 // ============================================
 // EVENTS API
 // ============================================
@@ -343,7 +334,6 @@ export const eventsAPI = {
   create: (data) => api.post("/events", data),
   getAll: (params) => api.get("/events", { params }),
 };
-
 
 // ============================================
 // ANNOUNCEMENTS API
@@ -451,26 +441,29 @@ export const announcementsAPI = {
   /**
    * Get expired announcements
    */
-  getExpired: () => api.get("/announcements", { params: { status: "expired" } }),
+  getExpired: () =>
+    api.get("/announcements", { params: { status: "expired" } }),
 
   /**
    * Get inactive announcements
    */
-  getInactive: () => api.get("/announcements", { params: { status: "inactive" } }),
+  getInactive: () =>
+    api.get("/announcements", { params: { status: "inactive" } }),
 
   /**
    * Get announcements by target audience
    * @param {string} audience - Target audience (all, students, teachers, parents, staff)
    */
-  getByAudience: (audience) => api.get("/announcements", { params: { target_audience: audience } }),
+  getByAudience: (audience) =>
+    api.get("/announcements", { params: { target_audience: audience } }),
 
   /**
    * Get announcements by priority
    * @param {string} priority - Priority level (low, normal, urgent)
    */
-  getByPriority: (priority) => api.get("/announcements", { params: { priority } }),
+  getByPriority: (priority) =>
+    api.get("/announcements", { params: { priority } }),
 };
-
 
 // ============================================
 // DASHBOARD API
