@@ -180,7 +180,7 @@ const StudentTable = ({ students, isLoading, onRefetch }) => {
           setEditStudent(null);
         }}
         title="Edit Student"
-        size="large"
+        size="md"
       >
         <StudentForm
           student={editStudent}

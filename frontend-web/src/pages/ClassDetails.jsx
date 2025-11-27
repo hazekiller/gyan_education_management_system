@@ -35,6 +35,12 @@ const ClassDetails = () => {
   const [showSectionTeachersModal, setShowSectionTeachersModal] =
     useState(false);
   const [showClassSubjectsModal, setShowClassSubjectsModal] = useState(false);
+  const [showAddSectionModal, setShowAddSectionModal] = useState(false);
+  const [newSectionName, setNewSectionName] = useState("");
+  const [newSectionCapacity, setNewSectionCapacity] = useState("");
+  const [showAssignTeacherModal, setShowAssignTeacherModal] = useState(false);
+  const [selectedTeacherId, setSelectedTeacherId] = useState("");
+  const [selectedSubjectId, setSelectedSubjectId] = useState("");
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["class", id],
@@ -76,6 +82,65 @@ const ClassDetails = () => {
     setShowSectionTeachersModal(true);
   };
 
+  // Add section mutation
+  const addSectionMutation = useMutation({
+    mutationFn: (data) => classesAPI.createSection(id, data),
+    onSuccess: () => {
+      toast.success("Section created successfully");
+      setShowAddSectionModal(false);
+      setNewSectionName("");
+      setNewSectionCapacity("");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create section");
+    },
+  });
+
+  const handleAddSection = (e) => {
+    e.preventDefault();
+
+    if (!newSectionName.trim()) {
+      toast.error("Section name is required");
+      return;
+    }
+
+    addSectionMutation.mutate({
+      name: newSectionName.trim(),
+      capacity: newSectionCapacity ? parseInt(newSectionCapacity) : null,
+      is_active: true,
+    });
+  };
+
+  // Assign teacher mutation
+  const assignTeacherMutation = useMutation({
+    mutationFn: (data) => classesAPI.assignTeacher(id, data),
+    onSuccess: () => {
+      toast.success("Teacher assigned successfully");
+      setShowAssignTeacherModal(false);
+      setSelectedTeacherId("");
+      setSelectedSubjectId("");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to assign teacher");
+    },
+  });
+
+  const handleAssignTeacher = (e) => {
+    e.preventDefault();
+
+    if (!selectedTeacherId || !selectedSubjectId) {
+      toast.error("Please select both teacher and subject");
+      return;
+    }
+
+    assignTeacherMutation.mutate({
+      teacher_id: selectedTeacherId,
+      subject_id: selectedSubjectId,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -96,7 +161,7 @@ const ClassDetails = () => {
     { id: "overview", label: "Overview", icon: BookOpen },
     { id: "subjects", label: "Subjects", icon: BookText }, // NEW TAB
     { id: "students", label: "Students", icon: Users },
-    { id: "teachers", label: "Teachers", icon: GraduationCap },
+    // { id: "teachers", label: "Teachers", icon: GraduationCap },
     { id: "sections", label: "Sections", icon: Building },
   ];
 
@@ -525,14 +590,17 @@ const ClassDetails = () => {
           )}
 
           {/* Teachers Tab */}
-          {activeTab === "teachers" && (
+          {/* {activeTab === "teachers" && (
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
                   Subject Teachers (Class Level - Legacy) (
                   {classData.subject_teachers?.length || 0})
                 </h3>
-                <button className="btn btn-primary btn-sm">
+                <button
+                  onClick={() => setShowAssignTeacherModal(true)}
+                  className="btn btn-primary btn-sm"
+                >
                   Assign Teacher
                 </button>
               </div>
@@ -576,7 +644,7 @@ const ClassDetails = () => {
                 </div>
               )}
             </div>
-          )}
+          )} */}
 
           {/* Sections Tab */}
           {activeTab === "sections" && (
@@ -585,7 +653,12 @@ const ClassDetails = () => {
                 <h3 className="text-lg font-semibold text-gray-900">
                   Sections ({classData.sections?.length || 0})
                 </h3>
-                <button className="btn btn-primary btn-sm">Add Section</button>
+                <button
+                  onClick={() => setShowAddSectionModal(true)}
+                  className="btn btn-primary btn-sm"
+                >
+                  Add Section
+                </button>
               </div>
 
               {classData.sections && classData.sections.length > 0 ? (
@@ -700,8 +773,161 @@ const ClassDetails = () => {
           }}
         />
       </Modal>
+
+      {/* Add Section Modal */}
+      <Modal
+        isOpen={showAddSectionModal}
+        onClose={() => {
+          setShowAddSectionModal(false);
+          setNewSectionName("");
+          setNewSectionCapacity("");
+        }}
+        title="Add New Section"
+        size="md"
+      >
+        <form onSubmit={handleAddSection} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Section Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={newSectionName}
+              onChange={(e) => setNewSectionName(e.target.value)}
+              className="input w-full"
+              placeholder="e.g., A, B, Alpha, Beta"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter a single letter or name for the section
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Capacity (Optional)
+            </label>
+            <input
+              type="number"
+              value={newSectionCapacity}
+              onChange={(e) => setNewSectionCapacity(e.target.value)}
+              className="input w-full"
+              placeholder="e.g., 40"
+              min="1"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Leave empty to use default capacity ({classData.capacity || 40})
+            </p>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setShowAddSectionModal(false);
+                setNewSectionName("");
+                setNewSectionCapacity("");
+              }}
+              className="btn btn-outline"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={addSectionMutation.isLoading}
+            >
+              {addSectionMutation.isLoading ? "Creating..." : "Create Section"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Assign Teacher Modal */}
+      {/* <Modal
+        isOpen={showAssignTeacherModal}
+        onClose={() => {
+          setShowAssignTeacherModal(false);
+          setSelectedTeacherId("");
+          setSelectedSubjectId("");
+        }}
+        title="Assign Subject Teacher"
+        size="medium"
+      >
+        <form onSubmit={handleAssignTeacher} className="space-y-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-yellow-800">
+              <strong>Note:</strong> This is a legacy feature. Teachers are now
+              primarily managed at the section level. Consider using
+              section-based teacher assignments in the "Sections" tab instead.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Subject <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={selectedSubjectId}
+              onChange={(e) => setSelectedSubjectId(e.target.value)}
+              className="input w-full"
+              required
+            >
+              <option value="">Choose a subject...</option>
+              {subjects.map((subject) => (
+                <option key={subject.id} value={subject.id}>
+                  {subject.name} ({subject.code})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Teacher <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={selectedTeacherId}
+              onChange={(e) => setSelectedTeacherId(e.target.value)}
+              className="input w-full"
+              required
+            >
+              <option value="">Choose a teacher...</option>
+              {teachers.map((teacher) => (
+                <option key={teacher.id} value={teacher.id}>
+                  {teacher.first_name} {teacher.last_name}
+                  {teacher.employee_id ? ` (${teacher.employee_id})` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setShowAssignTeacherModal(false);
+                setSelectedTeacherId("");
+                setSelectedSubjectId("");
+              }}
+              className="btn btn-outline"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={assignTeacherMutation.isLoading}
+            >
+              {assignTeacherMutation.isLoading
+                ? "Assigning..."
+                : "Assign Teacher"}
+            </button>
+          </div>
+        </form>
+      </Modal> */}
     </div>
   );
 };
 
-export default ClassDetails;  
+export default ClassDetails;
