@@ -1,47 +1,62 @@
-import { useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
-import { 
-  Send, 
-  Search, 
-  User, 
-  Clock, 
-  Check, 
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
+import {
+  Send,
+  Search,
+  User,
+  Clock,
+  Check,
   CheckCheck,
   UserPlus,
   X,
-  Loader
-} from 'lucide-react';
-import { selectCurrentUser } from '../store/slices/authSlice';
-import messagesAPI from '../lib/messagesAPI';
-import socketService from '../services/socket';
-import Modal from '../components/common/Modal';
-import toast from 'react-hot-toast';
+  Loader,
+  Video,
+  Phone,
+} from "lucide-react";
+import { selectCurrentUser } from "../store/slices/authSlice";
+import messagesAPI from "../lib/messagesAPI";
+import socketService from "../services/socket";
+import Modal from "../components/common/Modal";
+import VideoCall from "../components/chat/VideoCall";
+import toast from "react-hot-toast";
+
+const IMAGE_URL = import.meta.env.VITE_IMAGE_URL;
 
 const Messages = () => {
   const currentUser = useSelector(selectCurrentUser);
   const queryClient = useQueryClient();
   const messagesEndRef = useRef(null);
-  
+
   const [selectedChat, setSelectedChat] = useState(null);
-  const [message, setMessage] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [message, setMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showNewChatModal, setShowNewChatModal] = useState(false);
-  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userSearchQuery, setUserSearchQuery] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
 
+  // Call State
+  const [receivingCall, setReceivingCall] = useState(false);
+  const [caller, setCaller] = useState("");
+  const [callerSignal, setCallerSignal] = useState();
+  const [callAccepted, setCallAccepted] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
+  const [showVideoCall, setShowVideoCall] = useState(false);
+  const [callerName, setCallerName] = useState("");
+  const [isAudioOnly, setIsAudioOnly] = useState(false);
+
   // Fetch conversations
   const { data: conversationsData, refetch: refetchConversations } = useQuery({
-    queryKey: ['conversations'],
+    queryKey: ["conversations"],
     queryFn: messagesAPI.getConversations,
     refetchInterval: 30000, // Refetch every 30 seconds as backup
   });
 
   // Fetch messages for selected chat
   const { data: messagesData, isLoading: messagesLoading } = useQuery({
-    queryKey: ['messages', selectedChat?.user_id],
+    queryKey: ["messages", selectedChat?.user_id],
     queryFn: () => messagesAPI.getMessages(selectedChat.user_id),
     enabled: !!selectedChat,
     refetchInterval: 10000, // Refetch every 10 seconds as backup
@@ -49,7 +64,7 @@ const Messages = () => {
 
   // Fetch users for new chat
   const { data: usersData, isLoading: usersLoading } = useQuery({
-    queryKey: ['messageable-users', userSearchQuery],
+    queryKey: ["messageable-users", userSearchQuery],
     queryFn: () => messagesAPI.getUsers(userSearchQuery),
     enabled: showNewChatModal,
   });
@@ -58,11 +73,11 @@ const Messages = () => {
   const sendMessageMutation = useMutation({
     mutationFn: messagesAPI.sendMessage,
     onSuccess: () => {
-      queryClient.invalidateQueries(['messages', selectedChat.user_id]);
-      queryClient.invalidateQueries(['conversations']);
+      queryClient.invalidateQueries(["messages", selectedChat.user_id]);
+      queryClient.invalidateQueries(["conversations"]);
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to send message');
+      toast.error(error.message || "Failed to send message");
     },
   });
 
@@ -74,21 +89,21 @@ const Messages = () => {
 
       // Listen for new messages
       socketService.onNewMessage((newMessage) => {
-        console.log('New message received:', newMessage);
-        queryClient.invalidateQueries(['messages']);
-        queryClient.invalidateQueries(['conversations']);
-        
+        console.log("New message received:", newMessage);
+        queryClient.invalidateQueries(["messages"]);
+        queryClient.invalidateQueries(["conversations"]);
+
         // Show notification if message is not from selected chat
         if (newMessage.sender_id !== selectedChat?.user_id) {
-          toast.success('New message received');
+          toast.success("New message received");
         }
       });
 
       // Listen for message sent confirmation
       socketService.onMessageSent((sentMessage) => {
-        console.log('Message sent:', sentMessage);
-        queryClient.invalidateQueries(['messages', selectedChat?.user_id]);
-        queryClient.invalidateQueries(['conversations']);
+        console.log("Message sent:", sentMessage);
+        queryClient.invalidateQueries(["messages", selectedChat?.user_id]);
+        queryClient.invalidateQueries(["conversations"]);
       });
 
       // Listen for typing indicator
@@ -100,7 +115,7 @@ const Messages = () => {
 
       // Listen for user status changes
       socketService.onUserStatusChanged(({ userId, isOnline }) => {
-        setOnlineUsers(prev => {
+        setOnlineUsers((prev) => {
           const newSet = new Set(prev);
           if (isOnline) {
             newSet.add(userId);
@@ -118,7 +133,16 @@ const Messages = () => {
 
       // Listen for message errors
       socketService.onMessageError(({ error }) => {
-        toast.error(error || 'Failed to send message');
+        toast.error(error || "Failed to send message");
+      });
+
+      // Listen for incoming calls
+      socketService.onCallUser((data) => {
+        setReceivingCall(true);
+        setCaller(data.from);
+        setCallerName(data.name);
+        setCallerSignal(data.signal);
+        setShowVideoCall(true);
       });
 
       return () => {
@@ -140,11 +164,11 @@ const Messages = () => {
       // Send via Socket.IO
       if (socketService.isConnected()) {
         socketService.sendMessage(messageData);
-        setMessage('');
+        setMessage("");
       } else {
         // Fallback to HTTP
         sendMessageMutation.mutate(messageData);
-        setMessage('');
+        setMessage("");
       }
 
       // Stop typing indicator
@@ -188,40 +212,49 @@ const Messages = () => {
       unread_count: 0,
     });
     setShowNewChatModal(false);
-    setUserSearchQuery('');
+    setUserSearchQuery("");
   };
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messagesData]);
 
   const conversations = conversationsData?.data || [];
   const messages = messagesData?.data || [];
   const availableUsers = usersData?.data || [];
 
-  const filteredConversations = conversations.map(conv => ({
-    ...conv,
-    is_online: onlineUsers.has(conv.user_id) || conv.is_online
-  })).filter(conv =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = conversations
+    .map((conv) => ({
+      ...conv,
+      is_online: onlineUsers.has(conv.user_id) || conv.is_online,
+    }))
+    .filter(
+      (conv) =>
+        conv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        conv.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   const formatTime = (date) => {
     const messageDate = new Date(date);
     const now = new Date();
     const diff = now - messageDate;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
+
     if (days === 0) {
-      return messageDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      return messageDate.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } else if (days === 1) {
-      return 'Yesterday';
+      return "Yesterday";
     } else if (days < 7) {
-      return messageDate.toLocaleDateString('en-US', { weekday: 'short' });
+      return messageDate.toLocaleDateString("en-US", { weekday: "short" });
     } else {
-      return messageDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return messageDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
     }
   };
 
@@ -235,12 +268,20 @@ const Messages = () => {
               {/* Header */}
               <div className="p-4 border-b border-gray-200 bg-white">
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Messages
+                  </h2>
                   <div className="flex items-center space-x-2">
                     <div className="flex items-center space-x-1">
-                      <div className={`w-2 h-2 rounded-full ${socketService.isConnected() ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          socketService.isConnected()
+                            ? "bg-green-500"
+                            : "bg-red-500"
+                        }`}
+                      ></div>
                       <span className="text-xs text-gray-500">
-                        {socketService.isConnected() ? 'Connected' : 'Offline'}
+                        {socketService.isConnected() ? "Connected" : "Offline"}
                       </span>
                     </div>
                     <button
@@ -252,7 +293,7 @@ const Messages = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 {/* Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -284,14 +325,20 @@ const Messages = () => {
                       key={conv.user_id}
                       onClick={() => setSelectedChat(conv)}
                       className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                        selectedChat?.user_id === conv.user_id ? 'bg-blue-50' : ''
+                        selectedChat?.user_id === conv.user_id
+                          ? "bg-blue-50"
+                          : ""
                       }`}
                     >
                       <div className="flex items-start space-x-3">
                         <div className="relative flex-shrink-0">
                           <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
                             {conv.profile_photo ? (
-                              <img src={conv.profile_photo} alt={conv.name} className="w-full h-full object-cover" />
+                              <img
+                                src={`${IMAGE_URL}/${conv.profile_photo}`}
+                                alt={conv.name}
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
                               <span className="text-blue-600 font-semibold text-lg">
                                 {conv.name.charAt(0).toUpperCase()}
@@ -312,7 +359,7 @@ const Messages = () => {
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 mb-1 capitalize">
-                            {conv.role?.replace('_', ' ')}
+                            {conv.role?.replace("_", " ")}
                           </p>
                           <div className="flex items-center justify-between">
                             <p className="text-sm text-gray-600 truncate flex-1">
@@ -343,7 +390,11 @@ const Messages = () => {
                         <div className="relative flex-shrink-0">
                           <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
                             {selectedChat.profile_photo ? (
-                              <img src={selectedChat.profile_photo} alt={selectedChat.name} className="w-full h-full object-cover" />
+                              <img
+                                src={`${IMAGE_URL}/${selectedChat.profile_photo}`}
+                                alt={selectedChat.name}
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
                               <span className="text-blue-600 font-semibold">
                                 {selectedChat.name.charAt(0).toUpperCase()}
@@ -362,17 +413,47 @@ const Messages = () => {
                             {isTyping ? (
                               <span className="text-green-600">typing...</span>
                             ) : (
-                              `${selectedChat.is_online ? 'Online' : 'Offline'} • ${selectedChat.role?.replace('_', ' ')}`
+                              `${
+                                selectedChat.is_online ? "Online" : "Offline"
+                              } • ${selectedChat.role?.replace("_", " ")}`
                             )}
                           </p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => setSelectedChat(null)}
-                        className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-                      >
-                        <X className="w-5 h-5 text-gray-600" />
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        {selectedChat.is_online && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setIsCalling(true);
+                                setIsAudioOnly(true);
+                                setShowVideoCall(true);
+                              }}
+                              className="p-2 hover:bg-gray-100 rounded-lg text-green-600"
+                              title="Audio Call"
+                            >
+                              <Phone className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setIsCalling(true);
+                                setIsAudioOnly(false);
+                                setShowVideoCall(true);
+                              }}
+                              className="p-2 hover:bg-gray-100 rounded-lg text-blue-600"
+                              title="Video Call"
+                            >
+                              <Video className="w-5 h-5" />
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => setSelectedChat(null)}
+                          className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+                        >
+                          <X className="w-5 h-5 text-gray-600" />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -390,31 +471,39 @@ const Messages = () => {
                       messages.map((msg) => (
                         <div
                           key={msg.id}
-                          className={`flex ${msg.message_type === 'sent' ? 'justify-end' : 'justify-start'}`}
+                          className={`flex ${
+                            msg.message_type === "sent"
+                              ? "justify-end"
+                              : "justify-start"
+                          }`}
                         >
                           <div
                             className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                              msg.message_type === 'sent'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-900 border border-gray-200'
+                              msg.message_type === "sent"
+                                ? "bg-blue-600 text-white"
+                                : "bg-white text-gray-900 border border-gray-200"
                             }`}
                           >
-                            <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                            <p className="text-sm whitespace-pre-wrap break-words">
+                              {msg.content}
+                            </p>
                             <div className="flex items-center justify-end mt-1 space-x-1">
                               <Clock className="w-3 h-3 opacity-70" />
                               <span className="text-xs opacity-70">
-                                {new Date(msg.created_at).toLocaleTimeString('en-US', { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit' 
-                                })}
+                                {new Date(msg.created_at).toLocaleTimeString(
+                                  "en-US",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
                               </span>
-                              {msg.message_type === 'sent' && (
-                                msg.is_read ? (
+                              {msg.message_type === "sent" &&
+                                (msg.is_read ? (
                                   <CheckCheck className="w-4 h-4 opacity-70" />
                                 ) : (
                                   <Check className="w-4 h-4 opacity-70" />
-                                )
-                              )}
+                                ))}
                             </div>
                           </div>
                         </div>
@@ -425,7 +514,10 @@ const Messages = () => {
 
                   {/* Message Input */}
                   <div className="p-4 border-t border-gray-200 bg-white">
-                    <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+                    <form
+                      onSubmit={handleSendMessage}
+                      className="flex items-center space-x-2"
+                    >
                       <input
                         type="text"
                         value={message}
@@ -436,7 +528,9 @@ const Messages = () => {
                       />
                       <button
                         type="submit"
-                        disabled={!message.trim() || sendMessageMutation.isLoading}
+                        disabled={
+                          !message.trim() || sendMessageMutation.isLoading
+                        }
                         className="btn btn-primary px-4 py-2 flex items-center space-x-2"
                       >
                         {sendMessageMutation.isLoading ? (
@@ -480,7 +574,7 @@ const Messages = () => {
         isOpen={showNewChatModal}
         onClose={() => {
           setShowNewChatModal(false);
-          setUserSearchQuery('');
+          setUserSearchQuery("");
         }}
         title="Start New Chat"
       >
@@ -505,7 +599,9 @@ const Messages = () => {
               </div>
             ) : availableUsers.length === 0 ? (
               <p className="text-center text-gray-500 py-8">
-                {userSearchQuery ? 'No users found' : 'Start typing to search users'}
+                {userSearchQuery
+                  ? "No users found"
+                  : "Start typing to search users"}
               </p>
             ) : (
               availableUsers.map((user) => (
@@ -517,7 +613,11 @@ const Messages = () => {
                   <div className="relative flex-shrink-0">
                     <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
                       {user.profile_photo ? (
-                        <img src={user.profile_photo} alt={user.name} className="w-full h-full object-cover" />
+                        <img
+                          src={user.profile_photo}
+                          alt={user.name}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <span className="text-blue-600 font-semibold">
                           {user.name.charAt(0).toUpperCase()}
@@ -533,7 +633,7 @@ const Messages = () => {
                       {user.name}
                     </h4>
                     <p className="text-xs text-gray-500 capitalize">
-                      {user.role?.replace('_', ' ')}
+                      {user.role?.replace("_", " ")}
                       {user.class_name && ` • ${user.class_name}`}
                     </p>
                   </div>
@@ -543,6 +643,31 @@ const Messages = () => {
           </div>
         </div>
       </Modal>
+      {/* Video Call Modal */}
+      {showVideoCall && (
+        <VideoCall
+          isOpen={showVideoCall}
+          onClose={() => {
+            setShowVideoCall(false);
+            setReceivingCall(false);
+            setIsCalling(false);
+          }}
+          callerData={{
+            from: caller,
+            name: callerName,
+            signal: callerSignal,
+          }}
+          isIncomingCall={receivingCall}
+          userToCall={selectedChat}
+          isAudioOnly={isAudioOnly}
+          onCallEnded={() => {
+            setShowVideoCall(false);
+            setReceivingCall(false);
+            setIsCalling(false);
+            setIsAudioOnly(false);
+          }}
+        />
+      )}
     </>
   );
 };
