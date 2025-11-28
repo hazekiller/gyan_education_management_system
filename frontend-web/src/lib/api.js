@@ -490,5 +490,17 @@ export const dashboardAPI = {
     api.get("/dashboard/recent-registrations", { params: { limit } }),
 };
 
+// ============================================
+// HOSTEL API
+// ============================================
+export const hostelAPI = {
+  getAllRooms: (params) => api.get("/hostel/rooms", { params }),
+  createRoom: (data) => api.post("/hostel/rooms", data),
+  getRoomDetails: (id) => api.get(`/hostel/rooms/${id}`),
+  allocateRoom: (data) => api.post("/hostel/allocate", data),
+  vacateRoom: (data) => api.post("/hostel/vacate", data),
+  getMyRoom: () => api.get("/hostel/my-room"),
+};
+
 // Final export
 export default api;

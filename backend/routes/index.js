@@ -43,6 +43,7 @@ router.use("/exam-schedules", examSchedulesRoutes);
 router.use("/events", eventsRoutes);
 router.use("/fees", feesRoutes);
 router.use("/library", libraryRoutes);
+router.use("/hostel", require("./hostel.routes"));
 
 // ===== DEFAULT ROUTE =====
 router.get("/", (req, res) => {

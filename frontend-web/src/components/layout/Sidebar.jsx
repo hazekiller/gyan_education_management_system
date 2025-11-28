@@ -14,6 +14,7 @@ import {
   MessageSquare,
   GraduationCap,
   X,
+  Home,
 } from "lucide-react";
 import {
   selectCurrentUser,
@@ -111,6 +112,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       path: "/library",
       icon: BookOpen,
       show: true, // Everyone can see library (permissions handled inside)
+    },
+    {
+      name: "Hostel",
+      path: "/hostel",
+      icon: Home,
+      show: true, // Everyone can see hostel (permissions handled inside)
     },
   ];
 
