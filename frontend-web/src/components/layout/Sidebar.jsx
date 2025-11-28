@@ -15,6 +15,7 @@ import {
   GraduationCap,
   X,
   Home,
+  Bus,
 } from "lucide-react";
 import {
   selectCurrentUser,
@@ -118,6 +119,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       path: "/hostel",
       icon: Home,
       show: true, // Everyone can see hostel (permissions handled inside)
+    },
+    {
+      name: "Transport",
+      path: "/transport",
+      icon: Bus,
+      show: true, // Everyone can see transport (permissions handled inside)
     },
   ];
 

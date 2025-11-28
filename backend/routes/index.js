@@ -44,6 +44,7 @@ router.use("/events", eventsRoutes);
 router.use("/fees", feesRoutes);
 router.use("/library", libraryRoutes);
 router.use("/hostel", require("./hostel.routes"));
+router.use("/transport", require("./transport.routes"));
 
 // ===== DEFAULT ROUTE =====
 router.get("/", (req, res) => {
