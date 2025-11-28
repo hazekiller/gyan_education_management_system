@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Users,
@@ -10,11 +10,17 @@ import {
   DollarSign,
   ArrowUpRight,
   X,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
 import { dashboardAPI, eventsAPI } from "../../lib/api";
 import { usePermission } from "../../hooks/usePermission";
 import { PERMISSIONS } from "../../utils/rbac";
 import toast from "react-hot-toast";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -24,6 +30,12 @@ const AdminDashboard = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Refs for GSAP animations
+  const containerRef = useRef(null);
+  const welcomeRef = useRef(null);
+  const statsCardsRef = useRef([]);
+  const sectionsRef = useRef([]);
+
   useEffect(() => {
     fetchDashboardData();
 
@@ -31,6 +43,69 @@ const AdminDashboard = () => {
     const interval = setInterval(fetchDashboardData, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // GSAP Animations with ScrollTrigger
+  useEffect(() => {
+    if (!stats || loading) return;
+
+    const ctx = gsap.context(() => {
+      // Welcome banner animation - simple entrance
+      gsap.fromTo(welcomeRef.current,
+        { y: -30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }
+      );
+
+      // Stats cards with scroll trigger - ensure they're visible first
+      statsCardsRef.current.forEach((card, index) => {
+        if (!card) return;
+
+        // Set initial state to visible
+        gsap.set(card, { opacity: 1, y: 0, scale: 1 });
+
+        // Animate numbers counting up
+        const numberElement = card.querySelector('.stat-number');
+        if (numberElement) {
+          const finalValue = parseInt(numberElement.textContent) || 0;
+
+          // Set to 0 initially
+          numberElement.textContent = '0';
+
+          // Animate to final value
+          gsap.to(numberElement, {
+            textContent: finalValue,
+            duration: 2,
+            delay: 0.3 + (index * 0.1),
+            ease: "power2.out",
+            snap: { textContent: 1 },
+            onUpdate: function () {
+              numberElement.textContent = Math.ceil(this.targets()[0].textContent);
+            }
+          });
+        }
+
+        // Hover effect enhancement
+        card.addEventListener('mouseenter', () => {
+          gsap.to(card, { scale: 1.05, duration: 0.3, ease: "power2.out" });
+        });
+        card.addEventListener('mouseleave', () => {
+          gsap.to(card, { scale: 1, duration: 0.3, ease: "power2.out" });
+        });
+      });
+
+      // Sections - ensure they're visible
+      sectionsRef.current.forEach((section, index) => {
+        if (!section) return;
+
+        // Set initial state to visible
+        gsap.set(section, { opacity: 1, y: 0 });
+      });
+    }, containerRef);
+
+    return () => {
+      ctx.revert();
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, [stats, loading]);
 
   const fetchDashboardData = async () => {
     try {
@@ -143,26 +218,40 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div ref={containerRef} className="space-y-6">
       {/* Welcome Message */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">
-          Welcome back, Administrator!
-        </h2>
-        <p className="text-blue-100">
-          Here's what's happening in your school today.
-        </p>
-        <div className="mt-4 flex items-center space-x-4 text-sm">
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-4 h-4" />
-            <span>
-              {new Date().toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </span>
+      <div
+        ref={welcomeRef}
+        className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="w-6 h-6 animate-pulse" />
+            <h2 className="text-3xl font-bold">
+              Welcome back, Administrator!
+            </h2>
+          </div>
+          <p className="text-blue-100 text-lg">
+            Here's what's happening in your school today.
+          </p>
+          <div className="mt-6 flex items-center space-x-6 text-sm">
+            <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+              <Calendar className="w-4 h-4" />
+              <span className="font-medium">
+                {new Date().toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+              <TrendingUp className="w-4 h-4" />
+              <span className="font-medium">All Systems Active</span>
+            </div>
           </div>
         </div>
       </div>
@@ -172,22 +261,23 @@ const AdminDashboard = () => {
         {/* Total Students */}
         {hasPermission(PERMISSIONS.VIEW_STUDENTS) && (
           <div
-            className="card hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+            ref={(el) => (statsCardsRef.current[0] = el)}
+            className="card hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-2 hover:scale-105 bg-gradient-to-br from-white to-blue-50/30"
             onClick={() => navigate("/students")}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Students</p>
-                <h3 className="text-3xl font-bold text-gray-900">
+                <p className="text-sm text-gray-600 mb-1 font-medium">Total Students</p>
+                <h3 className="stat-number text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {stats?.students || 0}
                 </h3>
-                <div className="flex items-center mt-2 text-xs">
-                  <ArrowUpRight className="w-3 h-3 text-green-600 mr-1" />
-                  <span className="text-green-600 font-medium">Active</span>
+                <div className="flex items-center mt-3 text-xs">
+                  <ArrowUpRight className="w-4 h-4 text-green-600 mr-1" />
+                  <span className="text-green-600 font-semibold">Active</span>
                 </div>
               </div>
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-                <Users className="w-7 h-7 text-white" />
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl transform hover:rotate-12 transition-transform duration-300">
+                <Users className="w-8 h-8 text-white" />
               </div>
             </div>
           </div>
@@ -196,22 +286,23 @@ const AdminDashboard = () => {
         {/* Total Teachers */}
         {hasPermission(PERMISSIONS.VIEW_TEACHERS) && (
           <div
-            className="card hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+            ref={(el) => (statsCardsRef.current[1] = el)}
+            className="card hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-2 hover:scale-105 bg-gradient-to-br from-white to-green-50/30"
             onClick={() => navigate("/teachers")}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Teachers</p>
-                <h3 className="text-3xl font-bold text-gray-900">
+                <p className="text-sm text-gray-600 mb-1 font-medium">Total Teachers</p>
+                <h3 className="stat-number text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                   {stats?.teachers || 0}
                 </h3>
-                <div className="flex items-center mt-2 text-xs">
-                  <ArrowUpRight className="w-3 h-3 text-green-600 mr-1" />
-                  <span className="text-green-600 font-medium">Active</span>
+                <div className="flex items-center mt-3 text-xs">
+                  <ArrowUpRight className="w-4 h-4 text-green-600 mr-1" />
+                  <span className="text-green-600 font-semibold">Active</span>
                 </div>
               </div>
-              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
-                <UserCheck className="w-7 h-7 text-white" />
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-xl transform hover:rotate-12 transition-transform duration-300">
+                <UserCheck className="w-8 h-8 text-white" />
               </div>
             </div>
           </div>
@@ -219,46 +310,50 @@ const AdminDashboard = () => {
 
         {/* Total Classes */}
         <div
-          className="card hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+          ref={(el) => (statsCardsRef.current[2] = el)}
+          className="card hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-2 hover:scale-105 bg-gradient-to-br from-white to-purple-50/30"
           onClick={() => navigate("/classes")}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Total Classes</p>
-              <h3 className="text-3xl font-bold text-gray-900">
+              <p className="text-sm text-gray-600 mb-1 font-medium">Total Classes</p>
+              <h3 className="stat-number text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 {stats?.classes || 0}
               </h3>
-              <div className="flex items-center mt-2 text-xs">
-                <span className="text-gray-500">Active classes</span>
+              <div className="flex items-center mt-3 text-xs">
+                <span className="text-gray-600 font-semibold">Active classes</span>
               </div>
             </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-              <BookOpen className="w-7 h-7 text-white" />
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl transform hover:rotate-12 transition-transform duration-300">
+              <BookOpen className="w-8 h-8 text-white" />
             </div>
           </div>
         </div>
 
         {/* Total Staff */}
-        <div className="card hover:shadow-lg transition-all duration-300">
+        <div
+          ref={(el) => (statsCardsRef.current[3] = el)}
+          className="card hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-2 hover:scale-105 bg-gradient-to-br from-white to-orange-50/30"
+        >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Total Staff</p>
-              <h3 className="text-3xl font-bold text-gray-900">
+              <p className="text-sm text-gray-600 mb-1 font-medium">Total Staff</p>
+              <h3 className="stat-number text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
                 {stats?.staff || 0}
               </h3>
-              <div className="flex items-center mt-2 text-xs">
-                <span className="text-gray-500">Including teachers</span>
+              <div className="flex items-center mt-3 text-xs">
+                <span className="text-gray-600 font-semibold">Including teachers</span>
               </div>
             </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
-              <UsersRound className="w-7 h-7 text-white" />
+            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-xl transform hover:rotate-12 transition-transform duration-300">
+              <UsersRound className="w-8 h-8 text-white" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Attendance & Revenue */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div ref={(el) => (sectionsRef.current[0] = el)} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Today's Attendance */}
         {hasPermission(PERMISSIONS.VIEW_ATTENDANCE) && (
           <div className="card">
@@ -310,10 +405,10 @@ const AdminDashboard = () => {
                   <span className="text-sm font-semibold text-gray-900">
                     {stats?.todayAttendance?.total > 0
                       ? Math.round(
-                          (stats.todayAttendance.present /
-                            stats.todayAttendance.total) *
-                            100
-                        )
+                        (stats.todayAttendance.present /
+                          stats.todayAttendance.total) *
+                        100
+                      )
                       : 0}
                     %
                   </span>
@@ -322,13 +417,12 @@ const AdminDashboard = () => {
                   <div
                     className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-500"
                     style={{
-                      width: `${
-                        stats?.todayAttendance?.total > 0
-                          ? (stats.todayAttendance.present /
-                              stats.todayAttendance.total) *
-                            100
-                          : 0
-                      }%`,
+                      width: `${stats?.todayAttendance?.total > 0
+                        ? (stats.todayAttendance.present /
+                          stats.todayAttendance.total) *
+                        100
+                        : 0
+                        }%`,
                     }}
                   ></div>
                 </div>
@@ -406,58 +500,58 @@ const AdminDashboard = () => {
       {/* Quick Actions */}
       {(hasPermission(PERMISSIONS.CREATE_STUDENTS) ||
         hasPermission(PERMISSIONS.CREATE_EVENTS)) && (
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {hasPermission(PERMISSIONS.CREATE_STUDENTS) && (
-              <button
-                onClick={() => navigate("/students")}
-                className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-center group"
-              >
-                <Users className="w-8 h-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <p className="text-sm font-medium text-gray-900">Add Student</p>
-              </button>
-            )}
+          <div ref={(el) => (sectionsRef.current[1] = el)} className="card parallax-item">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Quick Actions
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {hasPermission(PERMISSIONS.CREATE_STUDENTS) && (
+                <button
+                  onClick={() => navigate("/students")}
+                  className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-center group"
+                >
+                  <Users className="w-8 h-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="text-sm font-medium text-gray-900">Add Student</p>
+                </button>
+              )}
 
-            {hasPermission(PERMISSIONS.MARK_ATTENDANCE) && (
-              <button
-                onClick={() => navigate("/attendance")}
-                className="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-center group"
-              >
-                <ClipboardCheck className="w-8 h-8 text-green-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <p className="text-sm font-medium text-gray-900">
-                  Mark Attendance
-                </p>
-              </button>
-            )}
+              {hasPermission(PERMISSIONS.MARK_ATTENDANCE) && (
+                <button
+                  onClick={() => navigate("/attendance")}
+                  className="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-center group"
+                >
+                  <ClipboardCheck className="w-8 h-8 text-green-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="text-sm font-medium text-gray-900">
+                    Mark Attendance
+                  </p>
+                </button>
+              )}
 
-            {hasPermission(PERMISSIONS.CREATE_EXAMS) && (
-              <button
-                onClick={() => navigate("/exams")}
-                className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-center group"
-              >
-                <BookOpen className="w-8 h-8 text-purple-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <p className="text-sm font-medium text-gray-900">Create Exam</p>
-              </button>
-            )}
+              {hasPermission(PERMISSIONS.CREATE_EXAMS) && (
+                <button
+                  onClick={() => navigate("/exams")}
+                  className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-center group"
+                >
+                  <BookOpen className="w-8 h-8 text-purple-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="text-sm font-medium text-gray-900">Create Exam</p>
+                </button>
+              )}
 
-            {hasPermission(PERMISSIONS.CREATE_EVENTS) && (
-              <button
-                onClick={() => navigate("/events")}
-                className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-center group"
-              >
-                <Calendar className="w-8 h-8 text-orange-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <p className="text-sm font-medium text-gray-900">Add Event</p>
-              </button>
-            )}
+              {hasPermission(PERMISSIONS.CREATE_EVENTS) && (
+                <button
+                  onClick={() => navigate("/events")}
+                  className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-center group"
+                >
+                  <Calendar className="w-8 h-8 text-orange-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="text-sm font-medium text-gray-900">Add Event</p>
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Recent Activity & Events */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div ref={(el) => (sectionsRef.current[2] = el)} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Registrations */}
         {hasPermission(PERMISSIONS.VIEW_STUDENTS) && (
           <div className="card">
@@ -584,11 +678,10 @@ const AdminDashboard = () => {
                       </p>
                     </div>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        event.event_type === "holiday"
-                          ? "bg-red-100 text-red-600"
-                          : "bg-blue-100 text-blue-600"
-                      }`}
+                      className={`text-xs px-2 py-1 rounded-full font-medium ${event.event_type === "holiday"
+                        ? "bg-red-100 text-red-600"
+                        : "bg-blue-100 text-blue-600"
+                        }`}
                     >
                       {event.event_type}
                     </span>
