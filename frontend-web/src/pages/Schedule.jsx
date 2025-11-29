@@ -265,7 +265,7 @@ const Schedule = () => {
         </div>
       )}
 
-      {/* Schedule Grid */}
+      {/* Schedule Grid - Calendar Format */}
       {loading ? (
         <div className="flex justify-center py-12">
           <Loader className="w-8 h-8 text-blue-600 animate-spin" />
@@ -304,58 +304,69 @@ const Schedule = () => {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {groupedSchedule.map(({ day, periods }) => (
-            <div
-              key={day}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full"
-            >
-              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900">{day}</h3>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {/* Calendar Header */}
+          <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
+            {daysOfWeek.map((day) => (
+              <div
+                key={day}
+                className="px-4 py-3 text-center font-semibold text-gray-900 border-r border-gray-200 last:border-r-0"
+              >
+                {day}
               </div>
-              <div className="p-4 flex-1 space-y-4">
-                {periods.length > 0 ? (
-                  periods.map((period, index) => (
-                    <div
-                      key={period.id}
-                      className={`p-3 rounded-lg border-l-4 ${getColor(
-                        index
-                      )} bg-gray-50 hover:bg-white hover:shadow-md transition-all duration-200 border border-gray-100`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-bold text-gray-900">
+            ))}
+          </div>
+
+          {/* Calendar Body */}
+          <div className="grid grid-cols-7">
+            {groupedSchedule.map(({ day, periods }, dayIndex) => (
+              <div
+                key={day}
+                className="min-h-[300px] border-r border-gray-200 last:border-r-0"
+              >
+                <div className="p-3 space-y-2">
+                  {periods.length > 0 ? (
+                    periods.map((period, index) => (
+                      <div
+                        key={period.id}
+                        className={`p-2 rounded-lg border-l-4 ${getColor(
+                          index
+                        )} bg-gray-50 hover:bg-white hover:shadow-md transition-all duration-200 border border-gray-100 cursor-pointer`}
+                      >
+                        <div className="mb-1">
+                          <h4 className="font-bold text-sm text-gray-900 truncate">
                             {period.subject_name}
                           </h4>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-xs text-gray-600 truncate">
                             {period.class_name} - {period.section_name}
                           </p>
                         </div>
-                        <span className="text-xs font-medium px-2 py-1 bg-white rounded border border-gray-200 text-gray-600">
-                          Period {period.period_number}
-                        </span>
-                      </div>
 
-                      <div className="space-y-1">
-                        <div className="flex items-center text-xs text-gray-500">
-                          <Clock className="w-3 h-3 mr-1.5" />
-                          {period.start_time} - {period.end_time}
-                        </div>
-                        <div className="flex items-center text-xs text-gray-500">
-                          <MapPin className="w-3 h-3 mr-1.5" />
-                          Room: {period.room_number || "N/A"}
+                        <div className="space-y-0.5">
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">
+                              {period.start_time} - {period.end_time}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-xs text-gray-500">
+                            <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">
+                              Room: {period.room_number || "N/A"}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-400 italic text-center py-4">
-                    No classes
-                  </p>
-                )}
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-400 italic text-center py-8">
+                      No classes
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 

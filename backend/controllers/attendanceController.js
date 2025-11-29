@@ -40,6 +40,10 @@ const getAttendance = async (req, res) => {
         )
       )`;
       params.push(userId);
+    } else if (userRole === "student") {
+      // Students can only see their own attendance
+      query += ` AND s.user_id = ?`;
+      params.push(userId);
     }
 
     if (class_id) {
@@ -546,6 +550,10 @@ const getAttendanceStats = async (req, res) => {
           SELECT id FROM teachers WHERE user_id = ?
         )
       )`;
+      params.push(userId);
+    } else if (userRole === "student") {
+      // Students can only see their own stats
+      query += ` AND s.user_id = ?`;
       params.push(userId);
     }
 
