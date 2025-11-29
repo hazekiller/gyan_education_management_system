@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Nov 26, 2025 at 02:28 PM
+-- Generation Time: Nov 28, 2025 at 07:27 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -329,6 +329,36 @@ CREATE TABLE `exam_schedule` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `fee_heads`
+--
+
+CREATE TABLE `fee_heads` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `fee_heads`
+--
+
+INSERT INTO `fee_heads` (`id`, `name`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'Tuition Fee', NULL, 1, '2025-11-27 18:20:47', '2025-11-27 18:20:47'),
+(2, 'Admission Fee', NULL, 1, '2025-11-27 18:20:47', '2025-11-27 18:20:47'),
+(3, 'Exam Fee', NULL, 1, '2025-11-27 18:20:47', '2025-11-27 18:20:47'),
+(4, 'Library Fee', NULL, 1, '2025-11-27 18:20:47', '2025-11-27 18:20:47'),
+(5, 'Transport Fee', NULL, 1, '2025-11-27 18:20:47', '2025-11-27 18:20:47'),
+(6, 'Sports Fee', NULL, 1, '2025-11-27 18:20:47', '2025-11-27 18:20:47'),
+(7, 'Laboratory Fee', NULL, 1, '2025-11-27 18:20:47', '2025-11-27 18:20:47'),
+(8, 'Development Fee', NULL, 1, '2025-11-27 18:20:47', '2025-11-27 18:20:47'),
+(9, 'Other', NULL, 1, '2025-11-27 18:20:47', '2025-11-27 18:20:47');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `fee_payments`
 --
 
@@ -347,6 +377,13 @@ CREATE TABLE `fee_payments` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `fee_payments`
+--
+
+INSERT INTO `fee_payments` (`id`, `student_id`, `fee_structure_id`, `amount_paid`, `payment_date`, `payment_method`, `transaction_id`, `receipt_number`, `remarks`, `collected_by`, `status`, `created_at`) VALUES
+(1, 2, 1, 2500.00, '2025-11-27', 'cash', NULL, NULL, 'Counter collection', 1, 'completed', '2025-11-27 18:30:07');
+
 -- --------------------------------------------------------
 
 --
@@ -356,15 +393,74 @@ CREATE TABLE `fee_payments` (
 CREATE TABLE `fee_structure` (
   `id` int(11) NOT NULL,
   `class_id` int(11) NOT NULL,
+  `fee_head_id` int(11) DEFAULT NULL,
   `fee_type` enum('tuition','admission','exam','library','transport','sports','laboratory','development','other') NOT NULL,
   `amount` decimal(10,2) NOT NULL,
   `academic_year` varchar(20) NOT NULL,
+  `period_type` enum('monthly','yearly','one_time','term') DEFAULT 'monthly',
+  `period_value` int(11) DEFAULT 1,
   `due_date` date DEFAULT NULL,
   `description` text DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `fee_structure`
+--
+
+INSERT INTO `fee_structure` (`id`, `class_id`, `fee_head_id`, `fee_type`, `amount`, `academic_year`, `period_type`, `period_value`, `due_date`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 13, 1, 'tuition', 2500.00, '2024-2025', 'monthly', 1, '2025-11-27', '', 1, '2025-11-27 18:29:40', '2025-11-27 18:29:40');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `hostel_allocations`
+--
+
+CREATE TABLE `hostel_allocations` (
+  `id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `room_id` int(11) NOT NULL,
+  `allocation_date` date DEFAULT curdate(),
+  `status` enum('active','vacated') DEFAULT 'active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `hostel_allocations`
+--
+
+INSERT INTO `hostel_allocations` (`id`, `student_id`, `room_id`, `allocation_date`, `status`, `created_at`, `updated_at`) VALUES
+(1, 2, 1, '2025-11-28', 'active', '2025-11-28 06:22:36', '2025-11-28 06:22:36');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `hostel_rooms`
+--
+
+CREATE TABLE `hostel_rooms` (
+  `id` int(11) NOT NULL,
+  `room_number` varchar(50) NOT NULL,
+  `building_name` varchar(100) DEFAULT 'Main Hostel',
+  `type` enum('male','female') NOT NULL,
+  `capacity` int(11) DEFAULT 4,
+  `current_occupancy` int(11) DEFAULT 0,
+  `status` enum('active','maintenance') DEFAULT 'active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `hostel_rooms`
+--
+
+INSERT INTO `hostel_rooms` (`id`, `room_number`, `building_name`, `type`, `capacity`, `current_occupancy`, `status`, `created_at`, `updated_at`) VALUES
+(1, '501', 'Main Hostel', 'male', 5, 1, 'active', '2025-11-28 06:22:03', '2025-11-28 06:22:36'),
+(2, '901', 'Girls Dorm', 'female', 5, 0, 'active', '2025-11-28 06:22:25', '2025-11-28 06:22:25');
 
 -- --------------------------------------------------------
 
@@ -387,6 +483,13 @@ CREATE TABLE `library_books` (
   `added_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `library_books`
+--
+
+INSERT INTO `library_books` (`id`, `book_title`, `author`, `isbn`, `publisher`, `publication_year`, `category`, `total_copies`, `available_copies`, `rack_number`, `description`, `added_at`) VALUES
+(1, 'Quantum Physics', 'Prakash Dai', '', NULL, NULL, 'Physics', 45, 45, '12', '', '2025-11-27 18:45:29');
+
 -- --------------------------------------------------------
 
 --
@@ -406,6 +509,14 @@ CREATE TABLE `library_transactions` (
   `remarks` text DEFAULT NULL,
   `issued_by` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `library_transactions`
+--
+
+INSERT INTO `library_transactions` (`id`, `book_id`, `user_id`, `user_type`, `issue_date`, `due_date`, `return_date`, `fine_amount`, `status`, `remarks`, `issued_by`) VALUES
+(2, 1, 8, 'student', '2025-11-27', '2025-12-11', '2025-11-27', 0.00, 'returned', NULL, 1),
+(3, 1, 8, 'student', '2025-11-28', '2025-12-12', '2025-11-28', 0.00, 'returned', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -842,7 +953,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `role`, `is_active`, `last_login`, `created_at`, `updated_at`) VALUES
-(1, 'admin@gyan.edu', '$2a$10$iS1c4/I55GqFLgJfLjwuP.cKivj7BJUyo/Z.WY.gaAD82D4rFKeJK', 'super_admin', 1, '2025-11-26 19:10:31', '2025-10-22 11:07:23', '2025-11-26 13:25:31'),
+(1, 'admin@gyan.edu', '$2a$10$iS1c4/I55GqFLgJfLjwuP.cKivj7BJUyo/Z.WY.gaAD82D4rFKeJK', 'super_admin', 1, '2025-11-28 06:23:56', '2025-10-22 11:07:23', '2025-11-28 06:23:56'),
 (4, 'prakashtimilsina76@gmail.com', '$2a$10$SYLTPwE2kiY4bHgo1Ch.neI9//pAxsJPgHmq0d8U9w9YWCwdE/jrK', 'student', 1, '2025-10-24 14:45:15', '2025-10-22 18:32:46', '2025-10-24 14:45:15'),
 (6, 'sunabbaskota@gmail.com', '$2a$10$i00m7HUdqyMa9V0THW3UzuiNADhaXsi20NVkHIcuYkZOoDmurTLo.', 'teacher', 1, '2025-11-26 19:05:06', '2025-11-23 09:17:31', '2025-11-26 13:20:06'),
 (8, 'sunabbaskota15@gmail.com', '$2a$10$XpRgLx8N4aJH2XGjeiPpDeMIN6E8nhGXjdtd55EgAAA4vL9Ogz3xW', 'student', 1, '2025-11-25 11:55:37', '2025-11-23 15:20:26', '2025-11-25 06:10:37'),
@@ -988,6 +1099,12 @@ ALTER TABLE `exam_schedule`
   ADD KEY `idx_exam_date` (`exam_id`,`exam_date`);
 
 --
+-- Indexes for table `fee_heads`
+--
+ALTER TABLE `fee_heads`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `fee_payments`
 --
 ALTER TABLE `fee_payments`
@@ -1004,7 +1121,23 @@ ALTER TABLE `fee_payments`
 --
 ALTER TABLE `fee_structure`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_class_year` (`class_id`,`academic_year`);
+  ADD KEY `idx_class_year` (`class_id`,`academic_year`),
+  ADD KEY `fk_fee_structure_head` (`fee_head_id`);
+
+--
+-- Indexes for table `hostel_allocations`
+--
+ALTER TABLE `hostel_allocations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `student_id` (`student_id`),
+  ADD KEY `room_id` (`room_id`);
+
+--
+-- Indexes for table `hostel_rooms`
+--
+ALTER TABLE `hostel_rooms`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_room` (`room_number`,`building_name`);
 
 --
 -- Indexes for table `library_books`
@@ -1267,28 +1400,46 @@ ALTER TABLE `exam_schedule`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `fee_heads`
+--
+ALTER TABLE `fee_heads`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
 -- AUTO_INCREMENT for table `fee_payments`
 --
 ALTER TABLE `fee_payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `fee_structure`
 --
 ALTER TABLE `fee_structure`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `hostel_allocations`
+--
+ALTER TABLE `hostel_allocations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `hostel_rooms`
+--
+ALTER TABLE `hostel_rooms`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `library_books`
 --
 ALTER TABLE `library_books`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `library_transactions`
 --
 ALTER TABLE `library_transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -1497,7 +1648,15 @@ ALTER TABLE `fee_payments`
 -- Constraints for table `fee_structure`
 --
 ALTER TABLE `fee_structure`
-  ADD CONSTRAINT `fee_structure_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fee_structure_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_fee_structure_head` FOREIGN KEY (`fee_head_id`) REFERENCES `fee_heads` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `hostel_allocations`
+--
+ALTER TABLE `hostel_allocations`
+  ADD CONSTRAINT `hostel_allocations_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `hostel_allocations_ibfk_2` FOREIGN KEY (`room_id`) REFERENCES `hostel_rooms` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `library_transactions`
