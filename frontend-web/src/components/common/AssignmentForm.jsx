@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
-import { classesAPI, teachersAPI, subjectsAPI } from "../../lib/api";
+import { classesAPI, teachersAPI, classSubjectsAPI } from "../../lib/api";
 import { selectUserRole } from "../../store/slices/authSlice";
 import toast from "react-hot-toast";
 
@@ -26,10 +26,17 @@ const AssignmentForm = ({
     attachments: null,
   });
 
-  // Fetch classes
+  // Fetch classes - role-based
   const { data: classesData } = useQuery({
-    queryKey: ["classes"],
-    queryFn: classesAPI.getAll,
+    queryKey: ["classes", userRole],
+    queryFn: () => {
+      // For teachers: use getMyClasses to show only assigned classes
+      if (userRole === "teacher") {
+        return classesAPI.getMyClasses();
+      }
+      // For admin: show all classes
+      return classesAPI.getAll();
+    },
   });
 
   // Fetch sections based on selected class
@@ -39,10 +46,11 @@ const AssignmentForm = ({
     enabled: !!formData.class_id,
   });
 
-  // Fetch subjects
+  // Fetch subjects based on selected class (from class_subjects table)
   const { data: subjectsData } = useQuery({
-    queryKey: ["subjects"],
-    queryFn: subjectsAPI.getAll,
+    queryKey: ["class-subjects", formData.class_id],
+    queryFn: () => classSubjectsAPI.getByClass(formData.class_id),
+    enabled: !!formData.class_id,
   });
 
   // Fetch teachers (only for admin or super_admin)
@@ -54,18 +62,19 @@ const AssignmentForm = ({
 
   const classes = classesData?.data || [];
   const sections = sectionsData?.data || [];
-  const subjects = subjectsData?.data || [];
+  const classSubjects = subjectsData?.data || [];
   const teachers = teachersData?.data || [];
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
-    // Reset section when class changes
+    // Reset section and subject when class changes
     if (name === "class_id") {
       setFormData({
         ...formData,
         class_id: value,
         section_id: "",
+        subject_id: "",
       });
     } else if (name === "attachments") {
       // Handle file input
@@ -234,14 +243,24 @@ const AssignmentForm = ({
             value={formData.subject_id}
             onChange={handleChange}
             className="input"
+            disabled={!formData.class_id}
           >
-            <option value="">Select Subject (Optional)</option>
-            {subjects.map((subject) => (
-              <option key={subject.id} value={subject.id}>
-                {subject.name}
+            <option value="">
+              {formData.class_id
+                ? "Select Subject (Optional)"
+                : "Select Class First"}
+            </option>
+            {classSubjects.map((cs) => (
+              <option key={cs.subject_id} value={cs.subject_id}>
+                {cs.subject_name} ({cs.subject_code})
               </option>
             ))}
           </select>
+          {!formData.class_id && (
+            <p className="text-xs text-gray-500 mt-1">
+              Please select a class to see available subjects
+            </p>
+          )}
         </div>
 
         <div>
