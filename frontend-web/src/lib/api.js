@@ -319,6 +319,24 @@ export const assignmentsAPI = {
     }),
 
   delete: (id) => api.delete(`/assignments/${id}`),
+
+  // Submission methods
+  submit: (id, data) =>
+    api.post(`/assignments/${id}/submit`, toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  getSubmissions: (id) => api.get(`/assignments/${id}/submissions`),
+
+  getMySubmission: (id) => api.get(`/assignments/${id}/my-submission`),
+
+  gradeSubmission: (submissionId, data) =>
+    api.put(`/assignments/submissions/${submissionId}/grade`, data),
+
+  updateSubmission: (submissionId, data) =>
+    api.put(`/assignments/submissions/${submissionId}`, toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
 };
 
 // ============================================

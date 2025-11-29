@@ -12,6 +12,9 @@ import {
   User,
   BookOpen,
   Award,
+  Send,
+  CheckCircle,
+  Users,
 } from "lucide-react";
 import { assignmentsAPI } from "../lib/api";
 import { useSelector } from "react-redux";
@@ -324,6 +327,13 @@ const AssignmentDetails = () => {
         </div>
       </div>
 
+      {/* Submissions Section */}
+      <SubmissionsSection
+        assignmentId={id}
+        assignment={assignment}
+        userRole={userRole}
+      />
+
       {/* Edit Modal */}
       <Modal
         isOpen={isEditModalOpen}
@@ -372,6 +382,443 @@ const AssignmentDetails = () => {
             </button>
           </div>
         </div>
+      </Modal>
+    </div>
+  );
+};
+
+// ==========================================
+// SUBMISSION COMPONENTS
+// ==========================================
+
+// Submissions Section Component
+const SubmissionsSection = ({ assignmentId, assignment, userRole }) => {
+  const queryClient = useQueryClient();
+  const isStudent = userRole === "student";
+  const isTeacherOrAdmin = ["teacher", "admin", "super_admin"].includes(
+    userRole
+  );
+
+  // Fetch student's own submission
+  const { data: mySubmissionData } = useQuery({
+    queryKey: ["my-submission", assignmentId],
+    queryFn: () => assignmentsAPI.getMySubmission(assignmentId),
+    enabled: isStudent,
+  });
+
+  // Fetch all submissions (for teachers/admins)
+  const { data: submissionsData } = useQuery({
+    queryKey: ["submissions", assignmentId],
+    queryFn: () => assignmentsAPI.getSubmissions(assignmentId),
+    enabled: isTeacherOrAdmin,
+  });
+
+  const mySubmission = mySubmissionData?.data;
+  const submissions = submissionsData?.data || [];
+
+  if (isStudent) {
+    return (
+      <StudentSubmissionView
+        submission={mySubmission}
+        assignment={assignment}
+        assignmentId={assignmentId}
+        queryClient={queryClient}
+      />
+    );
+  }
+
+  if (isTeacherOrAdmin) {
+    return (
+      <TeacherSubmissionsView
+        submissions={submissions}
+        assignment={assignment}
+        queryClient={queryClient}
+      />
+    );
+  }
+
+  return null;
+};
+
+// Student Submission View
+const StudentSubmissionView = ({
+  submission,
+  assignment,
+  assignmentId,
+  queryClient,
+}) => {
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    submission_text: "",
+    attachments: null,
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: (data) => assignmentsAPI.submit(assignmentId, data),
+    onSuccess: () => {
+      toast.success("Assignment submitted successfully");
+      queryClient.invalidateQueries(["my-submission", assignmentId]);
+      setFormData({ submission_text: "", attachments: null });
+      setIsSubmitModalOpen(false);
+    },
+    onError: (error) => {
+      toast.error(
+        error.response?.data?.message || "Failed to submit assignment"
+      );
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    submitMutation.mutate(formData);
+  };
+
+  if (submission) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+          <CheckCircle className="w-6 h-6 mr-2 text-green-600" />
+          Your Submission
+        </h3>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+            <div>
+              <p className="font-semibold text-green-800">
+                Status: {submission.status}
+              </p>
+              <p className="text-sm text-green-600">
+                Submitted on{" "}
+                {new Date(submission.submitted_at).toLocaleString()}
+              </p>
+            </div>
+            {submission.status === "graded" && (
+              <div className="text-right">
+                <p className="text-2xl font-bold text-green-800">
+                  {submission.marks_obtained}/{assignment.total_marks}
+                </p>
+                <p className="text-sm text-green-600">Marks</p>
+              </div>
+            )}
+          </div>
+
+          {submission.submission_text && (
+            <div>
+              <h4 className="font-semibold text-gray-700 mb-2">Your Answer:</h4>
+              <p className="text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg">
+                {submission.submission_text}
+              </p>
+            </div>
+          )}
+
+          {submission.attachments && submission.attachments.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-gray-700 mb-2">Attachments:</h4>
+              <div className="space-y-2">
+                {submission.attachments.map((file, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <span className="text-sm">{file.split("/").pop()}</span>
+                    <a
+                      href={`${import.meta.env.VITE_API_URL?.replace(
+                        "/api",
+                        ""
+                      )}/${file}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-sm btn-outline"
+                    >
+                      <Download className="w-4 h-4" />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {submission.feedback && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-900 mb-2">
+                Teacher's Feedback:
+              </h4>
+              <p className="text-blue-800">{submission.feedback}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-bold text-gray-900 flex items-center">
+          <Send className="w-6 h-6 mr-2 text-blue-600" />
+          Assignment Submission
+        </h3>
+        <button
+          onClick={() => setIsSubmitModalOpen(true)}
+          className="btn btn-primary flex items-center space-x-2"
+        >
+          <Send className="w-4 h-4" />
+          <span>Submit Assignment</span>
+        </button>
+      </div>
+
+      <p className="text-gray-600">
+        Click the "Submit Assignment" button to submit your work for this
+        assignment.
+      </p>
+
+      {/* Submission Modal */}
+      <Modal
+        isOpen={isSubmitModalOpen}
+        onClose={() => setIsSubmitModalOpen(false)}
+        title="Submit Assignment"
+        size="lg"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Your Answer
+            </label>
+            <textarea
+              value={formData.submission_text}
+              onChange={(e) =>
+                setFormData({ ...formData, submission_text: e.target.value })
+              }
+              className="input min-h-[200px]"
+              placeholder="Type your answer here..."
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Attachments (Optional)
+            </label>
+            <input
+              type="file"
+              onChange={(e) =>
+                setFormData({ ...formData, attachments: e.target.files })
+              }
+              className="input"
+              multiple
+              accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Max 5 files (PDF, DOC, DOCX, PNG, JPG)
+            </p>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setIsSubmitModalOpen(false)}
+              className="btn btn-outline"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={submitMutation.isPending}
+            >
+              {submitMutation.isPending ? "Submitting..." : "Submit Assignment"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  );
+};
+
+// Teacher Submissions View
+const TeacherSubmissionsView = ({ submissions, assignment, queryClient }) => {
+  const [gradingSubmission, setGradingSubmission] = useState(null);
+
+  const gradeMutation = useMutation({
+    mutationFn: ({ submissionId, data }) =>
+      assignmentsAPI.gradeSubmission(submissionId, data),
+    onSuccess: () => {
+      toast.success("Submission graded successfully");
+      queryClient.invalidateQueries(["submissions"]);
+      setGradingSubmission(null);
+    },
+    onError: (error) => {
+      toast.error(
+        error.response?.data?.message || "Failed to grade submission"
+      );
+    },
+  });
+
+  const handleGrade = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    gradeMutation.mutate({
+      submissionId: gradingSubmission.id,
+      data: {
+        marks_obtained: parseFloat(formData.get("marks")),
+        feedback: formData.get("feedback"),
+      },
+    });
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+        <Users className="w-6 h-6 mr-2 text-blue-600" />
+        Student Submissions ({submissions.length})
+      </h3>
+
+      {submissions.length === 0 ? (
+        <p className="text-gray-500 text-center py-8">No submissions yet</p>
+      ) : (
+        <div className="space-y-4">
+          {submissions.map((sub) => (
+            <div
+              key={sub.id}
+              className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {sub.first_name} {sub.last_name}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Roll: {sub.roll_number} | Admission: {sub.admission_number}
+                  </p>
+                </div>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    sub.status === "graded"
+                      ? "bg-green-100 text-green-800"
+                      : sub.status === "late"
+                      ? "bg-orange-100 text-orange-800"
+                      : "bg-blue-100 text-blue-800"
+                  }`}
+                >
+                  {sub.status}
+                </span>
+              </div>
+
+              {sub.submission_text && (
+                <div className="mb-3">
+                  <p className="text-sm font-medium text-gray-700 mb-1">
+                    Answer:
+                  </p>
+                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                    {sub.submission_text}
+                  </p>
+                </div>
+              )}
+
+              {sub.attachments && sub.attachments.length > 0 && (
+                <div className="mb-3">
+                  <p className="text-sm font-medium text-gray-700 mb-1">
+                    Attachments:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {sub.attachments.map((file, idx) => (
+                      <a
+                        key={idx}
+                        href={`${import.meta.env.VITE_API_URL?.replace(
+                          "/api",
+                          ""
+                        )}/${file}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs btn btn-sm btn-outline"
+                      >
+                        {file.split("/").pop()}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {sub.status === "graded" ? (
+                <div className="bg-green-50 border border-green-200 rounded p-3">
+                  <p className="text-sm font-semibold text-green-800">
+                    Marks: {sub.marks_obtained}/{assignment.total_marks}
+                  </p>
+                  {sub.feedback && (
+                    <p className="text-sm text-green-700 mt-1">
+                      Feedback: {sub.feedback}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setGradingSubmission(sub)}
+                  className="btn btn-sm btn-primary mt-2"
+                >
+                  Grade Submission
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Grading Modal */}
+      <Modal
+        isOpen={!!gradingSubmission}
+        onClose={() => setGradingSubmission(null)}
+        title="Grade Submission"
+      >
+        {gradingSubmission && (
+          <form onSubmit={handleGrade} className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-600 mb-2">
+                Student: {gradingSubmission.first_name}{" "}
+                {gradingSubmission.last_name}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Marks Obtained (out of {assignment.total_marks})
+              </label>
+              <input
+                type="number"
+                name="marks"
+                className="input"
+                min="0"
+                max={assignment.total_marks}
+                step="0.01"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Feedback
+              </label>
+              <textarea
+                name="feedback"
+                className="input min-h-[100px]"
+                placeholder="Provide feedback to the student..."
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setGradingSubmission(null)}
+                className="btn btn-outline"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={gradeMutation.isPending}
+              >
+                {gradeMutation.isPending ? "Grading..." : "Submit Grade"}
+              </button>
+            </div>
+          </form>
+        )}
       </Modal>
     </div>
   );
