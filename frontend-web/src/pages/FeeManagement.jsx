@@ -10,43 +10,49 @@ const FeeManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Fee Management</h1>
-        <p className="text-gray-600 mt-1">Manage fee structures, collections, and reports</p>
-      </div>
+        {/* Page Header */}
+        <div className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
+            <div>
+                <h1 className="text-3xl font-bold text-gray-900">Fee Management</h1>
+                <p className="text-gray-600 mt-1">Manage fee structures, collections, and reports</p>
+            </div>
+        </div>
 
-      {/* Tabs */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-        {[
-          { id: 'dashboard', label: 'Dashboard', icon: DollarSign },
-          { id: 'collect', label: 'Collect Fee', icon: CreditCard },
-          { id: 'structure', label: 'Fee Structure', icon: FileText },
-          { id: 'heads', label: 'Fee Heads', icon: Settings },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
-              }`}
-          >
-            <tab.icon className="w-4 h-4 mr-2" />
-            {tab.label}
-          </button>
-        ))}
-      </div>
+        {/* Tabs */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 shadow-xl border border-white/50">
+            <div className="flex space-x-1">
+                {[
+                    { id: 'dashboard', label: 'Dashboard', icon: DollarSign },
+                    { id: 'collect', label: 'Collect Fee', icon: CreditCard },
+                    { id: 'structure', label: 'Fee Structure', icon: FileText },
+                    { id: 'heads', label: 'Fee Heads', icon: Settings },
+                ].map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 shadow-md ${
+                            activeTab === tab.id
+                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/50 scale-105'
+                                : 'text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-lg hover:scale-[1.02]'
+                        }`}
+                    >
+                        <tab.icon className={`w-4 h-4 mr-2 transition-transform ${activeTab === tab.id ? 'scale-110' : 'group-hover:scale-110'}`} />
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+        </div>
 
-      {/* Content */}
-      <div className="bg-white rounded-lg shadow-md p-6 min-h-[500px]">
-        {activeTab === 'dashboard' && <DashboardTab />}
-        {activeTab === 'collect' && <CollectFeeTab />}
-        {activeTab === 'structure' && <FeeStructureTab />}
-        {activeTab === 'heads' && <FeeHeadsTab />}
-      </div>
+        {/* Content */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 min-h-[500px] hover:shadow-2xl transition-shadow">
+            {activeTab === 'dashboard' && <DashboardTab />}
+            {activeTab === 'collect' && <CollectFeeTab />}
+            {activeTab === 'structure' && <FeeStructureTab />}
+            {activeTab === 'heads' && <FeeHeadsTab />}
+        </div>
     </div>
-  );
+);
+
 };
 
 // ==========================================
