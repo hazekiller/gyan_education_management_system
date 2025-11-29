@@ -277,6 +277,220 @@ const Attendance = () => {
 
   const statusCounts = getStatusCounts();
 
+  // Student View
+  if (userRole === "student") {
+    const [viewMonth, setViewMonth] = useState(new Date().getMonth());
+    const [viewYear, setViewYear] = useState(new Date().getFullYear());
+
+    const getMonthDateRange = (year, month) => {
+      const startDate = new Date(year, month, 1).toISOString().split("T")[0];
+      const endDate = new Date(year, month + 1, 0).toISOString().split("T")[0];
+      return { startDate, endDate };
+    };
+
+    const { startDate, endDate } = getMonthDateRange(viewYear, viewMonth);
+
+    const { data: myAttendance } = useQuery({
+      queryKey: ["my-attendance", startDate, endDate],
+      queryFn: () =>
+        attendanceAPI.get({ start_date: startDate, end_date: endDate }),
+    });
+
+    const { data: myStats } = useQuery({
+      queryKey: ["my-attendance-stats", startDate, endDate],
+      queryFn: () =>
+        attendanceAPI.getStats({ start_date: startDate, end_date: endDate }),
+    });
+
+    const attendanceList = myAttendance?.data || [];
+    const stats = myStats?.data || {
+      total_days: 0,
+      present_count: 0,
+      absent_count: 0,
+      late_count: 0,
+      excused_count: 0,
+      attendance_percentage: 0,
+    };
+
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+
+    const years = Array.from(
+      { length: 5 },
+      (_, i) => new Date().getFullYear() - i
+    );
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">My Attendance</h1>
+            <p className="text-gray-600 mt-1">View your attendance history</p>
+          </div>
+
+          <div className="flex space-x-4">
+            <select
+              value={viewMonth}
+              onChange={(e) => setViewMonth(parseInt(e.target.value))}
+              className="input w-40"
+            >
+              {months.map((month, index) => (
+                <option key={month} value={index}>
+                  {month}
+                </option>
+              ))}
+            </select>
+            <select
+              value={viewYear}
+              onChange={(e) => setViewYear(parseInt(e.target.value))}
+              className="input w-32"
+            >
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Present</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.present_count}
+                </p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg">
+                <Check className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Absent</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.absent_count}
+                </p>
+              </div>
+              <div className="bg-red-100 p-3 rounded-lg">
+                <X className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Late</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {stats.late_count}
+                </p>
+              </div>
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <Clock className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Percentage</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {stats.attendance_percentage}%
+                </p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Calendar className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Attendance History */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="p-6 border-b">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Attendance History
+            </h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Remarks</th>
+                  <th>Marked By</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendanceList.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="text-center py-8 text-gray-500">
+                      No attendance records found
+                    </td>
+                  </tr>
+                ) : (
+                  attendanceList.map((record) => (
+                    <tr key={record.id}>
+                      <td className="font-medium">
+                        {new Date(record.date).toLocaleDateString("en-US", {
+                          weekday: "short",
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </td>
+                      <td>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
+                            record.status === "present"
+                              ? "bg-green-100 text-green-800"
+                              : record.status === "absent"
+                              ? "bg-red-100 text-red-800"
+                              : record.status === "late"
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          {record.status}
+                        </span>
+                      </td>
+                      <td className="text-gray-500">{record.remarks || "-"}</td>
+                      <td className="text-gray-500">
+                        {record.marked_by_email || "System"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin/Teacher View
   return (
     <div className="space-y-6">
       {/* Page Header */}
