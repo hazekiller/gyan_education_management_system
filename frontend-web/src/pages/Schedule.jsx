@@ -431,8 +431,8 @@ const Schedule = () => {
                 </select>
               </div>
 
-              {/* Subject & Day */}
-              <div>
+              {/* Subject */}
+              <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Subject
                 </label>
@@ -452,24 +452,42 @@ const Schedule = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              {/* Calendar-style Day Selection */}
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Day
                 </label>
-                <select
-                  name="day_of_week"
-                  value={form.day_of_week}
-                  onChange={handleChange}
-                  required
-                  className="input w-full"
-                >
-                  <option value="">Select Day</option>
-                  {daysOfWeek.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
+                <div className="grid grid-cols-7 gap-2">
+                  {daysOfWeek.map((day) => (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => setForm({ ...form, day_of_week: day })}
+                      className={`
+                        px-3 py-3 rounded-lg border-2 text-sm font-medium transition-all duration-200
+                        ${
+                          form.day_of_week === day
+                            ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                            : "bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                        }
+                      `}
+                    >
+                      <div className="text-center">
+                        <div className="text-xs mb-1 opacity-80">
+                          {day.substring(0, 3)}
+                        </div>
+                        <div className="font-bold">
+                          {day.substring(0, 1)}
+                        </div>
+                      </div>
+                    </button>
                   ))}
-                </select>
+                </div>
+                {!form.day_of_week && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Please select a day
+                  </p>
+                )}
               </div>
 
               {/* Time & Period */}
@@ -515,7 +533,7 @@ const Schedule = () => {
                 />
               </div>
 
-              <div className="col-span-2">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Academic Year
                 </label>
