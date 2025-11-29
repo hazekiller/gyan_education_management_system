@@ -1,4 +1,5 @@
 const db = require("../config/database");
+const { createNotification } = require("./notificationsController");
 
 // GET all assignments
 const getAllAssignments = async (req, res) => {
@@ -134,6 +135,33 @@ const createAssignment = async (req, res) => {
         created_by: created_by,
       },
     });
+
+    // Notify students in the class
+    try {
+      const [students] = await db.query(
+        "SELECT user_id FROM students WHERE class_id = ? AND section_id = ? AND status = 'active'",
+        [class_id, section_id]
+      );
+
+      const notificationPromises = students.map((student) =>
+        createNotification(
+          req,
+          student.user_id,
+          "New Assignment: " + title,
+          `A new assignment "${title}" is due on ${new Date(
+            due_date
+          ).toLocaleDateString()}.`,
+          "info",
+          `/assignments/${result.insertId}`
+        )
+      );
+
+      Promise.all(notificationPromises).catch((err) =>
+        console.error("Error sending assignment notifications:", err)
+      );
+    } catch (notifyError) {
+      console.error("Failed to notify students about assignment:", notifyError);
+    }
   } catch (error) {
     console.error("Create Assignment Error:", error);
     res.status(500).json({ success: false, message: error.message });

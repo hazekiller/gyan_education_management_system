@@ -35,7 +35,8 @@ import LibraryManagement from "./pages/LibraryManagement";
 import HostelManagement from "./pages/HostelManagement";
 import TransportationManagement from "./pages/TransportationManagement";
 import Payroll from "./pages/Payroll";
-
+import ExamResults from "./pages/ExamResults";
+import Notifications from "./pages/Notifications";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -86,6 +87,7 @@ function App() {
         <Route path="attendance" element={<Attendance />} />
         <Route path="exams" element={<Exams />} />
         <Route path="exams/:id" element={<ExamDetails />} />
+        <Route path="exams/:id/results" element={<ExamResults />} />
         <Route path="assignments" element={<Assignments />} />
         <Route path="assignments/:id" element={<AssignmentDetails />} />
         <Route path="fees" element={<FeeManagement />} />
@@ -101,6 +103,7 @@ function App() {
         <Route path="hostel" element={<HostelManagement />} />
         <Route path="transport" element={<TransportationManagement />} />
         <Route path="payroll" element={<Payroll />} />
+        <Route path="notifications" element={<Notifications />} />
       </Route>
 
       {/* 404 */}
