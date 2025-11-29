@@ -1,9 +1,17 @@
 const pool = require("../config/database");
+const { createNotification } = require("./notificationsController");
 
 // Get all events
 const getAllEvents = async (req, res) => {
   try {
-    const { status, event_type, target_audience, is_holiday, start_date, end_date } = req.query;
+    const {
+      status,
+      event_type,
+      target_audience,
+      is_holiday,
+      start_date,
+      end_date,
+    } = req.query;
 
     let query = `
       SELECT 
@@ -23,15 +31,15 @@ const getAllEvents = async (req, res) => {
 
     const params = [];
 
-    if (status === 'upcoming') {
+    if (status === "upcoming") {
       query += " AND e.event_date >= CURDATE() AND e.is_active = 1";
-    } else if (status === 'past') {
+    } else if (status === "past") {
       query += " AND e.event_date < CURDATE()";
-    } else if (status === 'today') {
+    } else if (status === "today") {
       query += " AND e.event_date = CURDATE() AND e.is_active = 1";
-    } else if (status === 'active') {
+    } else if (status === "active") {
       query += " AND e.is_active = 1";
-    } else if (status === 'inactive') {
+    } else if (status === "inactive") {
       query += " AND e.is_active = 0";
     }
 
@@ -47,7 +55,7 @@ const getAllEvents = async (req, res) => {
 
     if (is_holiday !== undefined) {
       query += " AND e.is_holiday = ?";
-      params.push(is_holiday === 'true' || is_holiday === '1' ? 1 : 0);
+      params.push(is_holiday === "true" || is_holiday === "1" ? 1 : 0);
     }
 
     if (start_date) {
@@ -90,7 +98,7 @@ const getMyEvents = async (req, res) => {
 
     // Admin roles see all active events
     const adminRoles = ["super_admin", "principal", "vice_principal", "hod"];
-    
+
     if (adminRoles.includes(userRole)) {
       query = `
         SELECT 
@@ -327,6 +335,43 @@ const createEvent = async (req, res) => {
         created_by,
       },
     });
+
+    // Notify target audience
+    try {
+      let query = "SELECT id as user_id FROM users WHERE is_active = 1";
+      const params = [];
+
+      if (audience === "students") {
+        query = "SELECT user_id FROM students WHERE status = 'active'";
+      } else if (audience === "teachers") {
+        query = "SELECT user_id FROM teachers WHERE status = 'active'";
+      } else if (audience === "parents") {
+        query = "SELECT user_id FROM parents WHERE status = 'active'";
+      } else if (audience === "staff") {
+        query = "SELECT user_id FROM staff WHERE status = 'active'";
+      }
+
+      const [users] = await pool.query(query, params);
+
+      const notificationPromises = users.map((user) =>
+        createNotification(
+          req,
+          user.user_id,
+          "New Event: " + title,
+          `A new event "${title}" is scheduled for ${new Date(
+            event_date
+          ).toLocaleDateString()}.`,
+          "info",
+          `/events/${result.insertId}`
+        )
+      );
+
+      Promise.all(notificationPromises).catch((err) =>
+        console.error("Error sending event notifications:", err)
+      );
+    } catch (notifyError) {
+      console.error("Failed to notify audience about event:", notifyError);
+    }
   } catch (error) {
     console.error("Create event error:", error);
     res.status(500).json({
@@ -358,7 +403,13 @@ const updateEvent = async (req, res) => {
 
     // Validate target_audience if being updated
     if (updateData.target_audience) {
-      const validAudiences = ["all", "students", "teachers", "parents", "staff"];
+      const validAudiences = [
+        "all",
+        "students",
+        "teachers",
+        "parents",
+        "staff",
+      ];
       if (!validAudiences.includes(updateData.target_audience)) {
         return res.status(400).json({
           success: false,
@@ -410,10 +461,9 @@ const deleteEvent = async (req, res) => {
     const { id } = req.params;
 
     // Check if event exists
-    const [existing] = await pool.query(
-      "SELECT id FROM events WHERE id = ?",
-      [id]
-    );
+    const [existing] = await pool.query("SELECT id FROM events WHERE id = ?", [
+      id,
+    ]);
 
     if (existing.length === 0) {
       return res.status(404).json({

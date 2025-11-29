@@ -1,11 +1,25 @@
 // File: frontend-web/src/components/layout/DashboardLayout.jsx
-import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import Header from './Header';
+import { useState, useEffect } from "react";
+import { Outlet } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../store/slices/authSlice";
+import socketService from "../../services/socket";
+import Sidebar from "./Sidebar";
+import Header from "./Header";
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const user = useSelector(selectCurrentUser);
+
+  useEffect(() => {
+    if (user?.id) {
+      socketService.connect(user.id);
+    }
+
+    return () => {
+      socketService.disconnect();
+    };
+  }, [user]);
 
   return (
     <div className="flex h-screen bg-gray-100">

@@ -143,6 +143,14 @@ class SocketService {
     }
   }
 
+  // Listen for new notifications
+  onNewNotification(callback) {
+    if (this.socket) {
+      this.socket.on("new_notification", callback);
+      this.listeners.set("new_notification", callback);
+    }
+  }
+
   // ==============================
   // WebRTC Signaling Methods
   // ==============================
