@@ -5,14 +5,14 @@ const router = express.Router();
 const { authenticate } = require("../middleware/auth");
 
 // ===== Route Imports =====
-const authRoutes = require('./auth.routes');
-const studentsRoutes = require('./students.routes');
-const teachersRoutes = require('./teachers.routes');
-const classesRoutes = require('./classes.routes');
-const subjectsRoutes = require('./subjects.routes');
-const attendancesRoutes = require('./attendances.routes');
-const assignmentsRoutes = require('./assignments.routes');
-const messagesRoutes = require('./messages.routes');
+const authRoutes = require("./auth.routes");
+const studentsRoutes = require("./students.routes");
+const teachersRoutes = require("./teachers.routes");
+const classesRoutes = require("./classes.routes");
+const subjectsRoutes = require("./subjects.routes");
+const attendancesRoutes = require("./attendances.routes");
+const assignmentsRoutes = require("./assignments.routes");
+const messagesRoutes = require("./messages.routes");
 const dashboardRoutes = require("./dashboard.routes");
 const classSubjectsRoutes = require("./classSubjects.routes");
 const examRoutes = require("./exam.routes");
@@ -46,6 +46,7 @@ router.use("/library", libraryRoutes);
 router.use("/hostel", require("./hostel.routes"));
 router.use("/transport", require("./transport.routes"));
 router.use("/payroll", require("./payroll.routes"));
+router.use("/notifications", require("./notifications.routes"));
 
 // ===== DEFAULT ROUTE =====
 router.get("/", (req, res) => {

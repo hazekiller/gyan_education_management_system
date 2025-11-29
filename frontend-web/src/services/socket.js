@@ -9,6 +9,9 @@ class SocketService {
   connect(userId) {
     if (this.socket?.connected) {
       console.log("Socket already connected");
+      if (userId) {
+        this.socket.emit("user_online", userId);
+      }
       return;
     }
 
@@ -21,6 +24,11 @@ class SocketService {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionAttempts: 5,
+    });
+
+    // Attach stored listeners
+    this.listeners.forEach((callback, event) => {
+      this.socket.on(event, callback);
     });
 
     this.socket.on("connect", () => {
@@ -140,6 +148,14 @@ class SocketService {
     if (this.socket) {
       this.socket.on("message_error", callback);
       this.listeners.set("message_error", callback);
+    }
+  }
+
+  // Listen for new notifications
+  onNewNotification(callback) {
+    this.listeners.set("new_notification", callback);
+    if (this.socket) {
+      this.socket.on("new_notification", callback);
     }
   }
 

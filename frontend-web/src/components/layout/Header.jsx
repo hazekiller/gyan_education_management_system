@@ -1,16 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { 
-  Menu, 
-  Bell, 
-  User, 
-  LogOut, 
-  Settings,
-  ChevronDown 
-} from 'lucide-react';
-import { logout, selectCurrentUser } from '../../store/slices/authSlice';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { Menu, Bell, User, LogOut, Settings, ChevronDown } from "lucide-react";
+import { logout, selectCurrentUser } from "../../store/slices/authSlice";
+import toast from "react-hot-toast";
+import NotificationBell from "../common/NotificationBell";
 
 const Header = ({ toggleSidebar }) => {
   const navigate = useNavigate();
@@ -20,8 +14,8 @@ const Header = ({ toggleSidebar }) => {
 
   const handleLogout = () => {
     dispatch(logout());
-    toast.success('Logged out successfully');
-    navigate('/login');
+    toast.success("Logged out successfully");
+    navigate("/login");
   };
 
   return (
@@ -36,16 +30,14 @@ const Header = ({ toggleSidebar }) => {
 
         <div>
           <h2 className="text-xl font-semibold text-gray-800">
-            Welcome back, {user?.details?.first_name || user?.email?.split('@')[0]}!
+            Welcome back,{" "}
+            {user?.details?.first_name || user?.email?.split("@")[0]}!
           </h2>
         </div>
       </div>
 
       <div className="flex items-center space-x-4">
-        <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-          <Bell className="w-6 h-6 text-gray-600" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        <NotificationBell />
 
         <div className="relative">
           <button
@@ -72,13 +64,13 @@ const Header = ({ toggleSidebar }) => {
                     {user?.email}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
-                    {user?.role?.replace('_', ' ')}
+                    {user?.role?.replace("_", " ")}
                   </p>
                 </div>
-                
+
                 <button
                   onClick={() => {
-                    navigate('/profile');
+                    navigate("/profile");
                     setShowDropdown(false);
                   }}
                   className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -89,7 +81,7 @@ const Header = ({ toggleSidebar }) => {
 
                 <button
                   onClick={() => {
-                    navigate('/settings');
+                    navigate("/settings");
                     setShowDropdown(false);
                   }}
                   className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
