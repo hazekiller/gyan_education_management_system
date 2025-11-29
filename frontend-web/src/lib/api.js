@@ -502,5 +502,19 @@ export const hostelAPI = {
   getMyRoom: () => api.get("/hostel/my-room"),
 };
 
+// ============================================
+// TRANSPORT API
+// ============================================
+export const transportAPI = {
+  getAllVehicles: () => api.get("/transport/vehicles"),
+  createVehicle: (data) => api.post("/transport/vehicles", data),
+  getAllRoutes: () => api.get("/transport/routes"),
+  createRoute: (data) => api.post("/transport/routes", data),
+  getAllocations: () => api.get("/transport/allocations"),
+  allocateTransport: (data) => api.post("/transport/allocate", data),
+  cancelAllocation: (id) => api.delete(`/transport/allocations/${id}`),
+  getMyTransport: () => api.get("/transport/my-transport"),
+};
+
 // Final export
 export default api;

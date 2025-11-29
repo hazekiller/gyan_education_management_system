@@ -32,6 +32,7 @@ import AssignmentDetails from "./pages/AssignmentDetails";
 import AnnouncementDetails from "./pages/AnnouncementDetails";
 import LibraryManagement from "./pages/LibraryManagement";
 import HostelManagement from "./pages/HostelManagement";
+import TransportationManagement from "./pages/TransportationManagement";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -94,6 +95,7 @@ function App() {
         <Route path="schedule/:id" element={<TeacherScheduleDetail />} />
         <Route path="library" element={<LibraryManagement />} />
         <Route path="hostel" element={<HostelManagement />} />
+        <Route path="transport" element={<TransportationManagement />} />
       </Route>
 
       {/* 404 */}
