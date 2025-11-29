@@ -36,6 +36,7 @@ import HostelManagement from "./pages/HostelManagement";
 import TransportationManagement from "./pages/TransportationManagement";
 import Payroll from "./pages/Payroll";
 
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
