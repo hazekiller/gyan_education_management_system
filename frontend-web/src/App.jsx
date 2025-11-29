@@ -19,6 +19,7 @@ import Exams from "./pages/Exams";
 import Assignments from "./pages/Assignments";
 import FeeManagement from "./pages/FeeManagement";
 import Events from "./pages/Events";
+import EventDetails from "./pages/EventDetails";
 import Announcements from "./pages/Announcements";
 import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
@@ -34,6 +35,7 @@ import LibraryManagement from "./pages/LibraryManagement";
 import HostelManagement from "./pages/HostelManagement";
 import TransportationManagement from "./pages/TransportationManagement";
 import Payroll from "./pages/Payroll";
+
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -88,6 +90,7 @@ function App() {
         <Route path="assignments/:id" element={<AssignmentDetails />} />
         <Route path="fees" element={<FeeManagement />} />
         <Route path="events" element={<Events />} />
+        <Route path="events/:id" element={<EventDetails />} />
         <Route path="announcements" element={<Announcements />} />
         <Route path="announcements/:id" element={<AnnouncementDetails />} />
         <Route path="messages" element={<Messages />} />

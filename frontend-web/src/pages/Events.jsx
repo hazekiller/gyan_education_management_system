@@ -1,19 +1,21 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Calendar, MapPin, Clock, Users } from 'lucide-react';
-import { eventsAPI } from '../lib/api';
-import Modal from '../components/common/Modal';
-import EventForm from '../components/common/EventForm';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, Calendar, MapPin, Clock, Users } from "lucide-react";
+import { eventsAPI } from "../lib/api";
+import Modal from "../components/common/Modal";
+import EventForm from "../components/common/EventForm";
+import toast from "react-hot-toast";
 
 const Events = () => {
   const queryClient = useQueryClient();
-  const [filter, setFilter] = useState('upcoming');
+  const navigate = useNavigate();
+  const [filter, setFilter] = useState("upcoming");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: eventsData, isLoading } = useQuery({
-    queryKey: ['events'],
-    queryFn: () => eventsAPI.getAll()
+    queryKey: ["events"],
+    queryFn: () => eventsAPI.getAll(),
   });
 
   const events = eventsData?.data || [];
@@ -22,13 +24,13 @@ const Events = () => {
   const createMutation = useMutation({
     mutationFn: eventsAPI.create,
     onSuccess: () => {
-      toast.success('Event created successfully');
+      toast.success("Event created successfully");
       setIsModalOpen(false);
-      queryClient.invalidateQueries(['events']);
+      queryClient.invalidateQueries(["events"]);
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to create event');
-    }
+      toast.error(error.message || "Failed to create event");
+    },
   });
 
   const handleSubmit = (formData) => {
@@ -37,30 +39,30 @@ const Events = () => {
 
   const getEventTypeColor = (type) => {
     const colors = {
-      academic: 'bg-blue-100 text-blue-800 border-blue-500',
-      sports: 'bg-green-100 text-green-800 border-green-500',
-      cultural: 'bg-purple-100 text-purple-800 border-purple-500',
-      meeting: 'bg-orange-100 text-orange-800 border-orange-500',
-      holiday: 'bg-red-100 text-red-800 border-red-500',
-      exam: 'bg-yellow-100 text-yellow-800 border-yellow-500',
-      parent_teacher: 'bg-pink-100 text-pink-800 border-pink-500',
-      other: 'bg-gray-100 text-gray-800 border-gray-500'
+      academic: "bg-blue-100 text-blue-800 border-blue-500",
+      sports: "bg-green-100 text-green-800 border-green-500",
+      cultural: "bg-purple-100 text-purple-800 border-purple-500",
+      meeting: "bg-orange-100 text-orange-800 border-orange-500",
+      holiday: "bg-red-100 text-red-800 border-red-500",
+      exam: "bg-yellow-100 text-yellow-800 border-yellow-500",
+      parent_teacher: "bg-pink-100 text-pink-800 border-pink-500",
+      other: "bg-gray-100 text-gray-800 border-gray-500",
     };
     return colors[type] || colors.other;
   };
 
-  const filteredEvents = events.filter(event => {
+  const filteredEvents = events.filter((event) => {
     const eventDate = new Date(event.event_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    if (filter === 'upcoming') return eventDate >= today;
-    if (filter === 'past') return eventDate < today;
+    if (filter === "upcoming") return eventDate >= today;
+    if (filter === "past") return eventDate < today;
     return true;
   });
 
-  const sortedEvents = [...filteredEvents].sort((a, b) => 
-    new Date(a.event_date) - new Date(b.event_date)
+  const sortedEvents = [...filteredEvents].sort(
+    (a, b) => new Date(a.event_date) - new Date(b.event_date)
   );
 
   return (
@@ -69,9 +71,11 @@ const Events = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Events Calendar</h1>
-          <p className="text-gray-600 mt-1">Manage school events and activities</p>
+          <p className="text-gray-600 mt-1">
+            Manage school events and activities
+          </p>
         </div>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="btn btn-primary flex items-center space-x-2"
         >
@@ -84,31 +88,31 @@ const Events = () => {
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex space-x-4">
           <button
-            onClick={() => setFilter('upcoming')}
+            onClick={() => setFilter("upcoming")}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'upcoming'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              filter === "upcoming"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             Upcoming Events
           </button>
           <button
-            onClick={() => setFilter('past')}
+            onClick={() => setFilter("past")}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'past'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              filter === "past"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             Past Events
           </button>
           <button
-            onClick={() => setFilter('all')}
+            onClick={() => setFilter("all")}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              filter === "all"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             All Events
@@ -125,7 +129,7 @@ const Events = () => {
         <div className="bg-white rounded-lg shadow-md p-12 text-center">
           <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500 mb-4">No events found</p>
-          <button 
+          <button
             onClick={() => setIsModalOpen(true)}
             className="btn btn-primary"
           >
@@ -138,7 +142,7 @@ const Events = () => {
             <div
               key={event.id}
               className={`bg-white rounded-lg shadow-md p-6 border-l-4 hover:shadow-lg transition-shadow ${
-                getEventTypeColor(event.event_type).split(' ')[2]
+                getEventTypeColor(event.event_type).split(" ")[2]
               }`}
             >
               <div className="flex items-start justify-between">
@@ -149,9 +153,12 @@ const Events = () => {
                         {new Date(event.event_date).getDate()}
                       </p>
                       <p className="text-sm text-blue-600">
-                        {new Date(event.event_date).toLocaleDateString('en-US', { 
-                          month: 'short' 
-                        })}
+                        {new Date(event.event_date).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                          }
+                        )}
                       </p>
                     </div>
 
@@ -160,13 +167,21 @@ const Events = () => {
                         <h3 className="text-xl font-bold text-gray-900">
                           {event.title}
                         </h3>
-                        <span className={`badge ${getEventTypeColor(event.event_type).split('border')[0]}`}>
-                          {event.event_type.replace('_', ' ')}
+                        <span
+                          className={`badge ${
+                            getEventTypeColor(event.event_type).split(
+                              "border"
+                            )[0]
+                          }`}
+                        >
+                          {event.event_type.replace("_", " ")}
                         </span>
                       </div>
 
                       {event.description && (
-                        <p className="text-gray-700 mb-4">{event.description}</p>
+                        <p className="text-gray-700 mb-4">
+                          {event.description}
+                        </p>
                       )}
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -190,7 +205,7 @@ const Events = () => {
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <Users className="w-4 h-4" />
                             <span className="capitalize">
-                              {event.target_audience.replace('_', ' ')}
+                              {event.target_audience.replace("_", " ")}
                             </span>
                           </div>
                         )}
@@ -208,11 +223,11 @@ const Events = () => {
                 </div>
 
                 <div className="ml-4 flex flex-col space-y-2">
-                  <button className="btn btn-outline text-sm">
+                  <button
+                    onClick={() => navigate(`/events/${event.id}`)}
+                    className="btn btn-outline text-sm"
+                  >
                     View Details
-                  </button>
-                  <button className="btn btn-outline text-sm">
-                    Edit
                   </button>
                 </div>
               </div>
@@ -233,19 +248,22 @@ const Events = () => {
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-green-600">
-              {events.filter(e => new Date(e.event_date) >= new Date()).length}
+              {
+                events.filter((e) => new Date(e.event_date) >= new Date())
+                  .length
+              }
             </p>
             <p className="text-sm text-gray-600">Upcoming</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-blue-600">
-              {events.filter(e => e.event_type === 'academic').length}
+              {events.filter((e) => e.event_type === "academic").length}
             </p>
             <p className="text-sm text-gray-600">Academic</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-red-600">
-              {events.filter(e => e.is_holiday).length}
+              {events.filter((e) => e.is_holiday).length}
             </p>
             <p className="text-sm text-gray-600">Holidays</p>
           </div>
