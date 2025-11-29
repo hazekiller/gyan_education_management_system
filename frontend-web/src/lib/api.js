@@ -333,6 +333,10 @@ export const feeAPI = {
 export const eventsAPI = {
   create: (data) => api.post("/events", data),
   getAll: (params) => api.get("/events", { params }),
+  getById: (id) => api.get(`/events/${id}`),
+  update: (id, data) => api.put(`/events/${id}`, data),
+  delete: (id) => api.delete(`/events/${id}`),
+  toggleStatus: (id) => api.patch(`/events/${id}/toggle-status`),
 };
 
 // ============================================
@@ -508,8 +512,12 @@ export const hostelAPI = {
 export const transportAPI = {
   getAllVehicles: () => api.get("/transport/vehicles"),
   createVehicle: (data) => api.post("/transport/vehicles", data),
+  updateVehicle: (id, data) => api.put(`/transport/vehicles/${id}`, data),
+  deleteVehicle: (id) => api.delete(`/transport/vehicles/${id}`),
   getAllRoutes: () => api.get("/transport/routes"),
   createRoute: (data) => api.post("/transport/routes", data),
+  updateRoute: (id, data) => api.put(`/transport/routes/${id}`, data),
+  deleteRoute: (id) => api.delete(`/transport/routes/${id}`),
   getAllocations: () => api.get("/transport/allocations"),
   allocateTransport: (data) => api.post("/transport/allocate", data),
   cancelAllocation: (id) => api.delete(`/transport/allocations/${id}`),
