@@ -33,6 +33,7 @@ import AnnouncementDetails from "./pages/AnnouncementDetails";
 import LibraryManagement from "./pages/LibraryManagement";
 import HostelManagement from "./pages/HostelManagement";
 import TransportationManagement from "./pages/TransportationManagement";
+import Payroll from "./pages/Payroll";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -96,6 +97,7 @@ function App() {
         <Route path="library" element={<LibraryManagement />} />
         <Route path="hostel" element={<HostelManagement />} />
         <Route path="transport" element={<TransportationManagement />} />
+        <Route path="payroll" element={<Payroll />} />
       </Route>
 
       {/* 404 */}

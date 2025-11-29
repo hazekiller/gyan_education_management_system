@@ -18,7 +18,7 @@ export const PERMISSIONS = {
   CREATE_STUDENTS: 'create_students',
   EDIT_STUDENTS: 'edit_students',
   DELETE_STUDENTS: 'delete_students',
-  
+
   // Teachers
   VIEW_TEACHERS: 'view_teachers',
   CREATE_TEACHERS: 'create_teachers',
@@ -30,45 +30,49 @@ export const PERMISSIONS = {
   CREATE_CLASSES: 'create_classes',
   EDIT_CLASSES: 'edit_classes',
   DELETE_CLASSES: 'delete_classes',
-  
+
   // Class Subjects
   VIEW_CLASS_SUBJECTS: 'view_class_subjects',
   MANAGE_CLASS_SUBJECTS: 'manage_class_subjects',
-  
+
   // Attendance
   VIEW_ATTENDANCE: 'view_attendance',
   MARK_ATTENDANCE: 'mark_attendance',
-  
+
   // Exams
   VIEW_EXAMS: 'view_exams',
   CREATE_EXAMS: 'create_exams',
   EDIT_EXAMS: 'edit_exams',
   ENTER_RESULTS: 'enter_results',
-  
+
   // Assignments
   VIEW_ASSIGNMENTS: 'view_assignments',
   CREATE_ASSIGNMENTS: 'create_assignments',
   SUBMIT_ASSIGNMENTS: 'submit_assignments',
-  
+
   // Fees
   VIEW_FEES: 'view_fees',
   MANAGE_FEES: 'manage_fees',
-  
+
   // Events
   VIEW_EVENTS: 'view_events',
   CREATE_EVENTS: 'create_events',
-  
+
   // Announcements
   VIEW_ANNOUNCEMENTS: 'view_announcements',
   CREATE_ANNOUNCEMENTS: 'create_announcements',
-  
+
   // Messages
   SEND_MESSAGES: 'send_messages',
   VIEW_MESSAGES: 'view_messages',
 
   // Schedules
-  VIEW_SCHEDULE: 'view_schedule',        
-  MANAGE_SCHEDULE: 'manage_schedule',     
+  VIEW_SCHEDULE: 'view_schedule',
+  MANAGE_SCHEDULE: 'manage_schedule',
+
+  // Payroll
+  VIEW_PAYROLL: 'view_payroll',
+  MANAGE_PAYROLL: 'manage_payroll',
 };
 
 // Role-Permission mapping
@@ -76,7 +80,7 @@ export const ROLE_PERMISSIONS = {
   [ROLES.SUPER_ADMIN]: [
     ...Object.values(PERMISSIONS),
   ],
-  
+
   [ROLES.PRINCIPAL]: [
     PERMISSIONS.VIEW_STUDENTS,
     PERMISSIONS.CREATE_STUDENTS,
@@ -107,10 +111,12 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.CREATE_ANNOUNCEMENTS,
     PERMISSIONS.SEND_MESSAGES,
     PERMISSIONS.VIEW_MESSAGES,
-    PERMISSIONS.VIEW_SCHEDULE,     
-    PERMISSIONS.MANAGE_SCHEDULE,    
+    PERMISSIONS.VIEW_SCHEDULE,
+    PERMISSIONS.MANAGE_SCHEDULE,
+    PERMISSIONS.VIEW_PAYROLL,
+    PERMISSIONS.MANAGE_PAYROLL,
   ],
-  
+
   [ROLES.VICE_PRINCIPAL]: [
     PERMISSIONS.VIEW_STUDENTS,
     PERMISSIONS.EDIT_STUDENTS,
@@ -133,8 +139,10 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_MESSAGES,
     PERMISSIONS.VIEW_SCHEDULE,
     PERMISSIONS.MANAGE_SCHEDULE,
+    PERMISSIONS.VIEW_PAYROLL,
+    PERMISSIONS.MANAGE_PAYROLL,
   ],
-  
+
   [ROLES.HOD]: [
     PERMISSIONS.VIEW_STUDENTS,
     PERMISSIONS.VIEW_TEACHERS,
@@ -151,9 +159,10 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_ANNOUNCEMENTS,
     PERMISSIONS.SEND_MESSAGES,
     PERMISSIONS.VIEW_MESSAGES,
-    PERMISSIONS.VIEW_SCHEDULE,  
+    PERMISSIONS.VIEW_SCHEDULE,
+    PERMISSIONS.VIEW_PAYROLL,
   ],
-  
+
   [ROLES.TEACHER]: [
     PERMISSIONS.VIEW_STUDENTS,
     PERMISSIONS.VIEW_CLASSES,
@@ -169,9 +178,10 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_ANNOUNCEMENTS,
     PERMISSIONS.SEND_MESSAGES,
     PERMISSIONS.VIEW_MESSAGES,
-    PERMISSIONS.VIEW_SCHEDULE, 
+    PERMISSIONS.VIEW_SCHEDULE,
+    PERMISSIONS.VIEW_PAYROLL,
   ],
-  
+
   [ROLES.STUDENT]: [
     PERMISSIONS.VIEW_CLASSES,
     PERMISSIONS.VIEW_CLASS_SUBJECTS,
@@ -184,7 +194,7 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_ANNOUNCEMENTS,
     PERMISSIONS.SEND_MESSAGES,
     PERMISSIONS.VIEW_MESSAGES,
-    PERMISSIONS.VIEW_SCHEDULE,  
+    PERMISSIONS.VIEW_SCHEDULE,
   ],
 
   [ROLES.ACCOUNTANT]: [
@@ -193,16 +203,20 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.MANAGE_FEES,
     PERMISSIONS.SEND_MESSAGES,
     PERMISSIONS.VIEW_MESSAGES,
+    PERMISSIONS.VIEW_PAYROLL,
+    PERMISSIONS.MANAGE_PAYROLL,
   ],
-  
+
   [ROLES.GUARD]: [
     PERMISSIONS.VIEW_EVENTS,
     PERMISSIONS.VIEW_ANNOUNCEMENTS,
+    PERMISSIONS.VIEW_PAYROLL,
   ],
-  
+
   [ROLES.CLEANER]: [
     PERMISSIONS.VIEW_EVENTS,
     PERMISSIONS.VIEW_ANNOUNCEMENTS,
+    PERMISSIONS.VIEW_PAYROLL,
   ],
 };
 
