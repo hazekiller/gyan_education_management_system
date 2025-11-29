@@ -168,14 +168,16 @@ const createNotification = async (
     // Emit socket event if io instance is available
     const io = req.app.get("io");
     if (io) {
-      // We need to find the socket ID for this user
-      // In server.js, onlineUsers map is defined but not exported.
-      // However, we can emit to a room if we join users to their own room on connection
-      // Or we can broadcast to all and let client filter (not secure/efficient)
-      // Best approach: In server.js, we should join users to a room named `user_${userId}`
+      const roomName = `user_${userId}`;
+      console.log(`🔌 Emitting 'new_notification' to room: ${roomName}`);
 
-      // Assuming we update server.js to join users to `user_${userId}` room
-      io.to(`user_${userId}`).emit("new_notification", notification);
+      // Check if room has members (optional, for debugging)
+      const room = io.sockets.adapter.rooms.get(roomName);
+      console.log(`🔌 Room ${roomName} has ${room ? room.size : 0} members`);
+
+      io.to(roomName).emit("new_notification", notification);
+    } else {
+      console.warn("⚠️ Socket.IO instance not found in app");
     }
 
     return notification;

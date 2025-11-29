@@ -338,17 +338,18 @@ const createEvent = async (req, res) => {
 
     // Notify target audience
     try {
-      let query = "SELECT id as user_id FROM users WHERE is_active = 1";
+      let query =
+        "SELECT DISTINCT id as user_id FROM users WHERE is_active = 1";
       const params = [];
 
       if (audience === "students") {
-        query = "SELECT user_id FROM students WHERE status = 'active'";
+        query = "SELECT DISTINCT user_id FROM students WHERE status = 'active'";
       } else if (audience === "teachers") {
-        query = "SELECT user_id FROM teachers WHERE status = 'active'";
+        query = "SELECT DISTINCT user_id FROM teachers WHERE status = 'active'";
       } else if (audience === "parents") {
-        query = "SELECT user_id FROM parents WHERE status = 'active'";
+        query = "SELECT DISTINCT user_id FROM parents WHERE status = 'active'";
       } else if (audience === "staff") {
-        query = "SELECT user_id FROM staff WHERE status = 'active'";
+        query = "SELECT DISTINCT user_id FROM staff WHERE status = 'active'";
       }
 
       const [users] = await pool.query(query, params);
