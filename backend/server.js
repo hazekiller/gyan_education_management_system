@@ -67,6 +67,10 @@ io.on("connection", (socket) => {
 
     // Broadcast to all users that this user is online
     io.emit("user_status_changed", { userId, isOnline: true });
+
+    // Join user to their own room for targeted notifications
+    socket.join(`user_${userId}`);
+
     console.log(
       `👤 User ${userId} is online (${onlineUsers.size} users online)`
     );

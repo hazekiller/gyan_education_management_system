@@ -284,7 +284,16 @@ export const examsAPI = {
   getById: (id) => api.get(`/exams/${id}`),
   update: (id, data) => api.put(`/exams/${id}`, data),
   delete: (id) => api.delete(`/exams/${id}`),
-  enterResults: (data) => api.post("/exam-results", data),
+  getAcademicYears: () => api.get("/exams/academic-years"),
+
+  // Results methods
+  getResults: (examId, subjectId) =>
+    api.get(`/exams/${examId}/results`, { params: { subject_id: subjectId } }),
+  getStudentResults: (examId, studentId) =>
+    api.get(`/exams/${examId}/students/${studentId}/results`),
+  enterResults: (examId, data) => api.post(`/exams/${examId}/results`, data),
+  updateResult: (resultId, data) => api.put(`/exams/results/${resultId}`, data),
+  deleteResult: (resultId) => api.delete(`/exams/results/${resultId}`),
 };
 
 // ============================================
@@ -337,6 +346,17 @@ export const assignmentsAPI = {
     api.put(`/assignments/submissions/${submissionId}`, toFormData(data), {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+};
+
+// ============================================
+// NOTIFICATIONS API
+// ============================================
+export const notificationsAPI = {
+  getAll: (params) => api.get("/notifications", { params }),
+  getUnreadCount: () => api.get("/notifications/unread-count"),
+  markAsRead: (id) => api.put(`/notifications/${id}/read`),
+  markAllAsRead: () => api.put("/notifications/mark-all-read"),
+  delete: (id) => api.delete(`/notifications/${id}`),
 };
 
 // ============================================

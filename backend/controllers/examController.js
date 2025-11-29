@@ -1,4 +1,5 @@
 const pool = require("../config/database");
+const { createNotification } = require("./notificationsController");
 
 // Get all exams with class information
 const getAllExams = async (req, res) => {
@@ -125,6 +126,31 @@ const createExam = async (req, res) => {
       success: true,
       data: createdExam[0],
     });
+
+    // Notify students in the class
+    try {
+      const [students] = await pool.query(
+        "SELECT user_id FROM students WHERE class_id = ? AND status = 'active'",
+        [class_id]
+      );
+
+      const notificationPromises = students.map((student) =>
+        createNotification(
+          req,
+          student.user_id,
+          "New Exam Scheduled",
+          `A new exam "${name}" has been scheduled starting on ${new Date(
+            start_date
+          ).toLocaleDateString()}.`,
+          "info",
+          `/exams/${result.insertId}`
+        )
+      );
+
+      await Promise.all(notificationPromises);
+    } catch (notifyError) {
+      console.error("Failed to notify students about new exam:", notifyError);
+    }
   } catch (error) {
     console.error("Create exam error:", error);
     res.status(500).json({
@@ -201,6 +227,30 @@ const updateExam = async (req, res) => {
   }
 };
 
+// Get distinct academic years from exams
+const getAcademicYears = async (req, res) => {
+  try {
+    const [years] = await pool.query(
+      `SELECT DISTINCT academic_year 
+       FROM exams 
+       WHERE academic_year IS NOT NULL 
+       ORDER BY academic_year DESC`
+    );
+
+    res.json({
+      success: true,
+      data: years.map((y) => y.academic_year),
+    });
+  } catch (error) {
+    console.error("Get academic years error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch academic years",
+      error: error.message,
+    });
+  }
+};
+
 // Delete exam
 const deleteExam = async (req, res) => {
   try {
@@ -232,4 +282,5 @@ module.exports = {
   createExam,
   updateExam,
   deleteExam,
+  getAcademicYears,
 };
