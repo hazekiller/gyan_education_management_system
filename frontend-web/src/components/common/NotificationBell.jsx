@@ -19,20 +19,25 @@ const NotificationBell = () => {
     refetchInterval: 60000, // Poll every minute as backup
   });
 
-  const unreadCount = unreadCountData?.data?.count || 0;
+  const unreadCount = unreadCountData?.count || 0;
 
   // Fetch recent notifications when dropdown is open
-  const { data: notificationsData, refetch: refetchNotifications } = useQuery({
+  const {
+    data: notificationsData,
+    refetch: refetchNotifications,
+    isLoading,
+  } = useQuery({
     queryKey: ["notifications", "recent"],
     queryFn: () => notificationsAPI.getAll({ limit: 5 }),
     enabled: isOpen,
   });
 
-  const notifications = notificationsData?.data?.data || [];
+  const notifications = notificationsData?.data || [];
 
   // Listen for real-time notifications
   useEffect(() => {
     const handleNewNotification = (notification) => {
+      console.log("🔔 Client received notification:", notification);
       // Play sound or show toast
       toast.success(notification.title, {
         icon: "🔔",
@@ -43,9 +48,7 @@ const NotificationBell = () => {
       queryClient.invalidateQueries(["notifications"]);
     };
 
-    if (socketService.isConnected()) {
-      socketService.onNewNotification(handleNewNotification);
-    }
+    socketService.onNewNotification(handleNewNotification);
 
     return () => {
       socketService.removeListener("new_notification");
@@ -141,7 +144,11 @@ const NotificationBell = () => {
           </div>
 
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
+            {isLoading ? (
+              <div className="p-8 text-center">
+                <div className="loading mx-auto"></div>
+              </div>
+            ) : notifications.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
                 <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                 <p>No notifications yet</p>

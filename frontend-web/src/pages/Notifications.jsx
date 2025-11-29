@@ -35,8 +35,8 @@ const Notifications = () => {
       }),
   });
 
-  const notifications = notificationsData?.data?.data || [];
-  const unreadCount = notificationsData?.data?.unreadCount || 0;
+  const notifications = notificationsData?.data || [];
+  const unreadCount = notificationsData?.unreadCount || 0;
 
   // Mark as read mutation
   const markReadMutation = useMutation({

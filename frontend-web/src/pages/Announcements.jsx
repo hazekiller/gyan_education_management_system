@@ -111,174 +111,260 @@ const Announcements = () => {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 bg-gradient-to-br from-gray-50/50 to-white/50">
-  {/* Page Header */}
-  <div className="flex justify-between items-center bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
-    <div>
-      <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-        Announcements
-      </h1>
-      <p className="text-gray-600 mt-2 text-lg font-medium">Important notices and updates</p>
-    </div>
-    <button
-      onClick={() => setIsModalOpen(true)}
-      className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-2 whitespace-nowrap"
-    >
-      <Plus className="w-5 h-5" />
-      <span>New Announcement</span>
-    </button>
-  </div>
-
-  {/* Announcements List */}
-  {isLoading ? (
-    <div className="flex justify-center items-center h-64 bg-white rounded-2xl shadow-sm p-8">
-      <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin shadow-lg"></div>
-    </div>
-  ) : announcements.length === 0 ? (
-    <div className="bg-white rounded-2xl shadow-xl p-16 text-center border border-gray-100 hover:shadow-2xl transition-shadow">
-      <Megaphone className="w-20 h-20 text-gray-300 mx-auto mb-6" />
-      <p className="text-xl text-gray-500 mb-6 font-medium">No announcements yet</p>
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-      >
-        Publish First Announcement
-      </button>
-    </div>
-  ) : (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
-      {announcements.map((announcement) => (
-        <div
-          key={announcement.id}
-          className={`bg-white rounded-2xl shadow-lg p-8 border-l-4 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 ${getPriorityColor(
-            announcement.priority
-          )}`}
+      {/* Page Header */}
+      <div className="flex justify-between items-center bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+        <div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+            Announcements
+          </h1>
+          <p className="text-gray-600 mt-2 text-lg font-medium">
+            Important notices and updates
+          </p>
+        </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-2 whitespace-nowrap"
         >
-          <div className="flex items-start space-x-6">
-            {/* Priority Icon */}
-            <div className="flex-shrink-0 mt-1 p-3 bg-white/60 rounded-xl shadow-md border">
-              {getPriorityIcon(announcement.priority)}
-            </div>
+          <Plus className="w-5 h-5" />
+          <span>New Announcement</span>
+        </button>
+      </div>
 
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3
-                    className="text-2xl font-bold text-gray-900 mb-3 cursor-pointer hover:text-blue-600 transition-colors line-clamp-1"
-                    onClick={() =>
-                      navigate(`/announcements/${announcement.id}`)
-                    }
-                  >
-                    {announcement.title}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 font-medium">
-                    <span>
-                      {new Date(
-                        announcement.published_at
-                      ).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </span>
-                    <span className="capitalize">
-                      Target: {announcement.target_audience.replace("_", " ")}
-                    </span>
-                  </div>
+      {/* Announcements List */}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64 bg-white rounded-2xl shadow-sm p-8">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin shadow-lg"></div>
+        </div>
+      ) : announcements.length === 0 ? (
+        <div className="bg-white rounded-2xl shadow-xl p-16 text-center border border-gray-100 hover:shadow-2xl transition-shadow">
+          <Megaphone className="w-20 h-20 text-gray-300 mx-auto mb-6" />
+          <p className="text-xl text-gray-500 mb-6 font-medium">
+            No announcements yet
+          </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            Publish First Announcement
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+          {announcements.map((announcement) => (
+            <div
+              key={announcement.id}
+              className={`bg-white rounded-2xl shadow-lg p-8 border-l-4 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 ${getPriorityColor(
+                announcement.priority
+              )}`}
+            >
+              <div className="flex items-start space-x-6">
+                {/* Priority Icon */}
+                <div className="flex-shrink-0 mt-1 p-3 bg-white/60 rounded-xl shadow-md border">
+                  {getPriorityIcon(announcement.priority)}
                 </div>
-                <div className="flex items-center space-x-3 flex-shrink-0">
-                  <span
-                    className={`px-4 py-2 rounded-full text-sm font-semibold shadow-sm ${
-                      announcement.priority === "urgent"
-                        ? "bg-red-100 text-red-800 border border-red-200"
-                        : announcement.priority === "high"
-                        ? "bg-orange-100 text-orange-800 border border-orange-200"
-                        : announcement.priority === "medium"
-                        ? "bg-blue-100 text-blue-800 border border-blue-200"
-                        : "bg-gray-100 text-gray-800 border border-gray-200"
-                    }`}
-                  >
-                    {announcement.priority.toUpperCase()}
-                  </span>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => openEditModal(announcement)}
-                      className="p-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                      title="Edit"
-                    >
-                      <Edit className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => openDeleteModal(announcement)}
-                      className="p-3 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3
+                        className="text-2xl font-bold text-gray-900 mb-3 cursor-pointer hover:text-blue-600 transition-colors line-clamp-1"
+                        onClick={() =>
+                          navigate(`/announcements/${announcement.id}`)
+                        }
+                      >
+                        {announcement.title}
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 font-medium">
+                        <span>
+                          {new Date(
+                            announcement.published_at
+                          ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </span>
+                        <span className="capitalize">
+                          Target:{" "}
+                          {announcement.target_audience.replace("_", " ")}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 flex-shrink-0">
+                      <span
+                        className={`px-4 py-2 rounded-full text-sm font-semibold shadow-sm ${
+                          announcement.priority === "urgent"
+                            ? "bg-red-100 text-red-800 border border-red-200"
+                            : announcement.priority === "high"
+                            ? "bg-orange-100 text-orange-800 border border-orange-200"
+                            : announcement.priority === "medium"
+                            ? "bg-blue-100 text-blue-800 border border-blue-200"
+                            : "bg-gray-100 text-gray-800 border border-gray-200"
+                        }`}
+                      >
+                        {announcement.priority.toUpperCase()}
+                      </span>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => openEditModal(announcement)}
+                          className="p-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+                          title="Edit"
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(announcement)}
+                          className="p-3 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
+
+                  <div className="prose prose-sm max-w-none mb-6">
+                    <p className="text-gray-700 leading-relaxed line-clamp-3 font-medium">
+                      {announcement.content}
+                    </p>
+                  </div>
+
+                  {announcement.expires_at && (
+                    <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 text-sm text-gray-600 font-medium flex items-center space-x-2">
+                      <span>📅</span>
+                      <span>
+                        Expires on{" "}
+                        {new Date(announcement.expires_at).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }
+                        )}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              <div className="prose prose-sm max-w-none mb-6">
-                <p className="text-gray-700 leading-relaxed line-clamp-3 font-medium">
-                  {announcement.content}
-                </p>
-              </div>
-
-              {announcement.expires_at && (
-                <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 text-sm text-gray-600 font-medium flex items-center space-x-2">
-                  <span>📅</span>
-                  <span>Expires on {new Date(announcement.expires_at).toLocaleDateString(
-                    "en-US",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }
-                  )}</span>
-                </div>
-              )}
             </div>
+          ))}
+        </div>
+      )}
+
+      {/* Stats */}
+      <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <h3 className="text-2xl font-bold text-gray-900 mb-8 bg-gradient-to-r from-gray-900/80 to-gray-700/80 bg-clip-text">
+          Announcement Statistics
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="text-center p-8 bg-gradient-to-br from-gray-50 to-white/0 rounded-2xl shadow-sm hover:shadow-md transition-all">
+            <p className="text-4xl font-bold text-gray-900 mb-2">
+              {announcements.length}
+            </p>
+            <p className="text-sm text-gray-600 font-semibold tracking-wide">
+              Total
+            </p>
+          </div>
+          <div className="text-center p-8 bg-gradient-to-br from-red-50/80 to-white/0 rounded-2xl shadow-sm hover:shadow-md transition-all">
+            <p className="text-4xl font-bold text-red-600 mb-2">
+              {announcements.filter((a) => a.priority === "urgent").length}
+            </p>
+            <p className="text-sm text-gray-600 font-semibold tracking-wide">
+              Urgent
+            </p>
+          </div>
+          <div className="text-center p-8 bg-gradient-to-br from-orange-50/80 to-white/0 rounded-2xl shadow-sm hover:shadow-md transition-all">
+            <p className="text-4xl font-bold text-orange-600 mb-2">
+              {announcements.filter((a) => a.priority === "high").length}
+            </p>
+            <p className="text-sm text-gray-600 font-semibold tracking-wide">
+              High Priority
+            </p>
+          </div>
+          <div className="text-center p-8 bg-gradient-to-br from-blue-50/80 to-white/0 rounded-2xl shadow-sm hover:shadow-md transition-all">
+            <p className="text-4xl font-bold text-blue-600 mb-2">
+              {announcements.filter((a) => a.target_audience === "all").length}
+            </p>
+            <p className="text-sm text-gray-600 font-semibold tracking-wide">
+              For Everyone
+            </p>
           </div>
         </div>
-      ))}
+      </div>
+
+      {/* Create Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Create New Announcement"
+      >
+        <AnnouncementForm
+          onSubmit={handleSubmit}
+          onCancel={() => setIsModalOpen(false)}
+          isSubmitting={createMutation.isPending}
+        />
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedAnnouncement(null);
+        }}
+        title="Edit Announcement"
+      >
+        {selectedAnnouncement && (
+          <AnnouncementForm
+            announcement={selectedAnnouncement}
+            onSubmit={handleUpdate}
+            onCancel={() => {
+              setIsEditModalOpen(false);
+              setSelectedAnnouncement(null);
+            }}
+            isSubmitting={updateMutation.isPending}
+          />
+        )}
+      </Modal>
+
+      {/* Delete Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedAnnouncement(null);
+        }}
+        title="Delete Announcement"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Are you sure you want to delete this announcement? This action
+            cannot be undone.
+          </p>
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setSelectedAnnouncement(null);
+              }}
+              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
-  )}
-
-  {/* Stats */}
-  <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-    <h3 className="text-2xl font-bold text-gray-900 mb-8 bg-gradient-to-r from-gray-900/80 to-gray-700/80 bg-clip-text">
-      Announcement Statistics
-    </h3>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-      <div className="text-center p-8 bg-gradient-to-br from-gray-50 to-white/0 rounded-2xl shadow-sm hover:shadow-md transition-all">
-        <p className="text-4xl font-bold text-gray-900 mb-2">{announcements.length}</p>
-        <p className="text-sm text-gray-600 font-semibold tracking-wide">Total</p>
-      </div>
-      <div className="text-center p-8 bg-gradient-to-br from-red-50/80 to-white/0 rounded-2xl shadow-sm hover:shadow-md transition-all">
-        <p className="text-4xl font-bold text-red-600 mb-2">
-          {announcements.filter((a) => a.priority === "urgent").length}
-        </p>
-        <p className="text-sm text-gray-600 font-semibold tracking-wide">Urgent</p>
-      </div>
-      <div className="text-center p-8 bg-gradient-to-br from-orange-50/80 to-white/0 rounded-2xl shadow-sm hover:shadow-md transition-all">
-        <p className="text-4xl font-bold text-orange-600 mb-2">
-          {announcements.filter((a) => a.priority === "high").length}
-        </p>
-        <p className="text-sm text-gray-600 font-semibold tracking-wide">High Priority</p>
-      </div>
-      <div className="text-center p-8 bg-gradient-to-br from-blue-50/80 to-white/0 rounded-2xl shadow-sm hover:shadow-md transition-all">
-        <p className="text-4xl font-bold text-blue-600 mb-2">
-          {announcements.filter((a) => a.target_audience === "all").length}
-        </p>
-        <p className="text-sm text-gray-600 font-semibold tracking-wide">For Everyone</p>
-      </div>
-    </div>
-  </div>
-
-  {/* Modals remain exactly the same - no changes */}
-</div>
-
   );
 };
 
