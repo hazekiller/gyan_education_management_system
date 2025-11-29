@@ -125,6 +125,7 @@ export const teachersAPI = {
   assignSchedule: (data) => api.post("/teachers/schedule", data),
 };
 
+// ============================================
 // SUBJECTS API
 // ============================================
 export const subjectsAPI = {
@@ -133,6 +134,19 @@ export const subjectsAPI = {
   create: (data) => api.post("/subjects", data),
   update: (id, data) => api.put(`/subjects/${id}`, data),
   delete: (id) => api.delete(`/subjects/${id}`),
+};
+
+// ============================================
+// CLASS-SUBJECTS API
+// ============================================
+export const classSubjectsAPI = {
+  getByClass: (classId) => api.get(`/class-subjects/class/${classId}`),
+  getBySection: (sectionId) => api.get(`/class-subjects/section/${sectionId}`),
+  getAvailable: (classId) => api.get(`/class-subjects/available/${classId}`),
+  assign: (data) => api.post("/class-subjects/assign", data),
+  assignMultiple: (data) => api.post("/class-subjects/assign-multiple", data),
+  update: (id, data) => api.put(`/class-subjects/${id}`, data),
+  delete: (id) => api.delete(`/class-subjects/${id}`),
 };
 
 // ============================================
