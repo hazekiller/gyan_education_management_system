@@ -516,5 +516,17 @@ export const transportAPI = {
   getMyTransport: () => api.get("/transport/my-transport"),
 };
 
+// ============================================
+// PAYROLL API
+// ============================================
+export const payrollAPI = {
+  getAll: (params) => api.get("/payroll", { params }),
+  getById: (id) => api.get(`/payroll/${id}`),
+  create: (data) => api.post("/payroll", data),
+  update: (id, data) => api.put(`/payroll/${id}`, data),
+  delete: (id) => api.delete(`/payroll/${id}`),
+  getEmployeePayroll: (type, id) => api.get(`/payroll/employee/${type}/${id}`),
+};
+
 // Final export
 export default api;

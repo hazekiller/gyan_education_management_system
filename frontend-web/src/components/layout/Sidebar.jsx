@@ -135,6 +135,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       icon: Bus,
       show: true,
     },
+    {
+      name: "Payroll",
+      path: "/payroll",
+      icon: DollarSign,
+      show: hasPermission(PERMISSIONS.VIEW_PAYROLL),
+    },
   ];
 
   const visibleNavigation = navigationItems.filter((item) => item.show);
