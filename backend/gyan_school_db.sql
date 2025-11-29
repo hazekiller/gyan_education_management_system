@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Nov 28, 2025 at 07:27 AM
+-- Generation Time: Nov 29, 2025 at 08:43 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -913,23 +913,110 @@ CREATE TABLE `timetable` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `transport_allocations`
+--
+
+CREATE TABLE `transport_allocations` (
+  `id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `route_id` int(11) NOT NULL,
+  `pickup_stop_id` int(11) DEFAULT NULL,
+  `drop_stop_id` int(11) DEFAULT NULL,
+  `seat_number` varchar(20) DEFAULT NULL,
+  `allocation_date` date DEFAULT curdate(),
+  `status` enum('active','cancelled') DEFAULT 'active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `transport_allocations`
+--
+
+INSERT INTO `transport_allocations` (`id`, `student_id`, `route_id`, `pickup_stop_id`, `drop_stop_id`, `seat_number`, `allocation_date`, `status`, `created_at`, `updated_at`) VALUES
+(1, 2, 1, 1, 1, '23', '2025-11-28', 'active', '2025-11-28 08:58:19', '2025-11-28 08:58:19');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `transport_routes`
 --
 
 CREATE TABLE `transport_routes` (
   `id` int(11) NOT NULL,
   `route_name` varchar(255) NOT NULL,
-  `vehicle_number` varchar(50) NOT NULL,
-  `driver_name` varchar(255) NOT NULL,
-  `driver_phone` varchar(20) NOT NULL,
+  `vehicle_number` varchar(50) DEFAULT NULL,
+  `driver_name` varchar(255) DEFAULT NULL,
+  `driver_phone` varchar(20) DEFAULT NULL,
   `route_stops` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`route_stops`)),
   `start_time` time DEFAULT NULL,
   `end_time` time DEFAULT NULL,
   `monthly_fee` decimal(10,2) DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `vehicle_id` int(11) DEFAULT NULL,
+  `start_point` varchar(100) DEFAULT NULL,
+  `end_point` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `transport_routes`
+--
+
+INSERT INTO `transport_routes` (`id`, `route_name`, `vehicle_number`, `driver_name`, `driver_phone`, `route_stops`, `start_time`, `end_time`, `monthly_fee`, `is_active`, `created_at`, `updated_at`, `vehicle_id`, `start_point`, `end_point`) VALUES
+(1, 'bhaktapur', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, '2025-11-28 08:57:59', '2025-11-28 08:57:59', 1, 'Koteshwor', 'Suryabinayak');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `transport_stops`
+--
+
+CREATE TABLE `transport_stops` (
+  `id` int(11) NOT NULL,
+  `route_id` int(11) NOT NULL,
+  `stop_name` varchar(100) NOT NULL,
+  `pickup_time` time DEFAULT NULL,
+  `drop_time` time DEFAULT NULL,
+  `fare` decimal(10,2) DEFAULT 0.00,
+  `sequence_order` int(11) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `transport_stops`
+--
+
+INSERT INTO `transport_stops` (`id`, `route_id`, `stop_name`, `pickup_time`, `drop_time`, `fare`, `sequence_order`, `created_at`) VALUES
+(1, 1, 'Kaushaltar', '17:56:00', '18:01:00', 5.00, 1, '2025-11-28 08:57:59');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `transport_vehicles`
+--
+
+CREATE TABLE `transport_vehicles` (
+  `id` int(11) NOT NULL,
+  `bus_number` varchar(50) NOT NULL,
+  `registration_number` varchar(50) NOT NULL,
+  `driver_name` varchar(100) NOT NULL,
+  `driver_phone` varchar(20) NOT NULL,
+  `sub_driver_name` varchar(100) DEFAULT NULL,
+  `sub_driver_phone` varchar(20) DEFAULT NULL,
+  `capacity` int(11) DEFAULT 40,
+  `status` enum('active','maintenance','inactive') DEFAULT 'active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `transport_vehicles`
+--
+
+INSERT INTO `transport_vehicles` (`id`, `bus_number`, `registration_number`, `driver_name`, `driver_phone`, `sub_driver_name`, `sub_driver_phone`, `capacity`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'Ba 38 Pa 2233', '1234H4556', 'Sumit Singh', '9856767887', 'Chunab', 'Baskota', 45, 'active', '2025-11-28 08:52:06', '2025-11-28 08:52:06');
 
 -- --------------------------------------------------------
 
@@ -953,7 +1040,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `role`, `is_active`, `last_login`, `created_at`, `updated_at`) VALUES
-(1, 'admin@gyan.edu', '$2a$10$iS1c4/I55GqFLgJfLjwuP.cKivj7BJUyo/Z.WY.gaAD82D4rFKeJK', 'super_admin', 1, '2025-11-28 06:23:56', '2025-10-22 11:07:23', '2025-11-28 06:23:56'),
+(1, 'admin@gyan.edu', '$2a$10$iS1c4/I55GqFLgJfLjwuP.cKivj7BJUyo/Z.WY.gaAD82D4rFKeJK', 'super_admin', 1, '2025-11-28 10:08:51', '2025-10-22 11:07:23', '2025-11-28 10:08:51'),
 (4, 'prakashtimilsina76@gmail.com', '$2a$10$SYLTPwE2kiY4bHgo1Ch.neI9//pAxsJPgHmq0d8U9w9YWCwdE/jrK', 'student', 1, '2025-10-24 14:45:15', '2025-10-22 18:32:46', '2025-10-24 14:45:15'),
 (6, 'sunabbaskota@gmail.com', '$2a$10$i00m7HUdqyMa9V0THW3UzuiNADhaXsi20NVkHIcuYkZOoDmurTLo.', 'teacher', 1, '2025-11-26 19:05:06', '2025-11-23 09:17:31', '2025-11-26 13:20:06'),
 (8, 'sunabbaskota15@gmail.com', '$2a$10$XpRgLx8N4aJH2XGjeiPpDeMIN6E8nhGXjdtd55EgAAA4vL9Ogz3xW', 'student', 1, '2025-11-25 11:55:37', '2025-11-23 15:20:26', '2025-11-25 06:10:37'),
@@ -1305,11 +1392,37 @@ ALTER TABLE `timetable`
   ADD KEY `idx_day` (`day_of_week`);
 
 --
+-- Indexes for table `transport_allocations`
+--
+ALTER TABLE `transport_allocations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `student_id` (`student_id`),
+  ADD KEY `route_id` (`route_id`),
+  ADD KEY `pickup_stop_id` (`pickup_stop_id`),
+  ADD KEY `drop_stop_id` (`drop_stop_id`);
+
+--
 -- Indexes for table `transport_routes`
 --
 ALTER TABLE `transport_routes`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_vehicle` (`vehicle_number`);
+  ADD KEY `idx_vehicle` (`vehicle_number`),
+  ADD KEY `fk_route_vehicle` (`vehicle_id`);
+
+--
+-- Indexes for table `transport_stops`
+--
+ALTER TABLE `transport_stops`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `route_id` (`route_id`);
+
+--
+-- Indexes for table `transport_vehicles`
+--
+ALTER TABLE `transport_vehicles`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_bus` (`bus_number`),
+  ADD UNIQUE KEY `unique_reg` (`registration_number`);
 
 --
 -- Indexes for table `users`
@@ -1532,10 +1645,28 @@ ALTER TABLE `timetable`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `transport_allocations`
+--
+ALTER TABLE `transport_allocations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `transport_routes`
 --
 ALTER TABLE `transport_routes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `transport_stops`
+--
+ALTER TABLE `transport_stops`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `transport_vehicles`
+--
+ALTER TABLE `transport_vehicles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1767,6 +1898,27 @@ ALTER TABLE `timetable`
   ADD CONSTRAINT `timetable_ibfk_2` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `timetable_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `timetable_ibfk_4` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `transport_allocations`
+--
+ALTER TABLE `transport_allocations`
+  ADD CONSTRAINT `transport_allocations_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `transport_allocations_ibfk_2` FOREIGN KEY (`route_id`) REFERENCES `transport_routes` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `transport_allocations_ibfk_3` FOREIGN KEY (`pickup_stop_id`) REFERENCES `transport_stops` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `transport_allocations_ibfk_4` FOREIGN KEY (`drop_stop_id`) REFERENCES `transport_stops` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `transport_routes`
+--
+ALTER TABLE `transport_routes`
+  ADD CONSTRAINT `fk_route_vehicle` FOREIGN KEY (`vehicle_id`) REFERENCES `transport_vehicles` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `transport_stops`
+--
+ALTER TABLE `transport_stops`
+  ADD CONSTRAINT `transport_stops_ibfk_1` FOREIGN KEY (`route_id`) REFERENCES `transport_routes` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `visitors`
