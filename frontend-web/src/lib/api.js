@@ -333,6 +333,10 @@ export const feeAPI = {
 export const eventsAPI = {
   create: (data) => api.post("/events", data),
   getAll: (params) => api.get("/events", { params }),
+  getById: (id) => api.get(`/events/${id}`),
+  update: (id, data) => api.put(`/events/${id}`, data),
+  delete: (id) => api.delete(`/events/${id}`),
+  toggleStatus: (id) => api.patch(`/events/${id}/toggle-status`),
 };
 
 // ============================================
