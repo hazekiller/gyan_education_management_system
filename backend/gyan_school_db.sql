@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Nov 29, 2025 at 08:43 AM
+-- Generation Time: Nov 29, 2025 at 12:22 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -79,7 +79,8 @@ CREATE TABLE `announcements` (
 --
 
 INSERT INTO `announcements` (`id`, `title`, `content`, `priority`, `target_audience`, `class_id`, `section_id`, `expires_at`, `is_active`, `created_by`, `published_at`, `updated_at`) VALUES
-(1, 'School Reopening After Festivals', 'Dear, Students the school will resume the regular class from Tuesday, just after Chhath', 'urgent', 'students', NULL, NULL, '2025-10-30 00:00:00', 1, 1, '2025-10-24 00:00:00', '2025-10-24 08:14:19');
+(1, 'School Reopening After Festivals', 'Dear, Students the school will resume the regular class from Tuesday, just after Chhath', 'urgent', 'students', NULL, NULL, '2025-10-30 00:00:00', 1, 1, '2025-10-24 00:00:00', '2025-10-24 08:14:19'),
+(2, 'Starting of Class 10 Coaching Class ', 'Dear all class 10 students this is to announce that your coaching class is doing to start from the Nextweek so be prepared..\n', 'urgent', 'students', NULL, NULL, '2025-12-06 00:00:00', 1, 1, '2025-11-27 18:15:00', '2025-11-29 08:03:56');
 
 -- --------------------------------------------------------
 
@@ -152,7 +153,8 @@ CREATE TABLE `attendance` (
 INSERT INTO `attendance` (`id`, `student_id`, `class_id`, `section_id`, `date`, `status`, `remarks`, `marked_by`, `marked_at`, `is_submitted`, `submitted_at`, `submitted_by`, `updated_at`) VALUES
 (6, 3, 13, 8, '2025-11-24', 'present', NULL, 1, '2025-11-24 07:51:27', 0, NULL, NULL, '2025-11-24 08:00:02'),
 (7, 2, 13, 7, '2025-11-24', 'absent', NULL, 1, '2025-11-24 11:52:00', 1, '2025-11-24 17:37:00', 1, '2025-11-24 11:52:00'),
-(8, 2, 13, 7, '2025-11-26', 'present', NULL, 6, '2025-11-26 13:20:06', 1, '2025-11-26 19:05:06', 6, '2025-11-26 13:20:06');
+(8, 2, 13, 7, '2025-11-26', 'present', NULL, 6, '2025-11-26 13:20:06', 1, '2025-11-26 19:05:06', 6, '2025-11-26 13:20:06'),
+(9, 5, 8, 12, '2025-11-29', 'present', NULL, 1, '2025-11-29 10:33:40', 1, '2025-11-29 16:18:40', 1, '2025-11-29 10:33:40');
 
 -- --------------------------------------------------------
 
@@ -231,7 +233,16 @@ INSERT INTO `class_subjects` (`id`, `class_id`, `subject_id`, `teacher_id`, `aca
 (5, 14, 7, NULL, '2025-2026`', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-25 12:28:59', '2025-11-25 12:28:59'),
 (6, 14, 4, NULL, '2025-2026`', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-25 12:28:59', '2025-11-25 12:28:59'),
 (7, 14, 2, NULL, '2025-2026`', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-25 12:28:59', '2025-11-25 12:28:59'),
-(8, 14, 9, NULL, '2025-2026`', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-25 12:28:59', '2025-11-25 12:28:59');
+(8, 14, 9, NULL, '2025-2026`', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-25 12:28:59', '2025-11-25 12:28:59'),
+(9, 8, 8, NULL, '2024-2025', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-29 10:31:24', '2025-11-29 10:31:24'),
+(10, 8, 6, NULL, '2024-2025', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-29 10:31:24', '2025-11-29 10:31:24'),
+(11, 8, 3, NULL, '2024-2025', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-29 10:31:24', '2025-11-29 10:31:24'),
+(12, 8, 9, NULL, '2024-2025', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-29 10:31:24', '2025-11-29 10:31:24'),
+(13, 8, 1, NULL, '2024-2025', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-29 10:31:24', '2025-11-29 10:31:24'),
+(14, 8, 10, NULL, '2024-2025', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-29 10:31:24', '2025-11-29 10:31:24'),
+(15, 8, 4, NULL, '2024-2025', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-29 10:31:24', '2025-11-29 10:31:24'),
+(16, 8, 2, NULL, '2024-2025', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-29 10:31:24', '2025-11-29 10:31:24'),
+(17, 8, 7, NULL, '2024-2025', 1, NULL, NULL, 1, 40.00, 100, NULL, NULL, 0, '2025-11-29 10:31:24', '2025-11-29 10:31:24');
 
 -- --------------------------------------------------------
 
@@ -382,7 +393,8 @@ CREATE TABLE `fee_payments` (
 --
 
 INSERT INTO `fee_payments` (`id`, `student_id`, `fee_structure_id`, `amount_paid`, `payment_date`, `payment_method`, `transaction_id`, `receipt_number`, `remarks`, `collected_by`, `status`, `created_at`) VALUES
-(1, 2, 1, 2500.00, '2025-11-27', 'cash', NULL, NULL, 'Counter collection', 1, 'completed', '2025-11-27 18:30:07');
+(1, 2, 1, 2500.00, '2025-11-27', 'cash', NULL, NULL, 'Counter collection', 1, 'completed', '2025-11-27 18:30:07'),
+(2, 4, 2, 20000.00, '2025-11-29', 'cash', NULL, NULL, 'Counter collection', 1, 'completed', '2025-11-29 08:06:21');
 
 -- --------------------------------------------------------
 
@@ -411,7 +423,8 @@ CREATE TABLE `fee_structure` (
 --
 
 INSERT INTO `fee_structure` (`id`, `class_id`, `fee_head_id`, `fee_type`, `amount`, `academic_year`, `period_type`, `period_value`, `due_date`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 13, 1, 'tuition', 2500.00, '2024-2025', 'monthly', 1, '2025-11-27', '', 1, '2025-11-27 18:29:40', '2025-11-27 18:29:40');
+(1, 13, 1, 'tuition', 2500.00, '2024-2025', 'monthly', 1, '2025-11-27', '', 1, '2025-11-27 18:29:40', '2025-11-27 18:29:40'),
+(2, 10, 2, 'tuition', 20000.00, '2024-2025', 'monthly', 1, '2025-12-02', '', 1, '2025-11-29 08:06:04', '2025-11-29 08:06:04');
 
 -- --------------------------------------------------------
 
@@ -434,7 +447,9 @@ CREATE TABLE `hostel_allocations` (
 --
 
 INSERT INTO `hostel_allocations` (`id`, `student_id`, `room_id`, `allocation_date`, `status`, `created_at`, `updated_at`) VALUES
-(1, 2, 1, '2025-11-28', 'active', '2025-11-28 06:22:36', '2025-11-28 06:22:36');
+(1, 2, 1, '2025-11-28', 'active', '2025-11-28 06:22:36', '2025-11-28 06:22:36'),
+(2, 5, 1, '2025-11-29', 'vacated', '2025-11-29 10:59:48', '2025-11-29 10:59:57'),
+(3, 5, 2, '2025-11-29', 'active', '2025-11-29 11:00:40', '2025-11-29 11:00:40');
 
 -- --------------------------------------------------------
 
@@ -459,8 +474,8 @@ CREATE TABLE `hostel_rooms` (
 --
 
 INSERT INTO `hostel_rooms` (`id`, `room_number`, `building_name`, `type`, `capacity`, `current_occupancy`, `status`, `created_at`, `updated_at`) VALUES
-(1, '501', 'Main Hostel', 'male', 5, 1, 'active', '2025-11-28 06:22:03', '2025-11-28 06:22:36'),
-(2, '901', 'Girls Dorm', 'female', 5, 0, 'active', '2025-11-28 06:22:25', '2025-11-28 06:22:25');
+(1, '501', 'Main Hostel', 'male', 5, 1, 'active', '2025-11-28 06:22:03', '2025-11-29 10:59:57'),
+(2, '901', 'Girls Dorm', 'female', 5, 1, 'active', '2025-11-28 06:22:25', '2025-11-29 11:00:40');
 
 -- --------------------------------------------------------
 
@@ -589,6 +604,13 @@ CREATE TABLE `payroll` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `payroll`
+--
+
+INSERT INTO `payroll` (`id`, `employee_type`, `employee_id`, `month`, `year`, `basic_salary`, `allowances`, `deductions`, `net_salary`, `payment_date`, `payment_method`, `remarks`, `status`, `processed_by`, `created_at`, `updated_at`) VALUES
+(1, 'teacher', 2, 'November', 2025, 20000.00, 500.00, 0.00, 20500.00, '2025-11-29', 'cash', 'kjhgfdswertyuilop', 'paid', 1, '2025-11-29 10:17:42', '2025-11-29 10:29:49');
+
 -- --------------------------------------------------------
 
 --
@@ -615,7 +637,8 @@ INSERT INTO `sections` (`id`, `name`, `class_id`, `class_teacher_id`, `capacity`
 (8, 'B', 13, 1, 20, 1, '2025-11-23 14:08:05', '2025-11-24 07:43:22'),
 (9, 'A', 14, NULL, 50, 1, '2025-11-24 11:57:48', '2025-11-24 11:57:48'),
 (10, 'B', 14, 2, 50, 1, '2025-11-24 11:57:48', '2025-11-25 12:03:53'),
-(11, 'C', 14, NULL, 50, 1, '2025-11-24 11:57:48', '2025-11-24 11:57:48');
+(11, 'C', 14, NULL, 50, 1, '2025-11-24 11:57:48', '2025-11-24 11:57:48'),
+(12, 'A', 8, 2, 25, 1, '2025-11-29 10:32:13', '2025-11-29 10:32:25');
 
 -- --------------------------------------------------------
 
@@ -718,7 +741,9 @@ CREATE TABLE `students` (
 INSERT INTO `students` (`id`, `user_id`, `admission_number`, `first_name`, `middle_name`, `last_name`, `email`, `date_of_birth`, `gender`, `blood_group`, `address`, `city`, `state`, `pincode`, `phone`, `parent_phone`, `parent_email`, `father_name`, `mother_name`, `guardian_name`, `class_id`, `section_id`, `roll_number`, `admission_date`, `status`, `profile_photo`, `created_at`, `updated_at`) VALUES
 (1, 4, 'Gyan-01', 'Prakash', '', 'Timilsina', 'prakashtimilsina76@gmail.com', '1993-08-22', 'male', 'B+', 'Schoolchaun', 'Jhapa', 'Koshi', '44600', '9813453997', '9813453997', 'bhuwanshrestha475@gmail.com', 'Tara Nath Timilsina', 'Nara Maya Adhikari(Timilsina)', NULL, 14, 10, '1', '2025-10-21', 'active', NULL, '2025-10-22 18:32:46', '2025-11-24 11:59:14'),
 (2, 8, 'STU001', 'Sunab', NULL, 'Baskota', 'sunabbaskota15@gmail.com', '2001-09-15', 'male', 'O+', 'Gauradaha-05, Schoolchaun', 'Gauradaha', 'Koshi Province', '57200', '9814945424', '9842763697', 'sitabaskota196@gmail.com', 'Ganesh Prasad Baskota', 'Indra Maya Baskota', NULL, 13, 7, '1', '2025-11-23', 'active', 'uploads/profiles/profile_photo-Quantum_Tech-1763911226488-10710789.png', '2025-11-23 15:20:26', '2025-11-23 15:20:26'),
-(3, 9, 'STU002', 'Test ', NULL, 'Student', 'test1@gmail.com', '2012-12-12', 'male', 'A+', '625', 'Kathmandu', 'Bagmati Province', '44600', '1234567890', '9874563210', 'admin@gmail.com', 'Test Test', 'Test Test', NULL, 13, 8, '1', '2025-11-24', 'active', NULL, '2025-11-24 07:51:02', '2025-11-24 07:51:02');
+(3, 9, 'STU002', 'Test ', NULL, 'Student', 'test1@gmail.com', '2012-12-12', 'male', 'A+', '625', 'Kathmandu', 'Bagmati Province', '44600', '1234567890', '9874563210', 'admin@gmail.com', 'Test Test', 'Test Test', NULL, 13, 8, '1', '2025-11-24', 'active', NULL, '2025-11-24 07:51:02', '2025-11-24 07:51:02'),
+(4, 10, 'STU0010', 'Ram', 'Lal', 'Shrestha', 'ram@gyanstu.edu', '2011-11-11', 'male', 'AB+', '625', 'Kathmandu', 'Bagmati', '44600', '7894562230', '0000000000', 'test@gmail.com', 'Test Test', 'Test Test', NULL, 10, NULL, '11', '2025-11-29', 'active', 'uploads/profiles/profile_photo-Quantum_Tech-1764403260967-497247316.png', '2025-11-29 08:01:01', '2025-11-29 08:01:01'),
+(5, 11, 'STU0011', 'Prasunna', NULL, 'Khanal', 'prasunakhanal@gyanedu.edu', '2009-02-20', 'female', NULL, 'Gauradaha-05, Schoolchaun', 'guaradaha', 'Koshi Province', '57200', '1122334455', '9988776655', 'parent@gmail.com', 'Test Test', 'Test Test', NULL, 8, 12, '13', '2025-11-27', 'active', 'uploads/profiles/profile_photo-Screenshot_2025-09-16_01_32_22-1764403887480-869630252.png', '2025-11-29 08:11:27', '2025-11-29 11:00:25');
 
 -- --------------------------------------------------------
 
@@ -877,7 +902,7 @@ CREATE TABLE `teacher_schedules` (
   `class_id` int(11) NOT NULL,
   `section_id` int(11) DEFAULT NULL,
   `subject_id` int(11) DEFAULT NULL,
-  `day_of_week` enum('monday','tuesday','wednesday','thursday','friday','saturday') NOT NULL,
+  `day_of_week` enum('monday','tuesday','wednesday','thursday','friday','saturday','sunday') NOT NULL,
   `period_number` int(11) NOT NULL,
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
@@ -900,7 +925,7 @@ CREATE TABLE `timetable` (
   `section_id` int(11) NOT NULL,
   `subject_id` int(11) NOT NULL,
   `teacher_id` int(11) NOT NULL,
-  `day_of_week` enum('monday','tuesday','wednesday','thursday','friday','saturday') NOT NULL,
+  `day_of_week` enum('sunday','monday','tuesday','wednesday','thursday','friday','saturday') NOT NULL,
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
   `room_number` varchar(50) DEFAULT NULL,
@@ -909,6 +934,14 @@ CREATE TABLE `timetable` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `timetable`
+--
+
+INSERT INTO `timetable` (`id`, `class_id`, `section_id`, `subject_id`, `teacher_id`, `day_of_week`, `start_time`, `end_time`, `room_number`, `academic_year`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 14, 11, 8, 2, 'wednesday', '10:00:00', '11:00:00', NULL, '2025', 1, '2025-11-29 11:17:34', '2025-11-29 11:17:34'),
+(2, 14, 11, 8, 2, 'sunday', '10:00:00', '11:00:00', NULL, '2025', 1, '2025-11-29 11:21:58', '2025-11-29 11:21:58');
 
 -- --------------------------------------------------------
 
@@ -1040,11 +1073,13 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `role`, `is_active`, `last_login`, `created_at`, `updated_at`) VALUES
-(1, 'admin@gyan.edu', '$2a$10$iS1c4/I55GqFLgJfLjwuP.cKivj7BJUyo/Z.WY.gaAD82D4rFKeJK', 'super_admin', 1, '2025-11-28 10:08:51', '2025-10-22 11:07:23', '2025-11-28 10:08:51'),
+(1, 'admin@gyan.edu', '$2a$10$iS1c4/I55GqFLgJfLjwuP.cKivj7BJUyo/Z.WY.gaAD82D4rFKeJK', 'super_admin', 1, '2025-11-29 17:06:58', '2025-10-22 11:07:23', '2025-11-29 11:21:58'),
 (4, 'prakashtimilsina76@gmail.com', '$2a$10$SYLTPwE2kiY4bHgo1Ch.neI9//pAxsJPgHmq0d8U9w9YWCwdE/jrK', 'student', 1, '2025-10-24 14:45:15', '2025-10-22 18:32:46', '2025-10-24 14:45:15'),
-(6, 'sunabbaskota@gmail.com', '$2a$10$i00m7HUdqyMa9V0THW3UzuiNADhaXsi20NVkHIcuYkZOoDmurTLo.', 'teacher', 1, '2025-11-26 19:05:06', '2025-11-23 09:17:31', '2025-11-26 13:20:06'),
-(8, 'sunabbaskota15@gmail.com', '$2a$10$XpRgLx8N4aJH2XGjeiPpDeMIN6E8nhGXjdtd55EgAAA4vL9Ogz3xW', 'student', 1, '2025-11-25 11:55:37', '2025-11-23 15:20:26', '2025-11-25 06:10:37'),
-(9, 'test1@gmail.com', '$2a$10$qVvLpndVQNAslMVreJ2pSuGK1jssfrqfMAs7raQgQPwM9.1Lvd52W', 'student', 1, '2025-11-24 13:44:32', '2025-11-24 07:51:02', '2025-11-24 07:59:32');
+(6, 'sunabbaskota@gmail.com', '$2a$10$i00m7HUdqyMa9V0THW3UzuiNADhaXsi20NVkHIcuYkZOoDmurTLo.', 'teacher', 1, '2025-11-29 16:15:39', '2025-11-23 09:17:31', '2025-11-29 10:30:39'),
+(8, 'sunabbaskota15@gmail.com', '$2a$10$XpRgLx8N4aJH2XGjeiPpDeMIN6E8nhGXjdtd55EgAAA4vL9Ogz3xW', 'student', 1, '2025-11-29 14:43:56', '2025-11-23 15:20:26', '2025-11-29 08:58:56'),
+(9, 'test1@gmail.com', '$2a$10$qVvLpndVQNAslMVreJ2pSuGK1jssfrqfMAs7raQgQPwM9.1Lvd52W', 'student', 1, '2025-11-24 13:44:32', '2025-11-24 07:51:02', '2025-11-24 07:59:32'),
+(10, 'ram@gyanstu.edu', '$2a$10$NFylhsAdZY5p1QtndbEt8.7699D/DW1psHT69tm0R7ged8GBHEkt2', 'student', 1, NULL, '2025-11-29 08:01:01', '2025-11-29 08:01:01'),
+(11, 'prasunakhanal@gyanedu.edu', '$2a$10$lv3kF.EYSXYA0CqMkDz6wehjgkzH.RkVmGuM38d7YGAMMHFtjUPl.', 'student', 1, '2025-11-29 14:43:38', '2025-11-29 08:11:27', '2025-11-29 08:58:38');
 
 -- --------------------------------------------------------
 
@@ -1456,7 +1491,7 @@ ALTER TABLE `admissions`
 -- AUTO_INCREMENT for table `announcements`
 --
 ALTER TABLE `announcements`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `assignments`
@@ -1474,7 +1509,7 @@ ALTER TABLE `assignment_submissions`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `classes`
@@ -1486,7 +1521,7 @@ ALTER TABLE `classes`
 -- AUTO_INCREMENT for table `class_subjects`
 --
 ALTER TABLE `class_subjects`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `events`
@@ -1522,19 +1557,19 @@ ALTER TABLE `fee_heads`
 -- AUTO_INCREMENT for table `fee_payments`
 --
 ALTER TABLE `fee_payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `fee_structure`
 --
 ALTER TABLE `fee_structure`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `hostel_allocations`
 --
 ALTER TABLE `hostel_allocations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `hostel_rooms`
@@ -1570,13 +1605,13 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `payroll`
 --
 ALTER TABLE `payroll`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `sections`
 --
 ALTER TABLE `sections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `section_subject_teachers`
@@ -1594,7 +1629,7 @@ ALTER TABLE `staff`
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `student_transport`
@@ -1642,7 +1677,7 @@ ALTER TABLE `teacher_schedules`
 -- AUTO_INCREMENT for table `timetable`
 --
 ALTER TABLE `timetable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `transport_allocations`
@@ -1672,7 +1707,7 @@ ALTER TABLE `transport_vehicles`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `visitors`
