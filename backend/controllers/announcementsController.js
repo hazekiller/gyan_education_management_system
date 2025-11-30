@@ -1,4 +1,5 @@
 const pool = require("../config/database");
+const { createNotification } = require("./notificationsController");
 
 // Get all announcements
 const getAllAnnouncements = async (req, res) => {
@@ -395,6 +396,64 @@ const createAnnouncement = async (req, res) => {
         published_at || new Date(),
       ]
     );
+
+    // Notify target audience
+    try {
+      let query =
+        "SELECT DISTINCT id as user_id FROM users WHERE is_active = 1";
+      const params = [];
+
+      // Determine target audience query
+      if (audience === "students") {
+        query = "SELECT DISTINCT user_id FROM students WHERE status = 'active'";
+        if (class_id) {
+          query += " AND class_id = ?";
+          params.push(class_id);
+        }
+        if (section_id) {
+          query += " AND section_id = ?";
+          params.push(section_id);
+        }
+      } else if (audience === "teachers") {
+        query = "SELECT DISTINCT user_id FROM teachers WHERE status = 'active'";
+      } else if (audience === "parents") {
+        query = "SELECT DISTINCT user_id FROM parents WHERE status = 'active'";
+      } else if (audience === "staff") {
+        query = "SELECT DISTINCT user_id FROM staff WHERE status = 'active'";
+      } else if (audience === "all") {
+        if (class_id) {
+          query =
+            "SELECT DISTINCT user_id FROM students WHERE status = 'active' AND class_id = ?";
+          params.push(class_id);
+          if (section_id) {
+            query += " AND section_id = ?";
+            params.push(section_id);
+          }
+        }
+      }
+
+      const [users] = await pool.query(query, params);
+
+      const notificationPromises = users.map((user) =>
+        createNotification(
+          req,
+          user.user_id,
+          "New Announcement: " + title,
+          `A new announcement has been posted: "${title}"`,
+          "info",
+          `/announcements/${result.insertId}`
+        )
+      );
+
+      Promise.all(notificationPromises).catch((err) =>
+        console.error("Error sending announcement notifications:", err)
+      );
+    } catch (notifyError) {
+      console.error(
+        "Failed to notify audience about announcement:",
+        notifyError
+      );
+    }
 
     res.status(201).json({
       success: true,

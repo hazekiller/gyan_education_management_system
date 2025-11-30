@@ -9,7 +9,7 @@ import {
   Target,
   BookOpen,
 } from "lucide-react";
-import { subjectsAPI } from "../../lib/api";
+import { classSubjectsAPI, subjectsAPI } from "../../lib/api";
 
 const ExamScheduleModal = ({
   isOpen,
@@ -31,13 +31,31 @@ const ExamScheduleModal = ({
   const [errors, setErrors] = useState({});
 
   // Fetch subjects for the class
-  const { data: subjectsData } = useQuery({
-    queryKey: ["subjects", examData?.class_id],
-    queryFn: () => subjectsAPI.getAll({ class_id: examData?.class_id }),
+  const { data: classSubjectsData } = useQuery({
+    queryKey: ["class-subjects", examData?.class_id],
+    queryFn: () => classSubjectsAPI.getByClass(examData?.class_id),
     enabled: isOpen && !!examData?.class_id,
   });
 
-  const subjects = subjectsData?.data || [];
+  // Fallback: Fetch all subjects if no class subjects found
+  const { data: allSubjectsData } = useQuery({
+    queryKey: ["all-subjects"],
+    queryFn: () => subjectsAPI.getAll({ status: "active" }),
+    enabled: isOpen && classSubjectsData?.data?.length === 0,
+  });
+
+  // Use class subjects if available, otherwise use all subjects
+  const classSubjects = classSubjectsData?.data || [];
+  const allSubjects = allSubjectsData?.data || [];
+
+  const subjects =
+    classSubjects.length > 0
+      ? classSubjects.map((cs) => ({
+          id: cs.subject_id,
+          name: cs.subject_name,
+          code: cs.subject_code,
+        }))
+      : allSubjects;
 
   // Populate form when editing
   useEffect(() => {
@@ -170,6 +188,11 @@ const ExamScheduleModal = ({
             </select>
             {errors.subject_id && (
               <p className="text-red-500 text-xs mt-1">{errors.subject_id}</p>
+            )}
+            {classSubjects.length === 0 && allSubjects.length > 0 && (
+              <p className="text-yellow-600 text-xs mt-1">
+                ⚠️ No subjects assigned to this class. Showing all subjects.
+              </p>
             )}
           </div>
 

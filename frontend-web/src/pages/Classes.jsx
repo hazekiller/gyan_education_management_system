@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Filter } from "lucide-react";
 import { classesAPI, teachersAPI } from "../lib/api";
 import ClassTable from "../components/classes/ClassTable";
@@ -10,17 +10,14 @@ import { PERMISSIONS } from "../utils/rbac";
 import toast from "react-hot-toast";
 
 const Classes = () => {
+  const queryClient = useQueryClient();
   const [showAddModal, setShowAddModal] = useState(false);
   const [filters, setFilters] = useState({
     search: "",
   });
 
   // Fetch classes
-  const {
-    data: classesData,
-    isLoading,
-    refetch,
-  } = useQuery({
+  const { data: classesData, isLoading } = useQuery({
     queryKey: ["classes", filters],
     queryFn: () => classesAPI.getAll(filters),
   });
@@ -36,7 +33,7 @@ const Classes = () => {
       await classesAPI.create(formData);
       toast.success("Class added successfully!");
       setShowAddModal(false);
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
     } catch (error) {
       toast.error(error.message || "Failed to add class");
     }
@@ -94,7 +91,6 @@ const Classes = () => {
       <ClassTable
         classes={classesData?.data || []}
         isLoading={isLoading}
-        onRefetch={refetch}
         teachers={teachersData?.data || []}
       />
 
