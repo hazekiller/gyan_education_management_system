@@ -6,14 +6,18 @@ import { logout, selectCurrentUser } from "../../store/slices/authSlice";
 import toast from "react-hot-toast";
 import NotificationBell from "../common/NotificationBell";
 
+import { useQueryClient } from "@tanstack/react-query";
+
 const Header = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const user = useSelector(selectCurrentUser);
   const [showDropdown, setShowDropdown] = useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
+    queryClient.clear(); // Clear all cache
     toast.success("Logged out successfully");
     navigate("/login");
   };
