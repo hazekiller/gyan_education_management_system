@@ -84,12 +84,35 @@ const VideoCall = ({
     // Get media stream - respect isAudioOnly parameter
     const mediaConstraints = {
       video: isAudioOnly ? false : { width: 1280, height: 720 },
-      audio: true,
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
     };
+
+    console.log("Requesting media with constraints:", mediaConstraints);
 
     navigator.mediaDevices
       .getUserMedia(mediaConstraints)
       .then((currentStream) => {
+        console.log("Got media stream:", {
+          id: currentStream.id,
+          active: currentStream.active,
+          audioTracks: currentStream.getAudioTracks().map((t) => ({
+            id: t.id,
+            label: t.label,
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+          })),
+          videoTracks: currentStream.getVideoTracks().map((t) => ({
+            id: t.id,
+            label: t.label,
+            enabled: t.enabled,
+            readyState: t.readyState,
+          })),
+        });
         setStream(currentStream);
         if (myVideo.current) {
           myVideo.current.srcObject = currentStream;
@@ -134,7 +157,17 @@ const VideoCall = ({
       console.log(
         "VideoCall useEffect [initiate call] triggered. Caller initiating call."
       );
-      const peer = new Peer({ initiator: true, trickle: false, stream });
+      const peer = new Peer({
+        initiator: true,
+        trickle: false,
+        stream,
+        config: {
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+          ],
+        },
+      });
 
       peer.on("signal", (data) => {
         console.log("Peer: signal generated.", data);
@@ -166,7 +199,11 @@ const VideoCall = ({
       });
 
       peer.on("stream", (currentStream) => {
-        console.log("Received remote stream:", currentStream);
+        console.log("Received remote stream (caller side):", currentStream);
+        console.log("Remote stream tracks:", {
+          audio: currentStream.getAudioTracks(),
+          video: currentStream.getVideoTracks(),
+        });
         if (userVideo.current) {
           userVideo.current.srcObject = currentStream;
           // Ensure video plays
@@ -174,6 +211,11 @@ const VideoCall = ({
             .play()
             .catch((err) => console.error("Error playing remote video:", err));
         }
+      });
+
+      peer.on("error", (err) => {
+        console.error("Peer error (caller):", err);
+        toast.error("Connection error");
       });
 
       socketService.onCallAccepted((signal) => {
@@ -243,7 +285,11 @@ const VideoCall = ({
     });
 
     peer.on("stream", (currentStream) => {
-      console.log("Received remote stream (answer):", currentStream);
+      console.log("Received remote stream (answerer side):", currentStream);
+      console.log("Remote stream tracks:", {
+        audio: currentStream.getAudioTracks(),
+        video: currentStream.getVideoTracks(),
+      });
       if (userVideo.current) {
         userVideo.current.srcObject = currentStream;
         // Ensure video plays
@@ -254,15 +300,24 @@ const VideoCall = ({
     });
 
     peer.on("error", (err) => {
-      console.error("Peer error:", err);
+      console.error("Peer error (answerer):", err);
       toast.error("Connection error");
     });
 
+    peer.on("connect", () => {
+      console.log("Peer connected (answerer)!");
+    });
+
+    peer.on("close", () => {
+      console.log("Peer closed (answerer)");
+    });
+
+    // Signal AFTER all event handlers are set up
+    console.log("Signaling with caller's signal data");
     peer.signal(callerData.signal);
 
     connectionRef.current = peer;
   };
-
   const leaveCall = (notifyOtherUser = true) => {
     setCallEnded(true);
 
