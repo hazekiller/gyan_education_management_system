@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Edit, Trash2, Eye, Users, BookOpen } from "lucide-react";
 import { classesAPI } from "../../lib/api";
@@ -8,7 +9,8 @@ import PermissionGuard from "../common/PermissionGuard";
 import { PERMISSIONS } from "../../utils/rbac";
 import toast from "react-hot-toast";
 
-const ClassTable = ({ classes, isLoading, onRefetch, teachers }) => {
+const ClassTable = ({ classes, isLoading, teachers }) => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [editClass, setEditClass] = useState(null);
   const [deleteClass, setDeleteClass] = useState(null);
@@ -31,7 +33,7 @@ const ClassTable = ({ classes, isLoading, onRefetch, teachers }) => {
       toast.success("Class updated successfully!");
       setShowEditModal(false);
       setEditClass(null);
-      onRefetch();
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
     } catch (error) {
       toast.error(error.message || "Failed to update class");
     }
@@ -43,7 +45,7 @@ const ClassTable = ({ classes, isLoading, onRefetch, teachers }) => {
       toast.success("Class deleted successfully!");
       setShowDeleteModal(false);
       setDeleteClass(null);
-      onRefetch();
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
     } catch (error) {
       toast.error(error.message || "Failed to delete class");
     }
@@ -154,7 +156,7 @@ const ClassTable = ({ classes, isLoading, onRefetch, teachers }) => {
                     {classItem.capacity || (
                       <span className="text-gray-400 italic">N/A</span>
                     )}
-                    </td>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {classItem.room_number || (
                       <span className="text-gray-400 italic">N/A</span>
@@ -279,4 +281,3 @@ const ClassTable = ({ classes, isLoading, onRefetch, teachers }) => {
 };
 
 export default ClassTable;
-

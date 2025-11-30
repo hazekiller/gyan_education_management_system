@@ -1,43 +1,47 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Plus, Search, Filter } from 'lucide-react';
-import { studentsAPI, classesAPI } from '../lib/api';
-import StudentTable from '../components/students/StudentTable';
-import StudentForm from '../components/common/StudentForm';
-import Modal from '../components/common/Modal';
-import PermissionGuard from '../components/common/PermissionGuard';
-import { PERMISSIONS } from '../utils/rbac';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Search, Filter } from "lucide-react";
+import { studentsAPI, classesAPI } from "../lib/api";
+import StudentTable from "../components/students/StudentTable";
+import StudentForm from "../components/common/StudentForm";
+import Modal from "../components/common/Modal";
+import PermissionGuard from "../components/common/PermissionGuard";
+import { PERMISSIONS } from "../utils/rbac";
+import toast from "react-hot-toast";
 
 const Students = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [filters, setFilters] = useState({
-    class_id: '',
-    section_id: '',
-    status: 'active',
-    search: ''
+    class_id: "",
+    section_id: "",
+    status: "active",
+    search: "",
   });
 
+  const queryClient = useQueryClient();
+
   // Fetch students
-  const { data: studentsData, isLoading, refetch } = useQuery({
-    queryKey: ['students', filters],
-    queryFn: () => studentsAPI.getAll(filters)
+  const { data: studentsData, isLoading } = useQuery({
+    queryKey: ["students", filters],
+    queryFn: () => studentsAPI.getAll(filters),
   });
 
   // Fetch classes
   const { data: classesData } = useQuery({
-    queryKey: ['classes'],
-    queryFn: classesAPI.getAll
+    queryKey: ["classes"],
+    queryFn: classesAPI.getAll,
   });
 
   const handleAddStudent = async (formData) => {
     try {
       await studentsAPI.create(formData);
-      toast.success('Student added successfully!');
+      toast.success("Student added successfully!");
       setShowAddModal(false);
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      queryClient.invalidateQueries({ queryKey: ["class"] });
     } catch (error) {
-      toast.error(error.message || 'Failed to add student');
+      toast.error(error.message || "Failed to add student");
     }
   };
 
@@ -49,7 +53,7 @@ const Students = () => {
           <h1 className="text-2xl font-bold text-gray-900">Students</h1>
           <p className="text-gray-600 mt-1">Manage student information</p>
         </div>
-        
+
         <PermissionGuard permission={PERMISSIONS.CREATE_STUDENTS}>
           <button
             onClick={() => setShowAddModal(true)}
@@ -71,7 +75,9 @@ const Students = () => {
               type="text"
               placeholder="Search students..."
               value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, search: e.target.value })
+              }
               className="input pl-10"
             />
           </div>
@@ -79,7 +85,13 @@ const Students = () => {
           {/* Class Filter */}
           <select
             value={filters.class_id}
-            onChange={(e) => setFilters({ ...filters, class_id: e.target.value, section_id: '' })}
+            onChange={(e) =>
+              setFilters({
+                ...filters,
+                class_id: e.target.value,
+                section_id: "",
+              })
+            }
             className="input"
           >
             <option value="">All Classes</option>
@@ -105,7 +117,14 @@ const Students = () => {
 
           {/* Reset Button */}
           <button
-            onClick={() => setFilters({ class_id: '', section_id: '', status: 'active', search: '' })}
+            onClick={() =>
+              setFilters({
+                class_id: "",
+                section_id: "",
+                status: "active",
+                search: "",
+              })
+            }
             className="btn btn-outline flex items-center justify-center space-x-2"
           >
             <Filter className="w-4 h-4" />
@@ -115,11 +134,7 @@ const Students = () => {
       </div>
 
       {/* Students Table */}
-      <StudentTable
-        students={studentsData?.data || []}
-        isLoading={isLoading}
-        onRefetch={refetch}
-      />
+      <StudentTable students={studentsData?.data || []} isLoading={isLoading} />
 
       {/* Add Student Modal */}
       <Modal
