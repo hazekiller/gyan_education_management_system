@@ -40,13 +40,11 @@ const getAllBooks = async (req, res) => {
     });
   } catch (error) {
     console.error("Get books error:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch books",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch books",
+      error: error.message,
+    });
   }
 };
 
@@ -68,13 +66,11 @@ const getBookById = async (req, res) => {
     res.json({ success: true, data: books[0] });
   } catch (error) {
     console.error("Get book error:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch book",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch book",
+      error: error.message,
+    });
   }
 };
 
@@ -94,12 +90,10 @@ const addBook = async (req, res) => {
     } = req.body;
 
     if (!book_title || !total_copies) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Title and Total Copies are required",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Title and Total Copies are required",
+      });
     }
 
     // Check ISBN uniqueness if provided
@@ -109,12 +103,10 @@ const addBook = async (req, res) => {
         [isbn]
       );
       if (existing.length > 0) {
-        return res
-          .status(409)
-          .json({
-            success: false,
-            message: "Book with this ISBN already exists",
-          });
+        return res.status(409).json({
+          success: false,
+          message: "Book with this ISBN already exists",
+        });
       }
     }
 
@@ -125,7 +117,7 @@ const addBook = async (req, res) => {
       [
         book_title,
         author,
-        isbn,
+        isbn || null,
         publisher,
         publication_year,
         category,
@@ -143,13 +135,11 @@ const addBook = async (req, res) => {
     });
   } catch (error) {
     console.error("Add book error:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to add book",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to add book",
+      error: error.message,
+    });
   }
 };
 
@@ -180,13 +170,11 @@ const updateBook = async (req, res) => {
     res.json({ success: true, message: "Book updated successfully" });
   } catch (error) {
     console.error("Update book error:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to update book",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to update book",
+      error: error.message,
+    });
   }
 };
 
@@ -201,25 +189,21 @@ const deleteBook = async (req, res) => {
     );
 
     if (active.length > 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Cannot delete book with active issues",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete book with active issues",
+      });
     }
 
     await pool.query("DELETE FROM library_books WHERE id = ?", [id]);
     res.json({ success: true, message: "Book deleted successfully" });
   } catch (error) {
     console.error("Delete book error:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to delete book",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete book",
+      error: error.message,
+    });
   }
 };
 
@@ -295,12 +279,10 @@ const issueBook = async (req, res) => {
   } catch (error) {
     await connection.rollback();
     console.error("Issue book error:", error);
-    res
-      .status(400)
-      .json({
-        success: false,
-        message: error.message || "Failed to issue book",
-      });
+    res.status(400).json({
+      success: false,
+      message: error.message || "Failed to issue book",
+    });
   } finally {
     connection.release();
   }
@@ -361,12 +343,10 @@ const returnBook = async (req, res) => {
   } catch (error) {
     await connection.rollback();
     console.error("Return book error:", error);
-    res
-      .status(400)
-      .json({
-        success: false,
-        message: error.message || "Failed to return book",
-      });
+    res.status(400).json({
+      success: false,
+      message: error.message || "Failed to return book",
+    });
   } finally {
     connection.release();
   }
@@ -420,13 +400,11 @@ const getTransactions = async (req, res) => {
     res.json({ success: true, data: transactions });
   } catch (error) {
     console.error("Get transactions error:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch transactions",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch transactions",
+      error: error.message,
+    });
   }
 };
 
@@ -449,13 +427,11 @@ const getMyBooks = async (req, res) => {
     res.json({ success: true, data: myBooks });
   } catch (error) {
     console.error("Get my books error:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch your books",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch your books",
+      error: error.message,
+    });
   }
 };
 
