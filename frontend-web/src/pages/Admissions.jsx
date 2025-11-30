@@ -265,7 +265,7 @@ const Admissions = () => {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         title="New Admission Application"
-        size="large"
+        size="md"
       >
         <AdmissionForm
           onSubmit={handleCreate}
@@ -281,7 +281,7 @@ const Admissions = () => {
           setSelectedAdmission(null);
         }}
         title="Edit Admission Details"
-        size="large"
+        size="md"
       >
         <AdmissionForm
           admission={selectedAdmission}
