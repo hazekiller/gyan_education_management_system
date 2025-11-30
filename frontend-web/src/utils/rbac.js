@@ -1,85 +1,87 @@
 // Role hierarchy and permissions for School Management System
 export const ROLES = {
-  SUPER_ADMIN: 'super_admin',
-  PRINCIPAL: 'principal',
-  VICE_PRINCIPAL: 'vice_principal',
-  HOD: 'hod',
-  TEACHER: 'teacher',
-  STUDENT: 'student',
-  ACCOUNTANT: 'accountant',
-  GUARD: 'guard',
-  CLEANER: 'cleaner',
+  SUPER_ADMIN: "super_admin",
+  PRINCIPAL: "principal",
+  VICE_PRINCIPAL: "vice_principal",
+  HOD: "hod",
+  TEACHER: "teacher",
+  STUDENT: "student",
+  ACCOUNTANT: "accountant",
+  GUARD: "guard",
+  CLEANER: "cleaner",
 };
 
 // Permission definitions
 export const PERMISSIONS = {
   // Students
-  VIEW_STUDENTS: 'view_students',
-  CREATE_STUDENTS: 'create_students',
-  EDIT_STUDENTS: 'edit_students',
-  DELETE_STUDENTS: 'delete_students',
+  VIEW_STUDENTS: "view_students",
+  CREATE_STUDENTS: "create_students",
+  EDIT_STUDENTS: "edit_students",
+  DELETE_STUDENTS: "delete_students",
 
   // Teachers
-  VIEW_TEACHERS: 'view_teachers',
-  CREATE_TEACHERS: 'create_teachers',
-  EDIT_TEACHERS: 'edit_teachers',
-  DELETE_TEACHERS: 'delete_teachers',
+  VIEW_TEACHERS: "view_teachers",
+  CREATE_TEACHERS: "create_teachers",
+  EDIT_TEACHERS: "edit_teachers",
+  DELETE_TEACHERS: "delete_teachers",
 
   // Classes
-  VIEW_CLASSES: 'view_classes',
-  CREATE_CLASSES: 'create_classes',
-  EDIT_CLASSES: 'edit_classes',
-  DELETE_CLASSES: 'delete_classes',
+  VIEW_CLASSES: "view_classes",
+  CREATE_CLASSES: "create_classes",
+  EDIT_CLASSES: "edit_classes",
+  DELETE_CLASSES: "delete_classes",
 
   // Class Subjects
-  VIEW_CLASS_SUBJECTS: 'view_class_subjects',
-  MANAGE_CLASS_SUBJECTS: 'manage_class_subjects',
+  VIEW_CLASS_SUBJECTS: "view_class_subjects",
+  MANAGE_CLASS_SUBJECTS: "manage_class_subjects",
 
   // Attendance
-  VIEW_ATTENDANCE: 'view_attendance',
-  MARK_ATTENDANCE: 'mark_attendance',
+  VIEW_ATTENDANCE: "view_attendance",
+  MARK_ATTENDANCE: "mark_attendance",
 
   // Exams
-  VIEW_EXAMS: 'view_exams',
-  CREATE_EXAMS: 'create_exams',
-  EDIT_EXAMS: 'edit_exams',
-  ENTER_RESULTS: 'enter_results',
+  VIEW_EXAMS: "view_exams",
+  CREATE_EXAMS: "create_exams",
+  EDIT_EXAMS: "edit_exams",
+  ENTER_RESULTS: "enter_results",
 
   // Assignments
-  VIEW_ASSIGNMENTS: 'view_assignments',
-  CREATE_ASSIGNMENTS: 'create_assignments',
-  SUBMIT_ASSIGNMENTS: 'submit_assignments',
+  VIEW_ASSIGNMENTS: "view_assignments",
+  CREATE_ASSIGNMENTS: "create_assignments",
+  SUBMIT_ASSIGNMENTS: "submit_assignments",
 
   // Fees
-  VIEW_FEES: 'view_fees',
-  MANAGE_FEES: 'manage_fees',
+  VIEW_FEES: "view_fees",
+  MANAGE_FEES: "manage_fees",
 
   // Events
-  VIEW_EVENTS: 'view_events',
-  CREATE_EVENTS: 'create_events',
+  VIEW_EVENTS: "view_events",
+  CREATE_EVENTS: "create_events",
 
   // Announcements
-  VIEW_ANNOUNCEMENTS: 'view_announcements',
-  CREATE_ANNOUNCEMENTS: 'create_announcements',
+  VIEW_ANNOUNCEMENTS: "view_announcements",
+  CREATE_ANNOUNCEMENTS: "create_announcements",
 
   // Messages
-  SEND_MESSAGES: 'send_messages',
-  VIEW_MESSAGES: 'view_messages',
+  SEND_MESSAGES: "send_messages",
+  VIEW_MESSAGES: "view_messages",
 
   // Schedules
-  VIEW_SCHEDULE: 'view_schedule',
-  MANAGE_SCHEDULE: 'manage_schedule',
+  VIEW_SCHEDULE: "view_schedule",
+  MANAGE_SCHEDULE: "manage_schedule",
 
   // Payroll
-  VIEW_PAYROLL: 'view_payroll',
-  MANAGE_PAYROLL: 'manage_payroll',
+  VIEW_PAYROLL: "view_payroll",
+  MANAGE_PAYROLL: "manage_payroll",
+
+  // Admissions
+  VIEW_ADMISSIONS: "view_admissions",
+  MANAGE_ADMISSIONS: "manage_admissions",
 };
 
 // Role-Permission mapping
 export const ROLE_PERMISSIONS = {
-  [ROLES.SUPER_ADMIN]: [
-    ...Object.values(PERMISSIONS),
-  ],
+  [ROLES.SUPER_ADMIN]: [...Object.values(PERMISSIONS)],
 
   [ROLES.PRINCIPAL]: [
     PERMISSIONS.VIEW_STUDENTS,
@@ -115,6 +117,8 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.MANAGE_SCHEDULE,
     PERMISSIONS.VIEW_PAYROLL,
     PERMISSIONS.MANAGE_PAYROLL,
+    PERMISSIONS.VIEW_ADMISSIONS,
+    PERMISSIONS.MANAGE_ADMISSIONS,
   ],
 
   [ROLES.VICE_PRINCIPAL]: [
@@ -141,6 +145,8 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.MANAGE_SCHEDULE,
     PERMISSIONS.VIEW_PAYROLL,
     PERMISSIONS.MANAGE_PAYROLL,
+    PERMISSIONS.VIEW_ADMISSIONS,
+    PERMISSIONS.MANAGE_ADMISSIONS,
   ],
 
   [ROLES.HOD]: [
@@ -161,6 +167,7 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_MESSAGES,
     PERMISSIONS.VIEW_SCHEDULE,
     PERMISSIONS.VIEW_PAYROLL,
+    PERMISSIONS.VIEW_ADMISSIONS,
   ],
 
   [ROLES.TEACHER]: [
@@ -228,11 +235,11 @@ export const hasPermission = (userRole, permission) => {
 };
 
 export const hasAnyPermission = (userRole, permissions = []) => {
-  return permissions.some(permission => hasPermission(userRole, permission));
+  return permissions.some((permission) => hasPermission(userRole, permission));
 };
 
 export const hasAllPermissions = (userRole, permissions = []) => {
-  return permissions.every(permission => hasPermission(userRole, permission));
+  return permissions.every((permission) => hasPermission(userRole, permission));
 };
 
 export const getRolePermissions = (role) => {
