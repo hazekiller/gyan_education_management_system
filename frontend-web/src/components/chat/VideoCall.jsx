@@ -84,7 +84,7 @@ const VideoCall = ({
     // Handle call ended from other side
     socketService.onCallEnded(() => {
       setCallEnded(true);
-      leaveCall();
+      leaveCall(false); // Don't notify the other user as they ended it
       toast.success("Call ended");
     });
 
@@ -114,7 +114,9 @@ const VideoCall = ({
           userToCall: userToCall.user_id || userToCall.id,
           signalData: data,
           from: currentUser.id,
-          name: currentUser.name,
+          name:
+            currentUser.name ||
+            `${currentUser.first_name} ${currentUser.last_name}`,
         });
       });
 
@@ -172,7 +174,7 @@ const VideoCall = ({
     connectionRef.current = peer;
   };
 
-  const leaveCall = () => {
+  const leaveCall = (notifyOtherUser = true) => {
     setCallEnded(true);
 
     if (connectionRef.current) {
@@ -184,7 +186,7 @@ const VideoCall = ({
     }
 
     // Notify other user
-    if (callAccepted && !callEnded) {
+    if (callAccepted && !callEnded && notifyOtherUser) {
       const otherUserId = isIncomingCall
         ? callerData.from
         : userToCall?.user_id || userToCall?.id;
