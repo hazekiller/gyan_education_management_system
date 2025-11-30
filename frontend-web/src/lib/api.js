@@ -125,6 +125,7 @@ export const teachersAPI = {
   assignSchedule: (data) => api.post("/teachers/schedule", data),
 };
 
+// ============================================
 // SUBJECTS API
 // ============================================
 export const subjectsAPI = {
@@ -133,6 +134,19 @@ export const subjectsAPI = {
   create: (data) => api.post("/subjects", data),
   update: (id, data) => api.put(`/subjects/${id}`, data),
   delete: (id) => api.delete(`/subjects/${id}`),
+};
+
+// ============================================
+// CLASS-SUBJECTS API
+// ============================================
+export const classSubjectsAPI = {
+  getByClass: (classId) => api.get(`/class-subjects/class/${classId}`),
+  getBySection: (sectionId) => api.get(`/class-subjects/section/${sectionId}`),
+  getAvailable: (classId) => api.get(`/class-subjects/available/${classId}`),
+  assign: (data) => api.post("/class-subjects/assign", data),
+  assignMultiple: (data) => api.post("/class-subjects/assign-multiple", data),
+  update: (id, data) => api.put(`/class-subjects/${id}`, data),
+  delete: (id) => api.delete(`/class-subjects/${id}`),
 };
 
 // ============================================
@@ -270,7 +284,16 @@ export const examsAPI = {
   getById: (id) => api.get(`/exams/${id}`),
   update: (id, data) => api.put(`/exams/${id}`, data),
   delete: (id) => api.delete(`/exams/${id}`),
-  enterResults: (data) => api.post("/exam-results", data),
+  getAcademicYears: () => api.get("/exams/academic-years"),
+
+  // Results methods
+  getResults: (examId, subjectId) =>
+    api.get(`/exams/${examId}/results`, { params: { subject_id: subjectId } }),
+  getStudentResults: (examId, studentId) =>
+    api.get(`/exams/${examId}/students/${studentId}/results`),
+  enterResults: (examId, data) => api.post(`/exams/${examId}/results`, data),
+  updateResult: (resultId, data) => api.put(`/exams/results/${resultId}`, data),
+  deleteResult: (resultId) => api.delete(`/exams/results/${resultId}`),
 };
 
 // ============================================
@@ -305,6 +328,35 @@ export const assignmentsAPI = {
     }),
 
   delete: (id) => api.delete(`/assignments/${id}`),
+
+  // Submission methods
+  submit: (id, data) =>
+    api.post(`/assignments/${id}/submit`, toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  getSubmissions: (id) => api.get(`/assignments/${id}/submissions`),
+
+  getMySubmission: (id) => api.get(`/assignments/${id}/my-submission`),
+
+  gradeSubmission: (submissionId, data) =>
+    api.put(`/assignments/submissions/${submissionId}/grade`, data),
+
+  updateSubmission: (submissionId, data) =>
+    api.put(`/assignments/submissions/${submissionId}`, toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+};
+
+// ============================================
+// NOTIFICATIONS API
+// ============================================
+export const notificationsAPI = {
+  getAll: (params) => api.get("/notifications", { params }),
+  getUnreadCount: () => api.get("/notifications/unread-count"),
+  markAsRead: (id) => api.put(`/notifications/${id}/read`),
+  markAllAsRead: () => api.put("/notifications/mark-all-read"),
+  delete: (id) => api.delete(`/notifications/${id}`),
 };
 
 // ============================================
@@ -333,6 +385,10 @@ export const feeAPI = {
 export const eventsAPI = {
   create: (data) => api.post("/events", data),
   getAll: (params) => api.get("/events", { params }),
+  getById: (id) => api.get(`/events/${id}`),
+  update: (id, data) => api.put(`/events/${id}`, data),
+  delete: (id) => api.delete(`/events/${id}`),
+  toggleStatus: (id) => api.patch(`/events/${id}/toggle-status`),
 };
 
 // ============================================
@@ -508,8 +564,12 @@ export const hostelAPI = {
 export const transportAPI = {
   getAllVehicles: () => api.get("/transport/vehicles"),
   createVehicle: (data) => api.post("/transport/vehicles", data),
+  updateVehicle: (id, data) => api.put(`/transport/vehicles/${id}`, data),
+  deleteVehicle: (id) => api.delete(`/transport/vehicles/${id}`),
   getAllRoutes: () => api.get("/transport/routes"),
   createRoute: (data) => api.post("/transport/routes", data),
+  updateRoute: (id, data) => api.put(`/transport/routes/${id}`, data),
+  deleteRoute: (id) => api.delete(`/transport/routes/${id}`),
   getAllocations: () => api.get("/transport/allocations"),
   allocateTransport: (data) => api.post("/transport/allocate", data),
   cancelAllocation: (id) => api.delete(`/transport/allocations/${id}`),

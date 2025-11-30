@@ -18,26 +18,7 @@ import toast from "react-hot-toast";
 const Exams = () => {
   const queryClient = useQueryClient();
 
-  // Generate academic years dynamically
-  const generateAcademicYears = () => {
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth(); // 0-11
-
-    // If current month is before June (5), we're still in the previous academic year
-    const startYear = currentMonth < 6 ? currentYear - 1 : currentYear;
-
-    const years = [];
-    // Generate 5 years: 2 past, current, 2 future
-    for (let i = 2; i >= -2; i--) {
-      const year = startYear - i;
-      years.push(`${year}-${year + 1}`);
-    }
-    return years;
-  };
-
-  const academicYears = useMemo(() => generateAcademicYears(), []);
-
-  // Set default to current academic year
+  // Get current academic year for default selection
   const getCurrentAcademicYear = () => {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth();
@@ -51,6 +32,14 @@ const Exams = () => {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filterType, setFilterType] = useState("all");
+
+  // Fetch academic years from database
+  const { data: academicYearsData } = useQuery({
+    queryKey: ["academic-years"],
+    queryFn: examsAPI.getAcademicYears,
+  });
+
+  const academicYears = academicYearsData?.data || [];
 
   const { data: examsData, isLoading } = useQuery({
     queryKey: ["exams", selectedAcademicYear],

@@ -17,33 +17,36 @@ const TransportationManagement = () => {
     }
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold text-gray-900">Transportation Management</h1>
-                <p className="text-gray-600 mt-1">Manage buses, routes, and student allocations</p>
+        <div className="space-y-8">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white shadow-xl">
+                <div className="flex items-center gap-3 mb-2">
+                    <Bus className="w-10 h-10" />
+                    <h1 className="text-4xl font-bold">Transportation Management</h1>
+                </div>
+                <p className="text-blue-100 text-lg">Manage buses, routes, and student allocations</p>
             </div>
 
             {/* Tabs */}
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit overflow-x-auto">
+            <div className="flex space-x-2 bg-white border border-gray-200 p-1.5 rounded-xl shadow-sm overflow-x-auto">
                 {isAdmin && (
                     <>
                         <button
                             onClick={() => setActiveTab('vehicles')}
-                            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'vehicles' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                            className={`flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'vehicles' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md transform scale-105' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
                             <Bus className="w-4 h-4 mr-2" />
                             Vehicles
                         </button>
                         <button
                             onClick={() => setActiveTab('routes')}
-                            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'routes' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                            className={`flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'routes' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md transform scale-105' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
                             <Navigation className="w-4 h-4 mr-2" />
                             Routes
                         </button>
                         <button
                             onClick={() => setActiveTab('allocations')}
-                            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'allocations' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                            className={`flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'allocations' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md transform scale-105' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
                             <Users className="w-4 h-4 mr-2" />
                             Allocations
@@ -53,7 +56,7 @@ const TransportationManagement = () => {
                 {isStudent && (
                     <button
                         onClick={() => setActiveTab('my-transport')}
-                        className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'my-transport' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                        className={`flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'my-transport' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md transform scale-105' : 'text-gray-600 hover:bg-gray-100'}`}
                     >
                         <Bus className="w-4 h-4 mr-2" />
                         My Transport
@@ -61,7 +64,7 @@ const TransportationManagement = () => {
                 )}
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6 min-h-[500px]">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 min-h-[500px]">
                 {activeTab === 'vehicles' && isAdmin && <VehiclesTab />}
                 {activeTab === 'routes' && isAdmin && <RoutesTab />}
                 {activeTab === 'allocations' && isAdmin && <AllocationsTab />}
@@ -83,30 +86,68 @@ const VehiclesTab = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-gray-800">Bus Fleet</h3>
-                <button onClick={() => setShowModal(true)} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-                    <Plus className="w-4 h-4 mr-2" /> Add Vehicle
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
+                <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <Bus className="w-8 h-8 text-blue-600" />
+                    Bus Fleet
+                </h3>
+                <button 
+                    onClick={() => setShowModal(true)} 
+                    className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all font-medium"
+                >
+                    <Plus className="w-4 h-4" /> Add Vehicle
                 </button>
             </div>
 
+            {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoading ? <p>Loading...</p> : vehicles.map(v => (
-                    <div key={v.id} className="border rounded-xl p-5 hover:shadow-lg transition-shadow bg-gray-50">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="font-bold text-lg text-gray-800">{v.bus_number}</h3>
-                                <p className="text-xs text-gray-500">{v.registration_number}</p>
-                            </div>
-                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${v.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{v.status}</span>
+                {isLoading ? (
+                    <div className="col-span-full text-center py-12 text-gray-500">Loading vehicles...</div>
+                ) : vehicles.map(v => (
+                    <div key={v.id} className="group bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-2xl hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                        {/* Status Badge */}
+                        <span className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-lg ${
+                            v.status === 'active' 
+                                ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-200' 
+                                : 'bg-red-100 text-red-800 border-2 border-red-200'
+                        }`}>
+                            {v.status}
+                        </span>
+
+                        {/* Bus Info */}
+                        <div className="mb-6 pb-6 border-b border-gray-100">
+                            <h3 className="font-bold text-xl text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
+                                {v.bus_number}
+                            </h3>
+                            <p className="text-sm text-gray-500 font-mono bg-gray-100 px-3 py-1 rounded-full inline-block">
+                                {v.registration_number}
+                            </p>
                         </div>
-                        <div className="space-y-2 text-sm">
-                            <div className="flex justify-between"><span className="text-gray-600">Driver:</span> <span className="font-medium">{v.driver_name}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-600">Phone:</span> <span className="font-medium">{v.driver_phone}</span></div>
+
+                        {/* Details */}
+                        <div className="space-y-3 text-sm">
+                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl group-hover:bg-blue-50 transition-colors">
+                                <span className="text-gray-600 font-medium">Driver</span>
+                                <span className="font-semibold text-gray-900">{v.driver_name}</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl group-hover:bg-blue-50 transition-colors">
+                                <span className="text-gray-600 font-medium">Phone</span>
+                                <span className="font-semibold text-blue-600">{v.driver_phone}</span>
+                            </div>
                             {v.sub_driver_name && (
-                                <div className="flex justify-between"><span className="text-gray-600">Sub-Driver:</span> <span className="font-medium">{v.sub_driver_name}</span></div>
+                                <div className="flex justify-between items-center p-3 bg-amber-50 rounded-xl border border-amber-100">
+                                    <span className="text-amber-700 font-medium">Sub-Driver</span>
+                                    <span className="font-semibold text-gray-900">{v.sub_driver_name}</span>
+                                </div>
                             )}
-                            <div className="flex justify-between"><span className="text-gray-600">Capacity:</span> <span className="font-medium">{v.capacity} Seats</span></div>
+                            <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
+                                <span className="text-xs text-emerald-700 font-semibold uppercase tracking-wide block mb-2">
+                                    Capacity
+                                </span>
+                                <span className="text-2xl font-bold text-emerald-800">{v.capacity}</span>
+                                <span className="text-sm text-emerald-700"> seats</span>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -115,6 +156,7 @@ const VehiclesTab = () => {
         </div>
     );
 };
+
 
 // ==========================================
 // ROUTES TAB
@@ -128,37 +170,82 @@ const RoutesTab = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-gray-800">Route Network</h3>
-                <button onClick={() => setShowModal(true)} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-                    <Plus className="w-4 h-4 mr-2" /> Create Route
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl border border-emerald-100">
+                <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <Navigation className="w-8 h-8 text-emerald-600" />
+                    Route Network
+                </h3>
+                <button 
+                    onClick={() => setShowModal(true)} 
+                    className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all font-medium"
+                >
+                    <Plus className="w-4 h-4" /> Create Route
                 </button>
             </div>
 
+            {/* Routes List */}
             <div className="space-y-4">
-                {isLoading ? <p>Loading...</p> : routes.map(r => (
-                    <div key={r.id} className="border rounded-xl p-5 bg-white hover:shadow-md">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="font-bold text-lg text-blue-700">{r.route_name}</h3>
-                                <p className="text-sm text-gray-600">Vehicle: {r.bus_number || 'Unassigned'} ({r.driver_name || 'No Driver'})</p>
+                {isLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {Array.from({ length: 6 }, (_, i) => (
+                            <div key={i} className="animate-pulse bg-white rounded-2xl p-6 shadow-md border border-gray-100 h-80"></div>
+                        ))}
+                    </div>
+                ) : routes.map(r => (
+                    <div key={r.id} className="group bg-white rounded-2xl p-6 hover:shadow-xl hover:border-emerald-200 border border-gray-100 hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                        {/* Route Header */}
+                        <div className="flex justify-between items-start mb-6 pb-6 border-b border-gray-100">
+                            <div className="flex-1">
+                                <h3 className="font-bold text-xl text-emerald-700 mb-2 group-hover:text-emerald-800 transition-colors">
+                                    {r.route_name}
+                                </h3>
+                                <p className="text-sm text-gray-600 flex items-center gap-2">
+                                    <Bus className="w-4 h-4" />
+                                    {r.bus_number || 'Unassigned'} 
+                                    {r.driver_name && `(${r.driver_name})`}
+                                </p>
                             </div>
-                            <div className="text-right text-sm">
-                                <p className="font-medium">{r.start_point} ➝ {r.end_point}</p>
-                                <p className="text-gray-500">{r.stops?.length || 0} Stops</p>
+                            <div className="text-right ml-4">
+                                <p className="font-semibold text-lg text-gray-900 flex items-center gap-2 mb-1">
+                                    {r.start_point} 
+                                    <span className="text-emerald-600 font-bold text-xl">➝</span> 
+                                    {r.end_point}
+                                </p>
+                                <p className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full inline-flex items-center gap-1">
+                                    <MapPin className="w-3 h-3" />
+                                    {r.stops?.length || 0} Stops
+                                </p>
                             </div>
                         </div>
 
-                        {/* Stops Visualization */}
-                        <div className="relative flex items-center justify-between mt-6 px-4">
-                            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -z-10"></div>
-                            {r.stops?.map((stop, idx) => (
-                                <div key={stop.id} className="flex flex-col items-center bg-white p-1">
-                                    <div className="w-3 h-3 rounded-full bg-blue-500 mb-1"></div>
-                                    <span className="text-xs font-medium text-gray-700">{stop.stop_name}</span>
-                                    <span className="text-[10px] text-gray-500">{stop.pickup_time?.slice(0, 5)}</span>
-                                </div>
-                            ))}
+                        {/* Enhanced Stops Visualization */}
+                        <div className="relative bg-gradient-to-r from-slate-50 to-emerald-50 rounded-2xl p-6 overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-teal-500/5"></div>
+                            <div className="relative flex items-center justify-between px-6">
+                                <div className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-gray-200 via-emerald-300 to-teal-300 -z-10 transform -translate-y-1/2 rounded-full shadow-lg"></div>
+                                {r.stops?.map((stop, idx) => (
+                                    <div key={stop.id} className="flex flex-col items-center z-10 bg-white/80 backdrop-blur-sm p-3 rounded-2xl shadow-lg border border-white/50 group-hover:scale-105 transition-all">
+                                        <div className={`w-5 h-5 rounded-2xl flex items-center justify-center mb-2 shadow-lg transition-all ${
+                                            idx === 0 ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-emerald-500/50' :
+                                            idx === r.stops.length - 1 ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-orange-500/50' :
+                                            'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-blue-500/50'
+                                        }`}>
+                                            {idx + 1}
+                                        </div>
+                                        <span className="text-xs font-bold text-gray-900 text-center leading-tight min-w-[60px] px-1">
+                                            {stop.stop_name}
+                                        </span>
+                                        <span className="text-[11px] text-emerald-600 font-semibold bg-emerald-100 px-2 py-0.5 rounded-full mt-1">
+                                            {stop.pickup_time?.slice(0, 5)}
+                                        </span>
+                                    </div>
+                                )) || (
+                                    <div className="col-span-full text-center py-8 text-gray-500">
+                                        No stops assigned
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -177,7 +264,7 @@ const AllocationsTab = () => {
 
     const { data: allocations = [], isLoading } = useQuery({
         queryKey: ['transport-allocations'],
-        queryFn: () => transportAPI.getAllocations().then(res => res.data || [])
+        queryFn: () => transportAPI.getAllAllocations().then(res => res.data || [])
     });
 
     const cancelMutation = useMutation({
@@ -190,57 +277,118 @@ const AllocationsTab = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-gray-800">Student Allocations</h3>
-                <button onClick={() => setShowModal(true)} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-                    <Plus className="w-4 h-4 mr-2" /> Allocate Student
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl border border-purple-100">
+                <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <Users className="w-8 h-8 text-purple-600" />
+                    Student Allocations
+                </h3>
+                <button 
+                    onClick={() => setShowModal(true)} 
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all font-medium"
+                >
+                    <Plus className="w-4 h-4" /> Allocate Student
                 </button>
             </div>
 
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="p-3 text-sm font-medium text-gray-600">Student</th>
-                            <th className="p-3 text-sm font-medium text-gray-600">Route / Bus</th>
-                            <th className="p-3 text-sm font-medium text-gray-600">Pickup / Drop</th>
-                            <th className="p-3 text-sm font-medium text-gray-600">Seat No</th>
-                            <th className="p-3 text-sm font-medium text-gray-600 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                        {isLoading ? <tr><td colSpan="5" className="p-4 text-center">Loading...</td></tr> : allocations.map(a => (
-                            <tr key={a.id} className="hover:bg-gray-50">
-                                <td className="p-3">
-                                    <div className="font-medium">{a.first_name} {a.last_name}</div>
-                                    <div className="text-xs text-gray-500">Class {a.class_id} ({a.admission_number})</div>
-                                </td>
-                                <td className="p-3">
-                                    <div className="font-medium">{a.route_name}</div>
-                                    <div className="text-xs text-blue-600">{a.bus_number}</div>
-                                </td>
-                                <td className="p-3 text-sm">
-                                    <div className="flex items-center"><span className="text-green-600 mr-1">↑</span> {a.pickup_point}</div>
-                                    <div className="flex items-center"><span className="text-red-600 mr-1">↓</span> {a.drop_point}</div>
-                                </td>
-                                <td className="p-3 font-mono font-bold text-gray-700">{a.seat_number || '-'}</td>
-                                <td className="p-3 text-right">
-                                    <button
-                                        onClick={() => { if (confirm('Cancel allocation?')) cancelMutation.mutate(a.id) }}
-                                        className="text-red-600 hover:text-red-800 text-sm"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </td>
+            {/* Enhanced Table */}
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                                <th className="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Student</th>
+                                <th className="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Route / Bus</th>
+                                <th className="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Pickup / Drop</th>
+                                <th className="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Seat</th>
+                                <th className="px-6 py-5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Action</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 bg-gradient-to-b from-white to-slate-50">
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan="5" className="py-12 text-center">
+                                        <div className="flex items-center justify-center gap-3 text-gray-500">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                                            <span>Loading allocations...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : allocations.map(a => (
+                                <tr key={a.id} className="group hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 border-b border-gray-50">
+                                    {/* Student */}
+                                    <td className="px-6 py-5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                                                <User className="w-5 h-5 text-white" />
+                                            </div>
+                                            <div>
+                                                <div className="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">
+                                                    {a.first_name} {a.last_name}
+                                                </div>
+                                                <div className="text-xs text-gray-500 flex items-center gap-1">
+                                                    <span>Class {a.class_id}</span>
+                                                    <span>•</span>
+                                                    <span>{a.admission_number}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
+                                    {/* Route/Bus */}
+                                    <td className="px-6 py-5">
+                                        <div className="font-semibold text-gray-900">{a.route_name}</div>
+                                        <div className="text-sm font-mono bg-blue-100 text-blue-800 px-3 py-1 rounded-full mt-1 inline-block">
+                                            {a.bus_number}
+                                        </div>
+                                    </td>
+                                    
+                                    {/* Pickup/Drop */}
+                                    <td className="px-6 py-5">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2 text-green-700 font-medium text-sm">
+                                                <span className="w-3 h-3 bg-green-500 rounded-full shadow-sm"></span>
+                                                ↑ {a.pickup_point}
+                                            </div>
+                                            <div className="flex items-center gap-2 text-red-700 font-medium text-sm">
+                                                <span className="w-3 h-3 bg-red-500 rounded-full shadow-sm"></span>
+                                                ↓ {a.drop_point}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
+                                    {/* Seat */}
+                                    <td className="px-6 py-5">
+                                        <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg mx-auto">
+                                            <span className="font-bold text-xl text-white font-mono">
+                                                {a.seat_number || '-'}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    
+                                    {/* Action */}
+                                    <td className="px-6 py-5 text-right">
+                                        <button
+                                            onClick={() => { if (confirm('Cancel allocation?')) cancelMutation.mutate(a.id) }}
+                                            className="group relative p-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl shadow-lg hover:from-red-600 hover:to-red-700 hover:shadow-xl hover:scale-105 transition-all duration-200 hover:-translate-y-0.5"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                            <span className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-red-900 text-white text-xs px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+                                                Cancel
+                                            </span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
             {showModal && <AllocateTransportModal onClose={() => setShowModal(false)} />}
         </div>
     );
 };
+
 
 // ==========================================
 // MY TRANSPORT TAB (STUDENT)
