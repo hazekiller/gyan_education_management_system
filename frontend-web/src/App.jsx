@@ -37,6 +37,7 @@ import TransportationManagement from "./pages/TransportationManagement";
 import Payroll from "./pages/Payroll";
 import ExamResults from "./pages/ExamResults";
 import Notifications from "./pages/Notifications";
+import Admissions from "./pages/Admissions";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -104,6 +105,7 @@ function App() {
         <Route path="transport" element={<TransportationManagement />} />
         <Route path="payroll" element={<Payroll />} />
         <Route path="notifications" element={<Notifications />} />
+        <Route path="admissions" element={<Admissions />} />
       </Route>
 
       {/* 404 */}

@@ -137,6 +137,17 @@ export const subjectsAPI = {
 };
 
 // ============================================
+// ADMISSIONS API
+// ============================================
+export const admissionsAPI = {
+  getAll: (params) => api.get("/admissions", { params }),
+  getById: (id) => api.get(`/admissions/${id}`),
+  create: (data) => api.post("/admissions", data),
+  update: (id, data) => api.put(`/admissions/${id}`, data),
+  delete: (id) => api.delete(`/admissions/${id}`),
+};
+
+// ============================================
 // CLASS-SUBJECTS API
 // ============================================
 export const classSubjectsAPI = {
