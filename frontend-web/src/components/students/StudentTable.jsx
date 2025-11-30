@@ -1,14 +1,16 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, Eye, MoreVertical } from 'lucide-react';
-import { studentsAPI } from '../../lib/api';
-import Modal from '../common/Modal';
-import StudentForm from '../common/StudentForm';
-import PermissionGuard from '../common/PermissionGuard';
-import { PERMISSIONS } from '../../utils/rbac';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { Edit, Trash2, Eye, MoreVertical } from "lucide-react";
+import { studentsAPI } from "../../lib/api";
+import Modal from "../common/Modal";
+import StudentForm from "../common/StudentForm";
+import PermissionGuard from "../common/PermissionGuard";
+import { PERMISSIONS } from "../../utils/rbac";
+import toast from "react-hot-toast";
 
-const StudentTable = ({ students, isLoading, onRefetch }) => {
+const StudentTable = ({ students, isLoading }) => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [editStudent, setEditStudent] = useState(null);
   const [deleteStudent, setDeleteStudent] = useState(null);
@@ -28,24 +30,28 @@ const StudentTable = ({ students, isLoading, onRefetch }) => {
   const handleUpdateStudent = async (formData) => {
     try {
       await studentsAPI.update(editStudent.id, formData);
-      toast.success('Student updated successfully!');
+      toast.success("Student updated successfully!");
       setShowEditModal(false);
       setEditStudent(null);
-      onRefetch();
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      queryClient.invalidateQueries({ queryKey: ["class"] });
     } catch (error) {
-      toast.error(error.message || 'Failed to update student');
+      toast.error(error.message || "Failed to update student");
     }
   };
 
   const confirmDelete = async () => {
     try {
       await studentsAPI.delete(deleteStudent.id);
-      toast.success('Student deleted successfully!');
+      toast.success("Student deleted successfully!");
       setShowDeleteModal(false);
       setDeleteStudent(null);
-      onRefetch();
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      queryClient.invalidateQueries({ queryKey: ["class"] });
     } catch (error) {
-      toast.error(error.message || 'Failed to delete student');
+      toast.error(error.message || "Failed to delete student");
     }
   };
 
@@ -104,7 +110,8 @@ const StudentTable = ({ students, isLoading, onRefetch }) => {
                       <div className="flex-shrink-0 h-10 w-10">
                         <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                           <span className="text-blue-600 font-semibold">
-                            {student.first_name?.charAt(0)}{student.last_name?.charAt(0)}
+                            {student.first_name?.charAt(0)}
+                            {student.last_name?.charAt(0)}
                           </span>
                         </div>
                       </div>
@@ -112,7 +119,9 @@ const StudentTable = ({ students, isLoading, onRefetch }) => {
                         <div className="text-sm font-medium text-gray-900">
                           {student.first_name} {student.last_name}
                         </div>
-                        <div className="text-sm text-gray-500">{student.email}</div>
+                        <div className="text-sm text-gray-500">
+                          {student.email}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -120,17 +129,20 @@ const StudentTable = ({ students, isLoading, onRefetch }) => {
                     {student.admission_number}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {student.class_name} {student.section_name && `- ${student.section_name}`}
+                    {student.class_name}{" "}
+                    {student.section_name && `- ${student.section_name}`}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {student.parent_phone}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      student.status === 'active'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        student.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
                       {student.status}
                     </span>
                   </td>
@@ -143,7 +155,7 @@ const StudentTable = ({ students, isLoading, onRefetch }) => {
                       >
                         <Eye className="w-5 h-5" />
                       </button>
-                      
+
                       <PermissionGuard permission={PERMISSIONS.EDIT_STUDENTS}>
                         <button
                           onClick={() => handleEdit(student)}
@@ -203,8 +215,11 @@ const StudentTable = ({ students, isLoading, onRefetch }) => {
       >
         <div className="space-y-4">
           <p className="text-gray-600">
-            Are you sure you want to delete <strong>{deleteStudent?.first_name} {deleteStudent?.last_name}</strong>? 
-            This action cannot be undone.
+            Are you sure you want to delete{" "}
+            <strong>
+              {deleteStudent?.first_name} {deleteStudent?.last_name}
+            </strong>
+            ? This action cannot be undone.
           </p>
           <div className="flex justify-end space-x-4">
             <button
