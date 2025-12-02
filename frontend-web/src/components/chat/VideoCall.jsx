@@ -212,27 +212,27 @@ const VideoCall = ({
       });
 
       peer.on("signal", (data) => {
-        console.log("Peer: signal generated.", data);
-        // Construct CALLER name from current user data
-        let myName = "Unknown";
-
-        if (currentUser?.first_name || currentUser?.last_name) {
-          myName = `${currentUser.first_name || ""} ${
-            currentUser.last_name || ""
-          }`.trim();
-        } else if (currentUser?.email) {
-          myName = currentUser.email.split("@")[0];
-        }
-
-        console.log("Initiating call - sending MY name to receiver:", {
-          myName,
-          currentUser,
-          userToCall,
-          from: currentUser.id,
-        });
+        console.log("Peer: signal generated.", data.type);
 
         // Send initial offer or ICE candidates
         if (data.type === "offer") {
+          // Construct CALLER name from current user data
+          let myName = "Unknown";
+
+          if (currentUser?.first_name || currentUser?.last_name) {
+            myName = `${currentUser.first_name || ""} ${
+              currentUser.last_name || ""
+            }`.trim();
+          } else if (currentUser?.email) {
+            myName = currentUser.email.split("@")[0];
+          }
+
+          console.log("Initiating call - sending offer to receiver:", {
+            myName,
+            to: userToCall.user_id || userToCall.id,
+            from: currentUser.id,
+          });
+
           socketService.callUser({
             userToCall: userToCall.user_id || userToCall.id,
             signalData: data,
@@ -240,7 +240,7 @@ const VideoCall = ({
             name: myName,
           });
         } else if (data.candidate) {
-          // Send ICE candidate
+          // Send ICE candidate (silently, no excessive logging)
           socketService.sendIceCandidate({
             to: userToCall.user_id || userToCall.id,
             candidate: data,
@@ -264,19 +264,66 @@ const VideoCall = ({
             readyState: t.readyState,
           })),
         });
+
         if (userVideo.current) {
+          // Set the stream
           userVideo.current.srcObject = currentStream;
-          // Ensure playback starts
-          userVideo.current.play().catch((err) => {
-            console.error("Error playing remote media:", err);
-            // Try to enable audio explicitly
-            if (currentStream.getAudioTracks().length > 0) {
-              currentStream.getAudioTracks().forEach((track) => {
-                track.enabled = true;
-                console.log("Audio track enabled:", track.id);
-              });
-            }
+
+          // Ensure all tracks are enabled
+          currentStream.getTracks().forEach((track) => {
+            track.enabled = true;
           });
+
+          // For video elements, ensure not muted (audio should play)
+          if (userVideo.current.tagName === "VIDEO") {
+            userVideo.current.muted = false;
+            userVideo.current.volume = 1.0;
+          }
+
+          // Try to play with retry logic
+          const attemptPlay = (retries = 3) => {
+            userVideo.current
+              .play()
+              .then(() => {
+                console.log("✅ Remote media playing successfully");
+              })
+              .catch((err) => {
+                console.error(
+                  `❌ Error playing remote media (${retries} retries left):`,
+                  err.name,
+                  err.message
+                );
+
+                if (retries > 0) {
+                  // Retry after a short delay
+                  setTimeout(() => attemptPlay(retries - 1), 500);
+                } else {
+                  // Last resort: show user a message to click
+                  toast.error("Click anywhere to enable audio/video");
+
+                  // Add one-time click listener to start playback
+                  const playOnClick = () => {
+                    userVideo.current
+                      ?.play()
+                      .then(() => {
+                        console.log(
+                          "✅ Playback started after user interaction"
+                        );
+                        toast.success("Audio/Video enabled!");
+                      })
+                      .catch((e) => console.error("Still failed:", e));
+                    document.removeEventListener("click", playOnClick);
+                  };
+                  document.addEventListener("click", playOnClick, {
+                    once: true,
+                  });
+                }
+              });
+          };
+
+          attemptPlay();
+        } else {
+          console.warn("⚠️ userVideo ref is null");
         }
       });
 
@@ -447,19 +494,62 @@ const VideoCall = ({
           readyState: t.readyState,
         })),
       });
+
       if (userVideo.current) {
+        // Set the stream
         userVideo.current.srcObject = currentStream;
-        // Ensure playback starts
-        userVideo.current.play().catch((err) => {
-          console.error("Error playing remote media:", err);
-          // Try to enable audio explicitly
-          if (currentStream.getAudioTracks().length > 0) {
-            currentStream.getAudioTracks().forEach((track) => {
-              track.enabled = true;
-              console.log("Audio track enabled:", track.id);
-            });
-          }
+
+        // Ensure all tracks are enabled
+        currentStream.getTracks().forEach((track) => {
+          track.enabled = true;
         });
+
+        // For video elements, ensure not muted (audio should play)
+        if (userVideo.current.tagName === "VIDEO") {
+          userVideo.current.muted = false;
+          userVideo.current.volume = 1.0;
+        }
+
+        // Try to play with retry logic
+        const attemptPlay = (retries = 3) => {
+          userVideo.current
+            .play()
+            .then(() => {
+              console.log("✅ Remote media playing successfully");
+            })
+            .catch((err) => {
+              console.error(
+                `❌ Error playing remote media (${retries} retries left):`,
+                err.name,
+                err.message
+              );
+
+              if (retries > 0) {
+                // Retry after a short delay
+                setTimeout(() => attemptPlay(retries - 1), 500);
+              } else {
+                // Last resort: show user a message to click
+                toast.error("Click anywhere to enable audio/video");
+
+                // Add one-time click listener to start playback
+                const playOnClick = () => {
+                  userVideo.current
+                    ?.play()
+                    .then(() => {
+                      console.log("✅ Playback started after user interaction");
+                      toast.success("Audio/Video enabled!");
+                    })
+                    .catch((e) => console.error("Still failed:", e));
+                  document.removeEventListener("click", playOnClick);
+                };
+                document.addEventListener("click", playOnClick, { once: true });
+              }
+            });
+        };
+
+        attemptPlay();
+      } else {
+        console.warn("⚠️ userVideo ref is null");
       }
     });
 
