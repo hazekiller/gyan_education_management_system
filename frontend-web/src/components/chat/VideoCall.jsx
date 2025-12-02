@@ -139,6 +139,7 @@ const VideoCall = ({
       // Cleanup
       socketService.removeListener("call_accepted");
       socketService.removeListener("call_ended");
+      socketService.removeListener("ice_candidate");
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
@@ -147,6 +148,9 @@ const VideoCall = ({
       }
       if (callTimerRef.current) {
         clearInterval(callTimerRef.current);
+      }
+      if (connectionRef.current && !connectionRef.current.destroyed) {
+        connectionRef.current.destroy();
       }
     };
   }, [isOpen]);
@@ -222,14 +226,32 @@ const VideoCall = ({
       peer.on("stream", (currentStream) => {
         console.log("✅ Received remote stream (caller side):", {
           id: currentStream.id,
-          audioTracks: currentStream.getAudioTracks().length,
-          videoTracks: currentStream.getVideoTracks().length,
+          active: currentStream.active,
+          audioTracks: currentStream.getAudioTracks().map((t) => ({
+            id: t.id,
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+          })),
+          videoTracks: currentStream.getVideoTracks().map((t) => ({
+            id: t.id,
+            enabled: t.enabled,
+            readyState: t.readyState,
+          })),
         });
         if (userVideo.current) {
           userVideo.current.srcObject = currentStream;
-          userVideo.current
-            .play()
-            .catch((err) => console.error("Error playing remote video:", err));
+          // Ensure playback starts
+          userVideo.current.play().catch((err) => {
+            console.error("Error playing remote media:", err);
+            // Try to enable audio explicitly
+            if (currentStream.getAudioTracks().length > 0) {
+              currentStream.getAudioTracks().forEach((track) => {
+                track.enabled = true;
+                console.log("Audio track enabled:", track.id);
+              });
+            }
+          });
         }
       });
 
@@ -261,15 +283,30 @@ const VideoCall = ({
       });
 
       // Listen for ICE candidates from receiver
-      socketService.onIceCandidate((data) => {
-        if (data.candidate) {
+      const handleIceCandidate = (data) => {
+        if (
+          data.candidate &&
+          connectionRef.current &&
+          !connectionRef.current.destroyed
+        ) {
           console.log("🧊 Received ICE candidate from receiver");
-          peer.signal(data.candidate);
+          try {
+            connectionRef.current.signal(data.candidate);
+          } catch (err) {
+            console.warn("Failed to signal ICE candidate:", err.message);
+          }
         }
-      });
+      };
+
+      socketService.onIceCandidate(handleIceCandidate);
 
       connectionRef.current = peer;
     }
+
+    return () => {
+      // Cleanup ICE candidate listener when call ends
+      socketService.removeListener("ice_candidate");
+    };
   }, [isOpen, isIncomingCall, stream, userToCall]);
 
   // Start call timer when call is accepted
@@ -353,14 +390,32 @@ const VideoCall = ({
     peer.on("stream", (currentStream) => {
       console.log("✅ Received remote stream (answerer side):", {
         id: currentStream.id,
-        audioTracks: currentStream.getAudioTracks().length,
-        videoTracks: currentStream.getVideoTracks().length,
+        active: currentStream.active,
+        audioTracks: currentStream.getAudioTracks().map((t) => ({
+          id: t.id,
+          enabled: t.enabled,
+          muted: t.muted,
+          readyState: t.readyState,
+        })),
+        videoTracks: currentStream.getVideoTracks().map((t) => ({
+          id: t.id,
+          enabled: t.enabled,
+          readyState: t.readyState,
+        })),
       });
       if (userVideo.current) {
         userVideo.current.srcObject = currentStream;
-        userVideo.current
-          .play()
-          .catch((err) => console.error("Error playing remote video:", err));
+        // Ensure playback starts
+        userVideo.current.play().catch((err) => {
+          console.error("Error playing remote media:", err);
+          // Try to enable audio explicitly
+          if (currentStream.getAudioTracks().length > 0) {
+            currentStream.getAudioTracks().forEach((track) => {
+              track.enabled = true;
+              console.log("Audio track enabled:", track.id);
+            });
+          }
+        });
       }
     });
 
@@ -392,12 +447,22 @@ const VideoCall = ({
     };
 
     // Listen for ICE candidates from caller
-    socketService.onIceCandidate((data) => {
-      if (data.candidate) {
+    const handleIceCandidate = (data) => {
+      if (
+        data.candidate &&
+        connectionRef.current &&
+        !connectionRef.current.destroyed
+      ) {
         console.log("🧊 Received ICE candidate from caller");
-        peer.signal(data.candidate);
+        try {
+          connectionRef.current.signal(data.candidate);
+        } catch (err) {
+          console.warn("Failed to signal ICE candidate:", err.message);
+        }
       }
-    });
+    };
+
+    socketService.onIceCandidate(handleIceCandidate);
 
     // Signal AFTER all event handlers are set up
     console.log("Signaling with caller's signal data");
@@ -542,6 +607,14 @@ const VideoCall = ({
                   ref={userVideo}
                   autoPlay
                   className="w-full h-full object-cover"
+                  onLoadedMetadata={(e) => {
+                    console.log("Remote video metadata loaded");
+                    e.target
+                      .play()
+                      .catch((err) =>
+                        console.error("Error playing remote video:", err)
+                      );
+                  }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
@@ -551,6 +624,20 @@ const VideoCall = ({
                       {isIncomingCall ? callerData.name : userToCall?.name}
                     </p>
                     <p className="text-gray-400 text-sm mt-2">Audio Call</p>
+                    {/* Hidden audio element for audio-only calls */}
+                    <audio
+                      ref={userVideo}
+                      autoPlay
+                      playsInline
+                      onLoadedMetadata={(e) => {
+                        console.log("Remote audio metadata loaded");
+                        e.target
+                          .play()
+                          .catch((err) =>
+                            console.error("Error playing remote audio:", err)
+                          );
+                      }}
+                    />
                   </div>
                 </div>
               )}
