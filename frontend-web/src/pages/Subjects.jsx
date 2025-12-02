@@ -19,7 +19,11 @@ const Subjects = () => {
   });
 
   // Fetch subjects
-  const { data: subjectsData, isLoading } = useQuery({
+  const {
+    data: subjectsData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["subjects", filters],
     queryFn: () => subjectsAPI.getAll(filters),
   });
@@ -84,7 +88,11 @@ const Subjects = () => {
       </div>
 
       {/* Subjects Table */}
-      <SubjectTable subjects={subjectsData?.data || []} isLoading={isLoading} />
+      <SubjectTable
+        subjects={subjectsData?.data || []}
+        isLoading={isLoading}
+        onRefetch={refetch}
+      />
 
       {/* Add Subject Modal */}
       <Modal
