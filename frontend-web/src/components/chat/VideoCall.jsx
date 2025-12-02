@@ -34,14 +34,14 @@ const VideoCall = ({
   const [isVideoOff, setIsVideoOff] = useState(isAudioOnly);
   const [callDuration, setCallDuration] = useState(0);
 
-  // Debug logging
-  console.log("VideoCall Props:", {
-    isIncomingCall,
-    callerData,
-    userToCall,
-    isAudioOnly,
-    currentUser,
-  });
+  // Debug logging (only on mount/significant changes)
+  // console.log("VideoCall Props:", {
+  //   isIncomingCall,
+  //   callerData,
+  //   userToCall,
+  //   isAudioOnly,
+  //   currentUser,
+  // });
 
   const myVideo = useRef();
   const userVideo = useRef();
@@ -171,7 +171,9 @@ const VideoCall = ({
             { urls: "stun:stun.l.google.com:19302" },
             { urls: "stun:stun1.l.google.com:19302" },
             { urls: "stun:stun2.l.google.com:19302" },
-            // Free public TURN servers (replace with your own for production)
+            { urls: "stun:stun3.l.google.com:19302" },
+            { urls: "stun:stun4.l.google.com:19302" },
+            // Free public TURN servers
             {
               urls: "turn:openrelay.metered.ca:80",
               username: "openrelayproject",
@@ -181,6 +183,29 @@ const VideoCall = ({
               urls: "turn:openrelay.metered.ca:443",
               username: "openrelayproject",
               credential: "openrelayproject",
+            },
+            {
+              urls: "turn:openrelay.metered.ca:443?transport=tcp",
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
+            // Numb Viagenie (Free)
+            {
+              urls: "turn:numb.viagenie.ca",
+              username: "webrtc@live.com",
+              credential: "muazkh",
+            },
+            // Anyfirewall (Free)
+            {
+              urls: "turn:turn.anyfirewall.com:443?transport=tcp",
+              username: "webrtc",
+              credential: "webrtc",
+            },
+            {
+              urls: "turn:gyan.lekhaak.com:3478",
+              username: "user",
+              credential:
+                "HJDSFYUHEW8EV7ERVYDFG7TGWE7F#YGFDYUG&DSHFYUSDGI%YDSFYF@YDGSYGSY",
             },
           ],
         },
@@ -358,6 +383,8 @@ const VideoCall = ({
           { urls: "stun:stun.l.google.com:19302" },
           { urls: "stun:stun1.l.google.com:19302" },
           { urls: "stun:stun2.l.google.com:19302" },
+          { urls: "stun:stun3.l.google.com:19302" },
+          { urls: "stun:stun4.l.google.com:19302" },
           // Free public TURN servers
           {
             urls: "turn:openrelay.metered.ca:80",
@@ -368,6 +395,23 @@ const VideoCall = ({
             urls: "turn:openrelay.metered.ca:443",
             username: "openrelayproject",
             credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443?transport=tcp",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          // Numb Viagenie (Free)
+          {
+            urls: "turn:numb.viagenie.ca",
+            username: "webrtc@live.com",
+            credential: "muazkh",
+          },
+          // Anyfirewall (Free)
+          {
+            urls: "turn:turn.anyfirewall.com:443?transport=tcp",
+            username: "webrtc",
+            credential: "webrtc",
           },
         ],
       },
