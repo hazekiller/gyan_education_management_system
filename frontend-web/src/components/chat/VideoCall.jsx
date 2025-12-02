@@ -486,76 +486,75 @@ const VideoCall = ({
       stream: stream,
       config: {
         iceServers: [
-            // Google STUN servers
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:stun1.l.google.com:19302" },
-            { urls: "stun:stun2.l.google.com:19302" },
-            { urls: "stun:stun3.l.google.com:19302" },
-            { urls: "stun:stun4.l.google.com:19302" },
-            // Free public TURN servers
-            {
-              urls: "turn:openrelay.metered.ca:80",
-              username: "openrelayproject",
-              credential: "openrelayproject",
-            },
-            {
-              urls: "turn:openrelay.metered.ca:443",
-              username: "openrelayproject",
-              credential: "openrelayproject",
-            },
-            {
-              urls: "turn:openrelay.metered.ca:443?transport=tcp",
-              username: "openrelayproject",
-              credential: "openrelayproject",
-            },
-            // Numb Viagenie (Free)
-            {
-              urls: "turn:numb.viagenie.ca",
-              username: "webrtc@live.com",
-              credential: "muazkh",
-            },
-            // Anyfirewall (Free)
-            {
-              urls: "turn:turn.anyfirewall.com:443?transport=tcp",
-              username: "webrtc",
-              credential: "webrtc",
-            },
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:stun1.l.google.com:19302" },
+          // Google STUN servers
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" },
+          { urls: "stun:stun2.l.google.com:19302" },
+          { urls: "stun:stun3.l.google.com:19302" },
+          { urls: "stun:stun4.l.google.com:19302" },
+          // Free public TURN servers
+          {
+            urls: "turn:openrelay.metered.ca:80",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443?transport=tcp",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          // Numb Viagenie (Free)
+          {
+            urls: "turn:numb.viagenie.ca",
+            username: "webrtc@live.com",
+            credential: "muazkh",
+          },
+          // Anyfirewall (Free)
+          {
+            urls: "turn:turn.anyfirewall.com:443?transport=tcp",
+            username: "webrtc",
+            credential: "webrtc",
+          },
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" },
 
-            // Twilio STUN (more reliable)
-            { urls: "stun:global.stun.twilio.com:3478" },
+          // Twilio STUN (more reliable)
+          { urls: "stun:global.stun.twilio.com:3478" },
 
-            // Metered TURN servers (Free, most reliable)
-            {
-              urls: "turn:a.relay.metered.ca:80",
-              username: "87c4d050e52ff083f0c8694e",
-              credential: "sBUFLFd7optT7W8q",
-            },
-            {
-              urls: "turn:a.relay.metered.ca:80?transport=tcp",
-              username: "87c4d050e52ff083f0c8694e",
-              credential: "sBUFLFd7optT7W8q",
-            },
-            {
-              urls: "turn:a.relay.metered.ca:443",
-              username: "87c4d050e52ff083f0c8694e",
-              credential: "sBUFLFd7optT7W8q",
-            },
-            {
-              urls: "turn:a.relay.metered.ca:443?transport=tcp",
-              username: "87c4d050e52ff083f0c8694e",
-              credential: "sBUFLFd7optT7W8q",
-            },
-            // Custom TURN server (commented out - causing connection failures)
-            // Uncomment after setting up coturn properly
-            // {
-            //   urls: "turn:gyan.lekhaak.com:3478",
-            //   username: "user",
-            //   credential:
-            //     "HJDSFYUHEW8EV7ERVYDFG7TGWE7F#YGFDYUG&DSHFYUSDGI%YDSFYF@YDGSYGSY",
-            // },
-          ],
+          // Metered TURN servers (Free, most reliable)
+          {
+            urls: "turn:a.relay.metered.ca:80",
+            username: "87c4d050e52ff083f0c8694e",
+            credential: "sBUFLFd7optT7W8q",
+          },
+          {
+            urls: "turn:a.relay.metered.ca:80?transport=tcp",
+            username: "87c4d050e52ff083f0c8694e",
+            credential: "sBUFLFd7optT7W8q",
+          },
+          {
+            urls: "turn:a.relay.metered.ca:443",
+            username: "87c4d050e52ff083f0c8694e",
+            credential: "sBUFLFd7optT7W8q",
+          },
+          {
+            urls: "turn:a.relay.metered.ca:443?transport=tcp",
+            username: "87c4d050e52ff083f0c8694e",
+            credential: "sBUFLFd7optT7W8q",
+          },
+          // Custom TURN server (commented out - causing connection failures)
+          // Uncomment after setting up coturn properly
+          // {
+          //   urls: "turn:gyan.lekhaak.com:3478",
+          //   username: "user",
+          //   credential:
+          //     "HJDSFYUHEW8EV7ERVYDFG7TGWE7F#YGFDYUG&DSHFYUSDGI%YDSFYF@YDGSYGSY",
+          // },
         ],
       },
     });
