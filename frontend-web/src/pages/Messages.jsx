@@ -142,6 +142,7 @@ const Messages = () => {
         setCaller(data.from);
         setCallerName(data.name);
         setCallerSignal(data.signal);
+        setIsAudioOnly(data.isAudioOnly);
         setShowVideoCall(true);
       });
 

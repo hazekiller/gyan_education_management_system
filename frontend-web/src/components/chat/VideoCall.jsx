@@ -240,6 +240,7 @@ const VideoCall = ({
             signalData: data,
             from: currentUser.id,
             name: myName,
+            isAudioOnly,
           });
         } else if (data.candidate) {
           // Send ICE candidate (silently, no excessive logging)
@@ -720,6 +721,14 @@ const VideoCall = ({
                 ref={myVideo}
                 autoPlay
                 className="w-full h-full object-cover transform scale-x-[-1]"
+                onLoadedMetadata={(e) => {
+                  console.log("Local video metadata loaded");
+                  e.target
+                    .play()
+                    .catch((err) =>
+                      console.error("Error playing local video:", err)
+                    );
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
