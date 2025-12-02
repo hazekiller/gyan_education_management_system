@@ -201,12 +201,14 @@ const VideoCall = ({
               username: "webrtc",
               credential: "webrtc",
             },
-            {
-              urls: "turn:gyan.lekhaak.com:3478",
-              username: "user",
-              credential:
-                "HJDSFYUHEW8EV7ERVYDFG7TGWE7F#YGFDYUG&DSHFYUSDGI%YDSFYF@YDGSYGSY",
-            },
+            // Custom TURN server (commented out - causing connection failures)
+            // Uncomment after setting up coturn properly
+            // {
+            //   urls: "turn:gyan.lekhaak.com:3478",
+            //   username: "user",
+            //   credential:
+            //     "HJDSFYUHEW8EV7ERVYDFG7TGWE7F#YGFDYUG&DSHFYUSDGI%YDSFYF@YDGSYGSY",
+            // },
           ],
         },
       });
