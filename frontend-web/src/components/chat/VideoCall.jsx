@@ -159,12 +159,25 @@ const VideoCall = ({
       );
       const peer = new Peer({
         initiator: true,
-        trickle: false,
+        trickle: true, // Enable ICE trickle for better NAT traversal
         stream,
         config: {
           iceServers: [
+            // Google STUN servers
             { urls: "stun:stun.l.google.com:19302" },
             { urls: "stun:stun1.l.google.com:19302" },
+            { urls: "stun:stun2.l.google.com:19302" },
+            // Free public TURN servers (replace with your own for production)
+            {
+              urls: "turn:openrelay.metered.ca:80",
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
+            {
+              urls: "turn:openrelay.metered.ca:443",
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
           ],
         },
       });
@@ -172,7 +185,6 @@ const VideoCall = ({
       peer.on("signal", (data) => {
         console.log("Peer: signal generated.", data);
         // Construct CALLER name from current user data
-        // This is the name that will be shown to the RECEIVER
         let myName = "Unknown";
 
         if (currentUser?.first_name || currentUser?.last_name) {
@@ -190,38 +202,70 @@ const VideoCall = ({
           from: currentUser.id,
         });
 
-        socketService.callUser({
-          userToCall: userToCall.user_id || userToCall.id,
-          signalData: data,
-          from: currentUser.id,
-          name: myName, // MY name (the caller's name) - this is what receiver will see
-        });
+        // Send initial offer or ICE candidates
+        if (data.type === "offer") {
+          socketService.callUser({
+            userToCall: userToCall.user_id || userToCall.id,
+            signalData: data,
+            from: currentUser.id,
+            name: myName,
+          });
+        } else if (data.candidate) {
+          // Send ICE candidate
+          socketService.sendIceCandidate({
+            to: userToCall.user_id || userToCall.id,
+            candidate: data,
+          });
+        }
       });
 
       peer.on("stream", (currentStream) => {
-        console.log("Received remote stream (caller side):", currentStream);
-        console.log("Remote stream tracks:", {
-          audio: currentStream.getAudioTracks(),
-          video: currentStream.getVideoTracks(),
+        console.log("✅ Received remote stream (caller side):", {
+          id: currentStream.id,
+          audioTracks: currentStream.getAudioTracks().length,
+          videoTracks: currentStream.getVideoTracks().length,
         });
         if (userVideo.current) {
           userVideo.current.srcObject = currentStream;
-          // Ensure video plays
           userVideo.current
             .play()
             .catch((err) => console.error("Error playing remote video:", err));
         }
       });
 
-      peer.on("error", (err) => {
-        console.error("Peer error (caller):", err);
-        toast.error("Connection error");
+      peer.on("connect", () => {
+        console.log("🎉 Peer connection established (caller)!");
       });
 
+      peer.on("error", (err) => {
+        console.error("❌ Peer error (caller):", err);
+        toast.error("Connection error: " + err.message);
+      });
+
+      // Monitor ICE connection state
+      peer._pc.oniceconnectionstatechange = () => {
+        console.log(
+          "ICE connection state (caller):",
+          peer._pc.iceConnectionState
+        );
+        if (peer._pc.iceConnectionState === "failed") {
+          console.error("ICE connection failed - may need TURN server");
+          toast.error("Connection failed. Please check your network.");
+        }
+      };
+
       socketService.onCallAccepted((signal) => {
-        console.log("Socket: call_accepted received. Signal:", signal);
+        console.log("✅ Socket: call_accepted received. Signal:", signal);
         setCallAccepted(true);
         peer.signal(signal);
+      });
+
+      // Listen for ICE candidates from receiver
+      socketService.onIceCandidate((data) => {
+        if (data.candidate) {
+          console.log("🧊 Received ICE candidate from receiver");
+          peer.signal(data.candidate);
+        }
       });
 
       connectionRef.current = peer;
@@ -269,47 +313,90 @@ const VideoCall = ({
 
     const peer = new Peer({
       initiator: false,
-      trickle: false,
-      stream: stream, // Pass the stream to the peer
+      trickle: true, // Enable ICE trickle
+      stream: stream,
       config: {
         iceServers: [
+          // Google STUN servers
           { urls: "stun:stun.l.google.com:19302" },
           { urls: "stun:stun1.l.google.com:19302" },
+          { urls: "stun:stun2.l.google.com:19302" },
+          // Free public TURN servers
+          {
+            urls: "turn:openrelay.metered.ca:80",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
         ],
       },
     });
 
     peer.on("signal", (data) => {
       console.log("Peer (answerer): signal generated.", data);
-      socketService.answerCall({ signal: data, to: callerData.from });
+      // Send answer or ICE candidates
+      if (data.type === "answer") {
+        socketService.answerCall({ signal: data, to: callerData.from });
+      } else if (data.candidate) {
+        // Send ICE candidate
+        socketService.sendIceCandidate({
+          to: callerData.from,
+          candidate: data,
+        });
+      }
     });
 
     peer.on("stream", (currentStream) => {
-      console.log("Received remote stream (answerer side):", currentStream);
-      console.log("Remote stream tracks:", {
-        audio: currentStream.getAudioTracks(),
-        video: currentStream.getVideoTracks(),
+      console.log("✅ Received remote stream (answerer side):", {
+        id: currentStream.id,
+        audioTracks: currentStream.getAudioTracks().length,
+        videoTracks: currentStream.getVideoTracks().length,
       });
       if (userVideo.current) {
         userVideo.current.srcObject = currentStream;
-        // Ensure video plays
         userVideo.current
           .play()
           .catch((err) => console.error("Error playing remote video:", err));
       }
     });
 
-    peer.on("error", (err) => {
-      console.error("Peer error (answerer):", err);
-      toast.error("Connection error");
+    peer.on("connect", () => {
+      console.log("🎉 Peer connection established (answerer)!");
     });
 
-    peer.on("connect", () => {
-      console.log("Peer connected (answerer)!");
+    peer.on("error", (err) => {
+      console.error("❌ Peer error (answerer):", err);
+      toast.error("Connection error: " + err.message);
     });
 
     peer.on("close", () => {
       console.log("Peer closed (answerer)");
+    });
+
+    // Monitor ICE connection state
+    peer._pc.oniceconnectionstatechange = () => {
+      console.log(
+        "ICE connection state (answerer):",
+        peer._pc.iceConnectionState
+      );
+      if (peer._pc.iceConnectionState === "failed") {
+        console.error("ICE connection failed - may need TURN server");
+        toast.error("Connection failed. Please check your network.");
+      } else if (peer._pc.iceConnectionState === "connected") {
+        console.log("✅ ICE connection successful!");
+      }
+    };
+
+    // Listen for ICE candidates from caller
+    socketService.onIceCandidate((data) => {
+      if (data.candidate) {
+        console.log("🧊 Received ICE candidate from caller");
+        peer.signal(data.candidate);
+      }
     });
 
     // Signal AFTER all event handlers are set up
