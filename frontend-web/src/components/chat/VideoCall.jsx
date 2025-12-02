@@ -228,6 +228,33 @@ const VideoCall = ({
               username: "webrtc",
               credential: "webrtc",
             },
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+
+            // Twilio STUN (more reliable)
+            { urls: "stun:global.stun.twilio.com:3478" },
+
+            // Metered TURN servers (Free, most reliable)
+            {
+              urls: "turn:a.relay.metered.ca:80",
+              username: "87c4d050e52ff083f0c8694e",
+              credential: "sBUFLFd7optT7W8q",
+            },
+            {
+              urls: "turn:a.relay.metered.ca:80?transport=tcp",
+              username: "87c4d050e52ff083f0c8694e",
+              credential: "sBUFLFd7optT7W8q",
+            },
+            {
+              urls: "turn:a.relay.metered.ca:443",
+              username: "87c4d050e52ff083f0c8694e",
+              credential: "sBUFLFd7optT7W8q",
+            },
+            {
+              urls: "turn:a.relay.metered.ca:443?transport=tcp",
+              username: "87c4d050e52ff083f0c8694e",
+              credential: "sBUFLFd7optT7W8q",
+            },
             // Custom TURN server (commented out - causing connection failures)
             // Uncomment after setting up coturn properly
             // {
@@ -671,23 +698,23 @@ const VideoCall = ({
     onClose();
   };
 
- const toggleMute = () => {
-   if (stream && stream.getAudioTracks().length > 0) {
-     const audioTrack = stream.getAudioTracks()[0];
-     audioTrack.enabled = !audioTrack.enabled;
-     setIsMuted(!audioTrack.enabled);
-     console.log("Audio track enabled:", audioTrack.enabled);
-   }
- };
+  const toggleMute = () => {
+    if (stream && stream.getAudioTracks().length > 0) {
+      const audioTrack = stream.getAudioTracks()[0];
+      audioTrack.enabled = !audioTrack.enabled;
+      setIsMuted(!audioTrack.enabled);
+      console.log("Audio track enabled:", audioTrack.enabled);
+    }
+  };
 
- const toggleVideo = () => {
-   if (stream && stream.getVideoTracks().length > 0) {
-     const videoTrack = stream.getVideoTracks()[0];
-     videoTrack.enabled = !videoTrack.enabled;
-     setIsVideoOff(!videoTrack.enabled);
-     console.log("Video track enabled:", videoTrack.enabled);
-   }
- };
+  const toggleVideo = () => {
+    if (stream && stream.getVideoTracks().length > 0) {
+      const videoTrack = stream.getVideoTracks()[0];
+      videoTrack.enabled = !videoTrack.enabled;
+      setIsVideoOff(!videoTrack.enabled);
+      console.log("Video track enabled:", videoTrack.enabled);
+    }
+  };
 
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
