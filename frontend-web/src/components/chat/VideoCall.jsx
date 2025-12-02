@@ -83,7 +83,13 @@ const VideoCall = ({
 
     // Get media stream - respect isAudioOnly parameter
     const mediaConstraints = {
-      video: isAudioOnly ? false : { width: 1280, height: 720 },
+      video: isAudioOnly
+        ? false
+        : {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: "user",
+          },
       audio: {
         echoCancellation: true,
         noiseSuppression: true,
@@ -114,6 +120,27 @@ const VideoCall = ({
           })),
         });
         setStream(currentStream);
+        // Verify we got the correct tracks
+        const audioTracks = currentStream.getAudioTracks();
+        const videoTracks = currentStream.getVideoTracks();
+
+        console.log("Stream verification:", {
+          isAudioOnly,
+          hasAudio: audioTracks.length > 0,
+          hasVideo: videoTracks.length > 0,
+          expectedVideo: !isAudioOnly,
+        });
+        // If it's audio only but we got video, stop video track
+        if (isAudioOnly && videoTracks.length > 0) {
+          console.warn("Got video track in audio-only call, stopping it");
+          videoTracks.forEach((track) => track.stop());
+        }
+
+        // If it's video call but no video, show error
+        if (!isAudioOnly && videoTracks.length === 0) {
+          console.error("No video track in video call");
+          toast.error("Could not access camera");
+        }
         if (myVideo.current) {
           myVideo.current.srcObject = currentStream;
         }
@@ -277,10 +304,13 @@ const VideoCall = ({
             track.enabled = true;
           });
 
-          // For video elements, ensure not muted (audio should play)
-          if (userVideo.current.tagName === "VIDEO") {
-            userVideo.current.muted = false;
-            userVideo.current.volume = 1.0;
+          userVideo.current.muted = false;
+          userVideo.current.volume = 1.0;
+
+          // For audio elements, ensure autoplay
+          if (userVideo.current.tagName === "AUDIO") {
+            userVideo.current.setAttribute("autoplay", "");
+            userVideo.current.setAttribute("playsinline", "");
           }
 
           // Try to play with retry logic
@@ -641,19 +671,23 @@ const VideoCall = ({
     onClose();
   };
 
-  const toggleMute = () => {
-    if (stream) {
-      stream.getAudioTracks()[0].enabled = isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
+ const toggleMute = () => {
+   if (stream && stream.getAudioTracks().length > 0) {
+     const audioTrack = stream.getAudioTracks()[0];
+     audioTrack.enabled = !audioTrack.enabled;
+     setIsMuted(!audioTrack.enabled);
+     console.log("Audio track enabled:", audioTrack.enabled);
+   }
+ };
 
-  const toggleVideo = () => {
-    if (stream) {
-      stream.getVideoTracks()[0].enabled = isVideoOff;
-      setIsVideoOff(!isVideoOff);
-    }
-  };
+ const toggleVideo = () => {
+   if (stream && stream.getVideoTracks().length > 0) {
+     const videoTrack = stream.getVideoTracks()[0];
+     videoTrack.enabled = !videoTrack.enabled;
+     setIsVideoOff(!videoTrack.enabled);
+     console.log("Video track enabled:", videoTrack.enabled);
+   }
+ };
 
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
