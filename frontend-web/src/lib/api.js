@@ -55,6 +55,9 @@ const toFormData = (data) => {
         } else if (Array.isArray(data[key])) {
           data[key].forEach((file) => formData.append("attachments", file));
         }
+      } else if (Array.isArray(data[key])) {
+        // Handle other arrays (like section_id)
+        data[key].forEach((value) => formData.append(`${key}[]`, value));
       } else {
         formData.append(key, data[key]);
       }

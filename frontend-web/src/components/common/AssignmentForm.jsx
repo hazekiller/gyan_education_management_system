@@ -18,7 +18,7 @@ const AssignmentForm = ({
     title: assignment?.title || "",
     description: assignment?.description || "",
     class_id: assignment?.class_id || "",
-    section_id: assignment?.section_id || "",
+    section_id: assignment?.section_id ? [assignment.section_id] : [],
     subject_id: assignment?.subject_id || "",
     due_date: assignment?.due_date?.split("T")[0] || "",
     total_marks: assignment?.total_marks || "",
@@ -73,7 +73,7 @@ const AssignmentForm = ({
       setFormData({
         ...formData,
         class_id: value,
-        section_id: "",
+        section_id: [],
         subject_id: "",
       });
     } else if (name === "attachments") {
@@ -98,9 +98,13 @@ const AssignmentForm = ({
       !formData.title ||
       !formData.class_id ||
       !formData.section_id ||
+      (Array.isArray(formData.section_id) &&
+        formData.section_id.length === 0) ||
       !formData.due_date
     ) {
-      toast.error("Please fill all required fields");
+      toast.error(
+        "Please fill all required fields and select at least one section"
+      );
       return;
     }
 
@@ -215,23 +219,83 @@ const AssignmentForm = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Section *
+            Section(s) *
           </label>
-          <select
-            name="section_id"
-            value={formData.section_id}
-            onChange={handleChange}
-            className="input"
-            required
-            disabled={!formData.class_id}
-          >
-            <option value="">Select Section</option>
-            {sections.map((section) => (
-              <option key={section.id} value={section.id}>
-                {section.name}
-              </option>
-            ))}
-          </select>
+          {!formData.class_id ? (
+            <p className="text-sm text-gray-500 italic">
+              Please select a class first
+            </p>
+          ) : sections.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">
+              No sections available for this class
+            </p>
+          ) : (
+            <div className="space-y-2 border rounded-lg p-3 bg-gray-50 max-h-48 overflow-y-auto">
+              <label className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                <input
+                  type="checkbox"
+                  checked={
+                    Array.isArray(formData.section_id) &&
+                    formData.section_id.length === sections.length
+                  }
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setFormData({
+                        ...formData,
+                        section_id: sections.map((s) => s.id),
+                      });
+                    } else {
+                      setFormData({ ...formData, section_id: [] });
+                    }
+                  }}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span className="font-medium text-gray-700">Select All</span>
+              </label>
+              <hr className="my-2" />
+              {sections.map((section) => (
+                <label
+                  key={section.id}
+                  className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
+                >
+                  <input
+                    type="checkbox"
+                    checked={
+                      Array.isArray(formData.section_id)
+                        ? formData.section_id.includes(section.id)
+                        : formData.section_id === section.id
+                    }
+                    onChange={(e) => {
+                      const currentSections = Array.isArray(formData.section_id)
+                        ? formData.section_id
+                        : formData.section_id
+                        ? [formData.section_id]
+                        : [];
+
+                      if (e.target.checked) {
+                        setFormData({
+                          ...formData,
+                          section_id: [...currentSections, section.id],
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          section_id: currentSections.filter(
+                            (id) => id !== section.id
+                          ),
+                        });
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-gray-700">{section.name}</span>
+                </label>
+              ))}
+            </div>
+          )}
+          <p className="text-xs text-gray-500 mt-1">
+            Select one or more sections to assign this assignment
+          </p>
         </div>
 
         <div>
