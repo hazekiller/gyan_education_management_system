@@ -98,12 +98,10 @@ exports.deleteVehicle = async (req, res, next) => {
       [id]
     );
     if (routes.length > 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Cannot delete vehicle assigned to routes",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete vehicle assigned to routes",
+      });
     }
 
     await db.query("DELETE FROM transport_vehicles WHERE id = ?", [id]);
@@ -248,12 +246,10 @@ exports.deleteRoute = async (req, res, next) => {
       [id]
     );
     if (allocations.length > 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Cannot delete route with active allocations",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete route with active allocations",
+      });
     }
 
     await db.query("DELETE FROM transport_routes WHERE id = ?", [id]);
@@ -281,12 +277,10 @@ exports.allocateTransport = async (req, res, next) => {
     );
 
     if (existing.length > 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Student already allocated to a bus",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Student already allocated to a bus",
+      });
     }
 
     // Check seat availability (optional strict check)
@@ -296,12 +290,10 @@ exports.allocateTransport = async (req, res, next) => {
         [route_id, seat_number]
       );
       if (seatTaken.length > 0) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: `Seat ${seat_number} is already taken on this route`,
-          });
+        return res.status(400).json({
+          success: false,
+          message: `Seat ${seat_number} is already taken on this route`,
+        });
       }
     }
 
@@ -314,6 +306,52 @@ exports.allocateTransport = async (req, res, next) => {
     res
       .status(201)
       .json({ success: true, message: "Transport allocated successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateAllocation = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { route_id, pickup_stop_id, drop_stop_id, seat_number } = req.body;
+
+    // Check if allocation exists
+    const [existing] = await db.query(
+      "SELECT id FROM transport_allocations WHERE id = ? AND status = 'active'",
+      [id]
+    );
+
+    if (existing.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Allocation not found" });
+    }
+
+    // Check seat availability (if changing seat)
+    if (seat_number) {
+      const [seatTaken] = await db.query(
+        "SELECT id FROM transport_allocations WHERE route_id = ? AND seat_number = ? AND status = 'active' AND id != ?",
+        [route_id, seat_number, id]
+      );
+      if (seatTaken.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Seat ${seat_number} is already taken on this route`,
+        });
+      }
+    }
+
+    await db.query(
+      `UPDATE transport_allocations 
+       SET route_id = ?, pickup_stop_id = ?, drop_stop_id = ?, seat_number = ?
+       WHERE id = ?`,
+      [route_id, pickup_stop_id, drop_stop_id, seat_number, id]
+    );
+
+    res
+      .status(200)
+      .json({ success: true, message: "Allocation updated successfully" });
   } catch (error) {
     next(error);
   }
@@ -407,5 +445,3 @@ exports.getMyTransport = async (req, res, next) => {
     next(error);
   }
 };
-
-

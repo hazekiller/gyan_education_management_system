@@ -61,6 +61,11 @@ router.post(
   requireRole(["super_admin", "admin", "principal"]),
   transportController.allocateTransport
 );
+router.put(
+  "/allocations/:id",
+  requireRole(["super_admin", "admin", "principal"]),
+  transportController.updateAllocation
+);
 router.delete(
   "/allocations/:id",
   requireRole(["super_admin", "admin", "principal"]),

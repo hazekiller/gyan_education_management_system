@@ -583,6 +583,7 @@ export const transportAPI = {
   deleteRoute: (id) => api.delete(`/transport/routes/${id}`),
   getAllocations: () => api.get("/transport/allocations"),
   allocateTransport: (data) => api.post("/transport/allocate", data),
+  updateAllocation: (id, data) => api.put(`/transport/allocations/${id}`, data),
   cancelAllocation: (id) => api.delete(`/transport/allocations/${id}`),
   getMyTransport: () => api.get("/transport/my-transport"),
 };
