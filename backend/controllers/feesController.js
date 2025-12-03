@@ -153,13 +153,58 @@ exports.getFeeStructure = async (req, res) => {
 exports.getStudentFeeStatus = async (req, res) => {
   try {
     const { student_id } = req.params;
+    const userRole = req.user?.role;
+    const userId = req.user?.id;
 
+    // SECURITY FIX: If user is a student, verify they can only access their own data
+    if (userRole === "student") {
+      // Get the logged-in student's actual student_id
+      const [loggedInStudent] = await db.query(
+        "SELECT id FROM students WHERE user_id = ?",
+        [userId]
+      );
+
+      if (loggedInStudent.length === 0) {
+        return res.status(404).json({ message: "Student record not found" });
+      }
+
+      const actualStudentId = loggedInStudent[0].id;
+
+      // Check if requested student_id matches their own
+      // Handle both numeric ID and admission number
+      let requestedStudentId;
+      if (/^\d+$/.test(student_id)) {
+        // Numeric ID
+        requestedStudentId = parseInt(student_id);
+      } else {
+        // Admission number - look it up
+        const [studentByAdmission] = await db.query(
+          "SELECT id FROM students WHERE admission_number = ?",
+          [student_id]
+        );
+        if (studentByAdmission.length === 0) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+        requestedStudentId = studentByAdmission[0].id;
+      }
+
+      // Verify the student is requesting their own data
+      if (requestedStudentId !== actualStudentId) {
+        return res.status(403).json({ 
+          message: "Access denied. You can only view your own fee details." 
+        });
+      }
+
+      // Continue with their own data
+      student_id_to_use = actualStudentId;
+    }
+
+    // For non-students (admin/teachers/etc), proceed normally
     // 1. Get student details to know class
     let studentQuery = "SELECT id, class_id FROM students WHERE ";
     let studentParam;
 
     // Check if student_id is numeric (ID) or string (Admission Number)
-    // We assume admission numbers are strings like 'ADM...' and IDs are numeric strings
     if (/^\d+$/.test(student_id)) {
       studentQuery += "id = ?";
       studentParam = student_id;
@@ -266,6 +311,9 @@ exports.collectFee = async (req, res) => {
 exports.getPayments = async (req, res) => {
   try {
     const { start_date, end_date, student_id } = req.query;
+    const userRole = req.user?.role;
+    const userId = req.user?.id;
+
     let query = `
       SELECT fp.*, s.first_name, s.last_name, s.admission_number, fh.name as fee_head_name
       FROM fee_payments fp
@@ -276,17 +324,36 @@ exports.getPayments = async (req, res) => {
     const params = [];
     const conditions = [];
 
-    if (start_date) {
-      conditions.push("fp.payment_date >= ?");
-      params.push(start_date);
-    }
-    if (end_date) {
-      conditions.push("fp.payment_date <= ?");
-      params.push(end_date);
-    }
-    if (student_id) {
+    // SECURITY FIX: If user is a student, force filter to their own payments only
+    if (userRole === "student") {
+      // Get the logged-in student's actual student_id
+      const [loggedInStudent] = await db.query(
+        "SELECT id FROM students WHERE user_id = ?",
+        [userId]
+      );
+
+      if (loggedInStudent.length === 0) {
+        // Student has no record, return empty array
+        return res.status(200).json([]);
+      }
+
+      // Force the student_id filter to be their own ID
       conditions.push("fp.student_id = ?");
-      params.push(student_id);
+      params.push(loggedInStudent[0].id);
+    } else {
+      // For non-students (admin/teachers), apply filters from query params
+      if (start_date) {
+        conditions.push("fp.payment_date >= ?");
+        params.push(start_date);
+      }
+      if (end_date) {
+        conditions.push("fp.payment_date <= ?");
+        params.push(end_date);
+      }
+      if (student_id) {
+        conditions.push("fp.student_id = ?");
+        params.push(student_id);
+      }
     }
 
     if (conditions.length > 0) {
