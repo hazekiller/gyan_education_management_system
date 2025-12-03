@@ -28,20 +28,26 @@ const getAllAssignments = async (req, res) => {
 
 const createAssignment = async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      class_id,
-      section_id,
-      subject_id,
-      due_date,
-      total_marks,
-    } = req.body;
+    const { title, description, class_id, subject_id, due_date, total_marks } =
+      req.body;
+
+    // Handle section_id - can come as 'section_id[]' from FormData or 'section_id' from JSON
+    let section_id = req.body.section_id || req.body["section_id[]"];
 
     if (!title || !class_id || !section_id || !due_date) {
       return res
         .status(400)
         .json({ success: false, message: "Required fields missing" });
+    }
+
+    // Normalize section_id to array
+    const sectionIds = Array.isArray(section_id) ? section_id : [section_id];
+
+    if (sectionIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one section must be selected",
+      });
     }
 
     // Determine created_by based on user role
@@ -102,48 +108,58 @@ const createAssignment = async (req, res) => {
         ? JSON.stringify(req.files.map((f) => f.path))
         : null;
 
-    const [result] = await db.query(
-      `INSERT INTO assignments 
-        (title, description, class_id, section_id, subject_id, due_date, total_marks, attachments, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        title,
-        description || "",
-        class_id,
-        section_id,
-        subject_id || null,
-        due_date,
-        total_marks || 100,
-        attachments,
-        created_by,
-      ]
-    );
+    // Create assignment for each section
+    const createdAssignments = [];
+    const allStudents = [];
 
-    res.status(201).json({
-      success: true,
-      message: "Assignment created successfully",
-      data: {
+    for (const secId of sectionIds) {
+      const [result] = await db.query(
+        `INSERT INTO assignments 
+          (title, description, class_id, section_id, subject_id, due_date, total_marks, attachments, created_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          title,
+          description || "",
+          class_id,
+          secId,
+          subject_id || null,
+          due_date,
+          total_marks || 100,
+          attachments,
+          created_by,
+        ]
+      );
+
+      createdAssignments.push({
         id: result.insertId,
         title,
         description,
         class_id,
-        section_id,
+        section_id: secId,
         subject_id,
         due_date,
         total_marks: total_marks || 100,
         attachments: attachments ? JSON.parse(attachments) : [],
         created_by: created_by,
-      },
-    });
+      });
 
-    // Notify students in the class
-    try {
+      // Collect students from this section
       const [students] = await db.query(
         "SELECT user_id FROM students WHERE class_id = ? AND section_id = ? AND status = 'active'",
-        [class_id, section_id]
+        [class_id, secId]
       );
+      allStudents.push(...students);
+    }
 
-      const notificationPromises = students.map((student) =>
+    res.status(201).json({
+      success: true,
+      message: `Assignment created successfully for ${sectionIds.length} section(s)`,
+      data: createdAssignments,
+    });
+
+    // Notify all students in all selected sections
+    try {
+      const notificationPromises = allStudents.map((student) =>
         createNotification(
           req,
           student.user_id,
@@ -152,7 +168,7 @@ const createAssignment = async (req, res) => {
             due_date
           ).toLocaleDateString()}.`,
           "info",
-          `/assignments/${result.insertId}`
+          `/assignments/${createdAssignments[0].id}`
         )
       );
 
