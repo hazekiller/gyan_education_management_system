@@ -6,6 +6,8 @@ import { eventsAPI } from "../lib/api";
 import Modal from "../components/common/Modal";
 import EventForm from "../components/common/EventForm";
 import toast from "react-hot-toast";
+import PermissionGuard from "../components/common/PermissionGuard";
+import { PERMISSIONS } from "../utils/rbac";
 
 const Events = () => {
   const queryClient = useQueryClient();
@@ -75,13 +77,15 @@ const Events = () => {
             Manage school events and activities
           </p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="btn btn-primary flex items-center space-x-2"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Create Event</span>
-        </button>
+        <PermissionGuard permissions={[PERMISSIONS.CREATE_EVENTS]}>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="btn btn-primary flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Create Event</span>
+          </button>
+        </PermissionGuard>
       </div>
 
       {/* Filters */}
@@ -129,12 +133,14 @@ const Events = () => {
         <div className="bg-white rounded-lg shadow-md p-12 text-center">
           <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500 mb-4">No events found</p>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="btn btn-primary"
-          >
-            Create First Event
-          </button>
+          <PermissionGuard permissions={[PERMISSIONS.CREATE_EVENTS]}>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="btn btn-primary"
+            >
+              Create First Event
+            </button>
+          </PermissionGuard>
         </div>
       ) : (
         <div className="space-y-4">
