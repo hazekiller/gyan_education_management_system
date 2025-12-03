@@ -38,6 +38,7 @@ import Payroll from "./pages/Payroll";
 import ExamResults from "./pages/ExamResults";
 import Notifications from "./pages/Notifications";
 import Admissions from "./pages/Admissions";
+import Results from "./pages/Results";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -106,6 +107,7 @@ function App() {
         <Route path="payroll" element={<Payroll />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="admissions" element={<Admissions />} />
+        <Route path="results" element={<Results />} />
       </Route>
 
       {/* 404 */}

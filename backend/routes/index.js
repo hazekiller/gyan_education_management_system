@@ -49,6 +49,7 @@ router.use("/hostel", require("./hostel.routes"));
 router.use("/transport", require("./transport.routes"));
 router.use("/payroll", require("./payroll.routes"));
 router.use("/notifications", require("./notifications.routes"));
+router.use("/results", require("./results.routes"));
 
 // ===== DEFAULT ROUTE =====
 router.get("/", (req, res) => {
