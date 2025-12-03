@@ -187,9 +187,18 @@ const createAssignment = async (req, res) => {
 // GET assignment by ID
 const getAssignmentById = async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM assignments WHERE id = ?", [
-      req.params.id,
-    ]);
+    const [rows] = await db.query(
+      `SELECT a.*, 
+              c.name as class_name, 
+              sec.name as section_name, 
+              s.name as subject_name
+       FROM assignments a
+       LEFT JOIN classes c ON a.class_id = c.id
+       LEFT JOIN sections sec ON a.section_id = sec.id
+       LEFT JOIN subjects s ON a.subject_id = s.id
+       WHERE a.id = ?`,
+      [req.params.id]
+    );
     if (rows.length === 0)
       return res
         .status(404)
