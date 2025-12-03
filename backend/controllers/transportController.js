@@ -365,13 +365,13 @@ exports.getAllocations = async (req, res, next) => {
              tr.route_name, tv.bus_number,
              ts_pickup.stop_name as pickup_point, ts_drop.stop_name as drop_point
       FROM transport_allocations ta
-      JOIN students s ON ta.student_id = s.id
-      JOIN transport_routes tr ON ta.route_id = tr.id
+      LEFT JOIN students s ON ta.student_id = s.id
+      LEFT JOIN transport_routes tr ON ta.route_id = tr.id
       LEFT JOIN transport_vehicles tv ON tr.vehicle_id = tv.id
       LEFT JOIN transport_stops ts_pickup ON ta.pickup_stop_id = ts_pickup.id
       LEFT JOIN transport_stops ts_drop ON ta.drop_stop_id = ts_drop.id
       WHERE ta.status = 'active'
-      ORDER BY s.class_id, s.first_name
+      ORDER BY ta.created_at DESC
     `);
 
     res.status(200).json({ success: true, data: allocations });

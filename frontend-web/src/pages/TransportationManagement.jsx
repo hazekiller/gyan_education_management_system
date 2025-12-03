@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Bus,
@@ -10,6 +10,7 @@ import {
   UserCheck,
   Edit,
   X,
+  User,
 } from "lucide-react";
 import { transportAPI, studentsAPI } from "../lib/api";
 import toast from "react-hot-toast";
@@ -422,8 +423,7 @@ const AllocationsTab = () => {
 
   const { data: allocations = [], isLoading } = useQuery({
     queryKey: ["transport-allocations"],
-    queryFn: () =>
-      transportAPI.getAllAllocations().then((res) => res.data || []),
+    queryFn: () => transportAPI.getAllLocations().then((res) => res.data || []),
   });
 
   const cancelMutation = useMutation({
