@@ -1,9 +1,11 @@
-const pool = require('../config/database');
+const pool = require("../config/database");
 
 // Get all subjects
 const getAllSubjects = async (req, res) => {
   try {
     const { class_id, status, search } = req.query;
+    const userRole = req.user?.role;
+    const userId = req.user?.id;
 
     let query = `
       SELECT s.*, 
@@ -15,42 +17,99 @@ const getAllSubjects = async (req, res) => {
 
     const params = [];
 
+    // Role-based filtering
+    if (userRole === "student") {
+      // Students: Only see subjects for their assigned class
+      const [students] = await pool.query(
+        "SELECT class_id FROM students WHERE user_id = ?",
+        [userId]
+      );
+
+      if (students.length > 0 && students[0].class_id) {
+        query += ` AND s.id IN (
+          SELECT subject_id FROM class_subjects 
+          WHERE class_id = ? AND is_active = 1
+        )`;
+        params.push(students[0].class_id);
+      } else {
+        // Student has no class assigned, return empty
+        return res.json({
+          success: true,
+          count: 0,
+          data: [],
+        });
+      }
+    } else if (userRole === "teacher") {
+      // Teachers: Only see subjects they teach
+      const [teachers] = await pool.query(
+        "SELECT id FROM teachers WHERE user_id = ?",
+        [userId]
+      );
+
+      if (teachers.length > 0) {
+        query += ` AND s.id IN (
+          SELECT subject_id FROM class_subjects 
+          WHERE teacher_id = ? AND is_active = 1
+        )`;
+        params.push(teachers[0].id);
+      } else {
+        // Teacher profile not found, return empty
+        return res.json({
+          success: true,
+          count: 0,
+          data: [],
+        });
+      }
+    }
+    // Admin/Principal/Higher roles: See all subjects (no additional filter)
+
     // FIX: Change status to is_active
     if (status) {
-      if (status === 'active') {
-        query += ' AND s.is_active = 1';
-      } else if (status === 'inactive') {
-        query += ' AND s.is_active = 0';
+      if (status === "active") {
+        query += " AND s.is_active = 1";
+      } else if (status === "inactive") {
+        query += " AND s.is_active = 0";
       }
     }
 
-    // Remove class_id filter (subjects are global, not tied to classes)
-    // if (class_id) {
-    //   query += ' AND s.class_id = ?';
-    //   params.push(class_id);
-    // }
+    // Optional class_id filter (for admins filtering by class)
+    if (
+      class_id &&
+      [
+        "super_admin",
+        "principal",
+        "vice_principal",
+        "hod",
+        "accountant",
+      ].includes(userRole)
+    ) {
+      query += ` AND s.id IN (
+        SELECT subject_id FROM class_subjects WHERE class_id = ?
+      )`;
+      params.push(class_id);
+    }
 
     // NEW: Add search filter
     if (search) {
-      query += ' AND (s.name LIKE ? OR s.code LIKE ?)';
+      query += " AND (s.name LIKE ? OR s.code LIKE ?)";
       params.push(`%${search}%`, `%${search}%`);
     }
 
-    query += ' GROUP BY s.id ORDER BY s.name';
+    query += " GROUP BY s.id ORDER BY s.name";
 
     const [subjects] = await pool.query(query, params);
 
     res.json({
       success: true,
       count: subjects.length,
-      data: subjects
+      data: subjects,
     });
   } catch (error) {
-    console.error('Get subjects error:', error);
+    console.error("Get subjects error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch subjects',
-      error: error.message
+      message: "Failed to fetch subjects",
+      error: error.message,
     });
   }
 };
@@ -60,38 +119,43 @@ const getSubjectById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [subjects] = await pool.query('SELECT * FROM subjects WHERE id = ?', [id]);
+    const [subjects] = await pool.query("SELECT * FROM subjects WHERE id = ?", [
+      id,
+    ]);
 
     if (subjects.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Subject not found'
+        message: "Subject not found",
       });
     }
 
     // Get assigned teachers
-    const [teachers] = await pool.query(`
+    const [teachers] = await pool.query(
+      `
       SELECT t.*, u.email, tca.class_id, c.name as class_name
       FROM class_subjects tca
       JOIN teachers t ON tca.teacher_id = t.id
       LEFT JOIN users u ON t.user_id = u.id
       LEFT JOIN classes c ON tca.class_id = c.id
       WHERE tca.subject_id = ?
-    `, [id]);
+    `,
+      [id]
+    );
 
     res.json({
       success: true,
       data: {
         ...subjects[0],
-        teachers
-      }
+        teachers,
+      },
     });
   } catch (error) {
-    console.error('Get subject error:', error);
+    console.error("Get subject error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch subject',
-      error: error.message
+      message: "Failed to fetch subject",
+      error: error.message,
     });
   }
 };
@@ -99,29 +163,25 @@ const getSubjectById = async (req, res) => {
 // Create subject
 const createSubject = async (req, res) => {
   try {
-    const {
-      name,
-      code,
-      description
-    } = req.body;
+    const { name, code, description } = req.body;
 
     if (!name || !code) {
       return res.status(400).json({
         success: false,
-        message: 'Name and code are required'
+        message: "Name and code are required",
       });
     }
 
     // Check if subject code already exists
     const [existing] = await pool.query(
-      'SELECT id FROM subjects WHERE code = ?',
+      "SELECT id FROM subjects WHERE code = ?",
       [code]
     );
 
     if (existing.length > 0) {
       return res.status(409).json({
         success: false,
-        message: 'Subject code already exists'
+        message: "Subject code already exists",
       });
     }
 
@@ -133,19 +193,19 @@ const createSubject = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Subject created successfully',
+      message: "Subject created successfully",
       data: {
         id: result.insertId,
         name,
-        code
-      }
+        code,
+      },
     });
   } catch (error) {
-    console.error('Create subject error:', error);
+    console.error("Create subject error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create subject',
-      error: error.message
+      message: "Failed to create subject",
+      error: error.message,
     });
   }
 };
@@ -156,26 +216,29 @@ const updateSubject = async (req, res) => {
     const updateData = req.body;
 
     // Check if subject exists
-    const [existing] = await pool.query('SELECT id FROM subjects WHERE id = ?', [id]);
+    const [existing] = await pool.query(
+      "SELECT id FROM subjects WHERE id = ?",
+      [id]
+    );
 
     if (existing.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Subject not found'
+        message: "Subject not found",
       });
     }
 
     // If updating code, check if new code is unique
     if (updateData.code) {
       const [duplicate] = await pool.query(
-        'SELECT id FROM subjects WHERE code = ? AND id != ?',
+        "SELECT id FROM subjects WHERE code = ? AND id != ?",
         [updateData.code, id]
       );
 
       if (duplicate.length > 0) {
         return res.status(409).json({
           success: false,
-          message: 'Subject code already exists'
+          message: "Subject code already exists",
         });
       }
     }
@@ -186,11 +249,11 @@ const updateSubject = async (req, res) => {
     if (fields.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'No fields to update'
+        message: "No fields to update",
       });
     }
 
-    const setClause = fields.map(field => `${field} = ?`).join(', ');
+    const setClause = fields.map((field) => `${field} = ?`).join(", ");
     values.push(id);
 
     await pool.query(
@@ -200,14 +263,14 @@ const updateSubject = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Subject updated successfully'
+      message: "Subject updated successfully",
     });
   } catch (error) {
-    console.error('Update subject error:', error);
+    console.error("Update subject error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update subject',
-      error: error.message
+      message: "Failed to update subject",
+      error: error.message,
     });
   }
 };
@@ -219,29 +282,30 @@ const deleteSubject = async (req, res) => {
 
     // Check if subject is assigned to any teacher
     const [assignments] = await pool.query(
-      'SELECT COUNT(*) as count FROM class_subjects WHERE subject_id = ?',
+      "SELECT COUNT(*) as count FROM class_subjects WHERE subject_id = ?",
       [id]
     );
 
     if (assignments[0].count > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot delete subject. It is assigned to teachers. Please remove assignments first.'
+        message:
+          "Cannot delete subject. It is assigned to teachers. Please remove assignments first.",
       });
     }
 
-    await pool.query('DELETE FROM subjects WHERE id = ?', [id]);
+    await pool.query("DELETE FROM subjects WHERE id = ?", [id]);
 
     res.json({
       success: true,
-      message: 'Subject deleted successfully'
+      message: "Subject deleted successfully",
     });
   } catch (error) {
-    console.error('Delete subject error:', error);
+    console.error("Delete subject error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete subject',
-      error: error.message
+      message: "Failed to delete subject",
+      error: error.message,
     });
   }
 };
@@ -251,5 +315,5 @@ module.exports = {
   getSubjectById,
   createSubject,
   updateSubject,
-  deleteSubject
+  deleteSubject,
 };

@@ -208,6 +208,21 @@ class SocketService {
     }
   }
 
+  // Send ICE candidate
+  sendIceCandidate(data) {
+    if (this.socket?.connected) {
+      this.socket.emit("ice_candidate", data);
+    }
+  }
+
+  // Listen for ICE candidates
+  onIceCandidate(callback) {
+    if (this.socket) {
+      this.socket.on("ice_candidate", callback);
+      this.listeners.set("ice_candidate", callback);
+    }
+  }
+
   // Remove all listeners
   removeAllListeners() {
     if (this.socket) {
