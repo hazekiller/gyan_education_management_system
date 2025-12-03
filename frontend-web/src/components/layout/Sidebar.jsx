@@ -95,6 +95,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       show: hasPermission(PERMISSIONS.VIEW_EXAMS),
     },
     {
+      name: "Results",
+      path: "/results",
+      icon: FileText,
+      show: role === "student", // Only show to students
+    },
+    {
       name: "Assignments",
       path: "/assignments",
       icon: FileText,

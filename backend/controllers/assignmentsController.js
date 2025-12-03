@@ -4,14 +4,71 @@ const { createNotification } = require("./notificationsController");
 // GET all assignments
 const getAllAssignments = async (req, res) => {
   try {
-    const [assignments] = await db.query(`
+    const userRole = req.user?.role;
+    const userId = req.user?.id;
+
+    let query = `
       SELECT a.*, c.name as class_name, sec.name as section_name, s.name as subject_name
       FROM assignments a
       LEFT JOIN classes c ON a.class_id = c.id
       LEFT JOIN sections sec ON a.section_id = sec.id
       LEFT JOIN subjects s ON a.subject_id = s.id
-      ORDER BY a.due_date DESC
-    `);
+      WHERE 1=1
+    `;
+
+    const params = [];
+
+    // Role-based filtering
+    if (userRole === "student") {
+      // Students: Only see assignments for their assigned class AND section
+      const [students] = await db.query(
+        "SELECT class_id, section_id FROM students WHERE user_id = ?",
+        [userId]
+      );
+
+      if (
+        students.length > 0 &&
+        students[0].class_id &&
+        students[0].section_id
+      ) {
+        query += " AND a.class_id = ? AND a.section_id = ?";
+        params.push(students[0].class_id, students[0].section_id);
+      } else {
+        // Student has no class/section assigned, return empty
+        return res.json({
+          success: true,
+          data: [],
+        });
+      }
+    } else if (userRole === "teacher") {
+      // Teachers: See assignments they created OR for classes/sections they teach
+      const [teachers] = await db.query(
+        "SELECT id FROM teachers WHERE user_id = ?",
+        [userId]
+      );
+
+      if (teachers.length > 0) {
+        query += ` AND (
+          a.created_by = ? OR
+          a.class_id IN (
+            SELECT DISTINCT class_id FROM class_subjects 
+            WHERE teacher_id = ? AND is_active = 1
+          )
+        )`;
+        params.push(teachers[0].id, teachers[0].id);
+      } else {
+        // Teacher profile not found, return empty
+        return res.json({
+          success: true,
+          data: [],
+        });
+      }
+    }
+    // Admin/Principal/Higher roles: See all assignments (no additional filter)
+
+    query += " ORDER BY a.due_date DESC";
+
+    const [assignments] = await db.query(query, params);
 
     // Convert attachments JSON to array
     const formatted = assignments.map((a) => ({

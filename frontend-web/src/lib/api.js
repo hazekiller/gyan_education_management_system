@@ -594,6 +594,42 @@ export const transportAPI = {
 };
 
 // ============================================
+// RESULTS API
+// ============================================
+export const resultsAPI = {
+  // Get all exam results for a student
+  getStudentResults: (studentId) => api.get(`/results/student/${studentId}`),
+
+  // Get results for a specific exam
+  getStudentExamResults: (studentId, examId) =>
+    api.get(`/results/student/${studentId}/exam/${examId}`),
+
+  // Download PDF marksheet
+  downloadResultPDF: (studentId, examId) => {
+    const token = localStorage.getItem("token");
+    return fetch(`${API_URL}/results/student/${studentId}/exam/${examId}/pdf`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to download PDF");
+        return response.blob();
+      })
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `marksheet_${studentId}_${examId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      });
+  },
+};
+
+// ============================================
 // PAYROLL API
 // ============================================
 export const payrollAPI = {

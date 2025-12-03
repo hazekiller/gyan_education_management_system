@@ -5,6 +5,8 @@ const { createNotification } = require("./notificationsController");
 const getAllExams = async (req, res) => {
   try {
     const { academic_year } = req.query;
+    const userRole = req.user?.role;
+    const userId = req.user?.id;
 
     let query = `
       SELECT 
@@ -12,12 +14,56 @@ const getAllExams = async (req, res) => {
         classes.name as class_name
       FROM exams
       LEFT JOIN classes ON exams.class_id = classes.id
+      WHERE 1=1
     `;
 
     const params = [];
 
+    // Role-based filtering
+    if (userRole === "student") {
+      // Students: Only see exams for their assigned class
+      const [students] = await pool.query(
+        "SELECT class_id FROM students WHERE user_id = ?",
+        [userId]
+      );
+
+      if (students.length > 0 && students[0].class_id) {
+        query += " AND exams.class_id = ?";
+        params.push(students[0].class_id);
+      } else {
+        // Student has no class assigned, return empty
+        return res.json({
+          success: true,
+          count: 0,
+          data: [],
+        });
+      }
+    } else if (userRole === "teacher") {
+      // Teachers: See exams for classes they teach
+      const [teachers] = await pool.query(
+        "SELECT id FROM teachers WHERE user_id = ?",
+        [userId]
+      );
+
+      if (teachers.length > 0) {
+        query += ` AND exams.class_id IN (
+          SELECT DISTINCT class_id FROM class_subjects 
+          WHERE teacher_id = ? AND is_active = 1
+        )`;
+        params.push(teachers[0].id);
+      } else {
+        // Teacher profile not found, return empty
+        return res.json({
+          success: true,
+          count: 0,
+          data: [],
+        });
+      }
+    }
+    // Admin/Principal/Higher roles: See all exams (no additional filter)
+
     if (academic_year) {
-      query += " WHERE exams.academic_year = ?";
+      query += " AND exams.academic_year = ?";
       params.push(academic_year);
     }
 
