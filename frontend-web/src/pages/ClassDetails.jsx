@@ -41,6 +41,10 @@ const ClassDetails = () => {
   const [showAssignTeacherModal, setShowAssignTeacherModal] = useState(false);
   const [selectedTeacherId, setSelectedTeacherId] = useState("");
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  const [showEditSectionModal, setShowEditSectionModal] = useState(false);
+  const [editingSection, setEditingSection] = useState(null);
+  const [editSectionName, setEditSectionName] = useState("");
+  const [editSectionCapacity, setEditSectionCapacity] = useState("");
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["class", id],
@@ -110,6 +114,76 @@ const ClassDetails = () => {
       capacity: newSectionCapacity ? parseInt(newSectionCapacity) : null,
       is_active: true,
     });
+  };
+
+  // Edit section mutation
+  const editSectionMutation = useMutation({
+    mutationFn: ({ sectionId, data }) =>
+      classesAPI.updateSection(sectionId, data),
+    onSuccess: () => {
+      toast.success("Section updated successfully");
+      setShowEditSectionModal(false);
+      setEditingSection(null);
+      setEditSectionName("");
+      setEditSectionCapacity("");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update section");
+    },
+  });
+
+  const handleEditSection = (section) => {
+    setEditingSection(section);
+    setEditSectionName(section.name);
+    setEditSectionCapacity(section.capacity || "");
+    setShowEditSectionModal(true);
+  };
+
+  const handleEditSectionSubmit = (e) => {
+    e.preventDefault();
+
+    if (!editSectionName.trim()) {
+      toast.error("Section name is required");
+      return;
+    }
+
+    editSectionMutation.mutate({
+      sectionId: editingSection.id,
+      data: {
+        name: editSectionName.trim(),
+        capacity: editSectionCapacity ? parseInt(editSectionCapacity) : null,
+      },
+    });
+  };
+
+  // Delete section mutation
+  const deleteSectionMutation = useMutation({
+    mutationFn: (sectionId) => classesAPI.deleteSection(sectionId),
+    onSuccess: () => {
+      toast.success("Section deleted successfully");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete section");
+    },
+  });
+
+  const handleDeleteSection = (section) => {
+    if (section.student_count > 0) {
+      toast.error(
+        "Cannot delete section with enrolled students. Please transfer students first."
+      );
+      return;
+    }
+
+    if (
+      window.confirm(
+        `Are you sure you want to delete Section ${section.name}? This action cannot be undone.`
+      )
+    ) {
+      deleteSectionMutation.mutate(section.id);
+    }
   };
 
   // Assign teacher mutation
@@ -205,10 +279,10 @@ const ClassDetails = () => {
             <div className="mt-4 md:mt-0">
               <span
                 className={`badge ${classData.status === "active"
-                  ? "badge-success"
-                  : classData.status === "inactive"
-                    ? "badge-warning"
-                    : "badge-secondary"
+                    ? "badge-success"
+                    : classData.status === "inactive"
+                      ? "badge-warning"
+                      : "badge-secondary"
                   } text-lg px-4 py-2`}
               >
                 {classData.status || "active"}
@@ -343,8 +417,8 @@ const ClassDetails = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`${activeTab === tab.id
-                    ? "border-purple-500 text-purple-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      ? "border-purple-500 text-purple-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
                 >
                   <Icon className="w-5 h-5" />
@@ -565,8 +639,8 @@ const ClassDetails = () => {
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span
                               className={`px-2 py-1 text-xs rounded-full ${student.status === "active"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
                                 }`}
                             >
                               {student.status}
@@ -701,8 +775,8 @@ const ClassDetails = () => {
                           <span className="text-gray-600">Status:</span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${section.is_active
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
                               }`}
                           >
                             {section.is_active ? "Active" : "Inactive"}
@@ -710,13 +784,32 @@ const ClassDetails = () => {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => handleManageSectionTeachers(section)}
-                        className="w-full btn btn-primary btn-sm flex items-center justify-center space-x-1"
-                      >
-                        <UserCheck className="w-4 h-4" />
-                        <span>Manage Teachers</span>
-                      </button>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => handleManageSectionTeachers(section)}
+                          className="w-full btn btn-primary btn-sm flex items-center justify-center space-x-1"
+                        >
+                          <UserCheck className="w-4 h-4" />
+                          <span>Manage Teachers</span>
+                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => handleEditSection(section)}
+                            className="btn btn-outline btn-sm flex items-center justify-center space-x-1"
+                          >
+                            <Edit className="w-4 h-4" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSection(section)}
+                            className="btn btn-outline btn-sm flex items-center justify-center space-x-1 text-red-600 hover:bg-red-50 border-red-200"
+                            disabled={section.student_count > 0}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -831,16 +924,87 @@ const ClassDetails = () => {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={addSectionMutation.isLoading}
+              disabled={addSectionMutation.isPending}
             >
-              {addSectionMutation.isLoading ? "Creating..." : "Create Section"}
+              {addSectionMutation.isPending ? "Adding..." : "Add Section"}
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* Assign Teacher Modal */}
-      {/* <Modal
+      {/* Edit Section Modal */}
+      <Modal
+        isOpen={showEditSectionModal}
+        onClose={() => {
+          setShowEditSectionModal(false);
+          setEditingSection(null);
+          setEditSectionName("");
+          setEditSectionCapacity("");
+        }}
+        title={`Edit Section ${editingSection?.name}`}
+        size="md"
+      >
+        <form onSubmit={handleEditSectionSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Section Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={editSectionName}
+              onChange={(e) => setEditSectionName(e.target.value)}
+              className="input w-full"
+              placeholder="e.g., A, B, Alpha, Beta"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter a single letter or name for the section
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Capacity (Optional)
+            </label>
+            <input
+              type="number"
+              value={editSectionCapacity}
+              onChange={(e) => setEditSectionCapacity(e.target.value)}
+              className="input w-full"
+              placeholder="e.g., 40"
+              min="1"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Leave empty to use default capacity ({classData.capacity || 40})
+            </p>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setShowEditSectionModal(false);
+                setEditingSection(null);
+                setEditSectionName("");
+                setEditSectionCapacity("");
+              }}
+              className="btn btn-outline"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={editSectionMutation.isPending}
+            >
+              {editSectionMutation.isPending ? "Updating..." : "Update Section"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Assign Teacher Modal (Legacy - Class Level) */}
+      <Modal
         isOpen={showAssignTeacherModal}
         onClose={() => {
           setShowAssignTeacherModal(false);
@@ -848,39 +1012,12 @@ const ClassDetails = () => {
           setSelectedSubjectId("");
         }}
         title="Assign Subject Teacher"
-        size="medium"
+        size="md"
       >
         <form onSubmit={handleAssignTeacher} className="space-y-4">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-yellow-800">
-              <strong>Note:</strong> This is a legacy feature. Teachers are now
-              primarily managed at the section level. Consider using
-              section-based teacher assignments in the "Sections" tab instead.
-            </p>
-          </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Select Subject <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={selectedSubjectId}
-              onChange={(e) => setSelectedSubjectId(e.target.value)}
-              className="input w-full"
-              required
-            >
-              <option value="">Choose a subject...</option>
-              {subjects.map((subject) => (
-                <option key={subject.id} value={subject.id}>
-                  {subject.name} ({subject.code})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Select Teacher <span className="text-red-500">*</span>
+              Teacher <span className="text-red-500">*</span>
             </label>
             <select
               value={selectedTeacherId}
@@ -888,11 +1025,30 @@ const ClassDetails = () => {
               className="input w-full"
               required
             >
-              <option value="">Choose a teacher...</option>
+              <option value="">Select Teacher</option>
               {teachers.map((teacher) => (
                 <option key={teacher.id} value={teacher.id}>
-                  {teacher.first_name} {teacher.last_name}
-                  {teacher.employee_id ? ` (${teacher.employee_id})` : ""}
+                  {teacher.first_name} {teacher.last_name} (
+                  {teacher.employee_id})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Subject <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={selectedSubjectId}
+              onChange={(e) => setSelectedSubjectId(e.target.value)}
+              className="input w-full"
+              required
+            >
+              <option value="">Select Subject</option>
+              {subjects.map((subject) => (
+                <option key={subject.id} value={subject.id}>
+                  {subject.name} ({subject.code})
                 </option>
               ))}
             </select>
@@ -913,15 +1069,15 @@ const ClassDetails = () => {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={assignTeacherMutation.isLoading}
+              disabled={assignTeacherMutation.isPending}
             >
-              {assignTeacherMutation.isLoading
+              {assignTeacherMutation.isPending
                 ? "Assigning..."
                 : "Assign Teacher"}
             </button>
           </div>
         </form>
-      </Modal> */}
+      </Modal>
     </div>
   );
 };

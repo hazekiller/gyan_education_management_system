@@ -34,14 +34,14 @@ const VideoCall = ({
   const [isVideoOff, setIsVideoOff] = useState(isAudioOnly);
   const [callDuration, setCallDuration] = useState(0);
 
-  // Debug logging
-  console.log("VideoCall Props:", {
-    isIncomingCall,
-    callerData,
-    userToCall,
-    isAudioOnly,
-    currentUser,
-  });
+  // Debug logging (only on mount/significant changes)
+  // console.log("VideoCall Props:", {
+  //   isIncomingCall,
+  //   callerData,
+  //   userToCall,
+  //   isAudioOnly,
+  //   currentUser,
+  // });
 
   const myVideo = useRef();
   const userVideo = useRef();
@@ -83,14 +83,64 @@ const VideoCall = ({
 
     // Get media stream - respect isAudioOnly parameter
     const mediaConstraints = {
-      video: isAudioOnly ? false : { width: 1280, height: 720 },
-      audio: true,
+      video: isAudioOnly
+        ? false
+        : {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: "user",
+          },
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
     };
+
+    console.log("Requesting media with constraints:", mediaConstraints);
 
     navigator.mediaDevices
       .getUserMedia(mediaConstraints)
       .then((currentStream) => {
+        console.log("Got media stream:", {
+          id: currentStream.id,
+          active: currentStream.active,
+          audioTracks: currentStream.getAudioTracks().map((t) => ({
+            id: t.id,
+            label: t.label,
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+          })),
+          videoTracks: currentStream.getVideoTracks().map((t) => ({
+            id: t.id,
+            label: t.label,
+            enabled: t.enabled,
+            readyState: t.readyState,
+          })),
+        });
         setStream(currentStream);
+        // Verify we got the correct tracks
+        const audioTracks = currentStream.getAudioTracks();
+        const videoTracks = currentStream.getVideoTracks();
+
+        console.log("Stream verification:", {
+          isAudioOnly,
+          hasAudio: audioTracks.length > 0,
+          hasVideo: videoTracks.length > 0,
+          expectedVideo: !isAudioOnly,
+        });
+        // If it's audio only but we got video, stop video track
+        if (isAudioOnly && videoTracks.length > 0) {
+          console.warn("Got video track in audio-only call, stopping it");
+          videoTracks.forEach((track) => track.stop());
+        }
+
+        // If it's video call but no video, show error
+        if (!isAudioOnly && videoTracks.length === 0) {
+          console.error("No video track in video call");
+          toast.error("Could not access camera");
+        }
         if (myVideo.current) {
           myVideo.current.srcObject = currentStream;
         }
@@ -116,6 +166,7 @@ const VideoCall = ({
       // Cleanup
       socketService.removeListener("call_accepted");
       socketService.removeListener("call_ended");
+      socketService.removeListener("ice_candidate");
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
@@ -124,6 +175,9 @@ const VideoCall = ({
       }
       if (callTimerRef.current) {
         clearInterval(callTimerRef.current);
+      }
+      if (connectionRef.current && !connectionRef.current.destroyed) {
+        connectionRef.current.destroy();
       }
     };
   }, [isOpen]);
@@ -134,56 +188,257 @@ const VideoCall = ({
       console.log(
         "VideoCall useEffect [initiate call] triggered. Caller initiating call."
       );
-      const peer = new Peer({ initiator: true, trickle: false, stream });
+      const peer = new Peer({
+        initiator: true,
+        trickle: true, // Enable ICE trickle for better NAT traversal
+        stream,
+        config: {
+          iceServers: [
+            // Google STUN servers
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+            { urls: "stun:stun2.l.google.com:19302" },
+            { urls: "stun:stun3.l.google.com:19302" },
+            { urls: "stun:stun4.l.google.com:19302" },
+            // Free public TURN servers
+            {
+              urls: "turn:openrelay.metered.ca:80",
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
+            {
+              urls: "turn:openrelay.metered.ca:443",
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
+            {
+              urls: "turn:openrelay.metered.ca:443?transport=tcp",
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
+            // Numb Viagenie (Free)
+            {
+              urls: "turn:numb.viagenie.ca",
+              username: "webrtc@live.com",
+              credential: "muazkh",
+            },
+            // Anyfirewall (Free)
+            {
+              urls: "turn:turn.anyfirewall.com:443?transport=tcp",
+              username: "webrtc",
+              credential: "webrtc",
+            },
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+
+            // Twilio STUN (more reliable)
+            { urls: "stun:global.stun.twilio.com:3478" },
+
+            // Metered TURN servers (Free, most reliable)
+            {
+              urls: "turn:a.relay.metered.ca:80",
+              username: "87c4d050e52ff083f0c8694e",
+              credential: "sBUFLFd7optT7W8q",
+            },
+            {
+              urls: "turn:a.relay.metered.ca:80?transport=tcp",
+              username: "87c4d050e52ff083f0c8694e",
+              credential: "sBUFLFd7optT7W8q",
+            },
+            {
+              urls: "turn:a.relay.metered.ca:443",
+              username: "87c4d050e52ff083f0c8694e",
+              credential: "sBUFLFd7optT7W8q",
+            },
+            {
+              urls: "turn:a.relay.metered.ca:443?transport=tcp",
+              username: "87c4d050e52ff083f0c8694e",
+              credential: "sBUFLFd7optT7W8q",
+            },
+            // Custom TURN server (commented out - causing connection failures)
+            // Uncomment after setting up coturn properly
+            // {
+            //   urls: "turn:gyan.lekhaak.com:3478",
+            //   username: "user",
+            //   credential:
+            //     "HJDSFYUHEW8EV7ERVYDFG7TGWE7F#YGFDYUG&DSHFYUSDGI%YDSFYF@YDGSYGSY",
+            // },
+          ],
+        },
+      });
 
       peer.on("signal", (data) => {
-        console.log("Peer: signal generated.", data);
-        // Construct CALLER name from current user data
-        // This is the name that will be shown to the RECEIVER
-        let myName = "Unknown";
+        console.log("Peer: signal generated.", data.type);
 
-        if (currentUser?.first_name || currentUser?.last_name) {
-          myName = `${currentUser.first_name || ""} ${
-            currentUser.last_name || ""
-          }`.trim();
-        } else if (currentUser?.email) {
-          myName = currentUser.email.split("@")[0];
+        // Send initial offer or ICE candidates
+        if (data.type === "offer") {
+          // Construct CALLER name from current user data
+          let myName = "Unknown";
+
+          if (currentUser?.first_name || currentUser?.last_name) {
+            myName = `${currentUser.first_name || ""} ${
+              currentUser.last_name || ""
+            }`.trim();
+          } else if (currentUser?.email) {
+            myName = currentUser.email.split("@")[0];
+          }
+
+          console.log("Initiating call - sending offer to receiver:", {
+            myName,
+            to: userToCall.user_id || userToCall.id,
+            from: currentUser.id,
+          });
+
+          socketService.callUser({
+            userToCall: userToCall.user_id || userToCall.id,
+            signalData: data,
+            from: currentUser.id,
+            name: myName,
+            isAudioOnly,
+          });
+        } else if (data.candidate) {
+          // Send ICE candidate (silently, no excessive logging)
+          socketService.sendIceCandidate({
+            to: userToCall.user_id || userToCall.id,
+            candidate: data,
+          });
         }
-
-        console.log("Initiating call - sending MY name to receiver:", {
-          myName,
-          currentUser,
-          userToCall,
-          from: currentUser.id,
-        });
-
-        socketService.callUser({
-          userToCall: userToCall.user_id || userToCall.id,
-          signalData: data,
-          from: currentUser.id,
-          name: myName, // MY name (the caller's name) - this is what receiver will see
-        });
       });
 
       peer.on("stream", (currentStream) => {
-        console.log("Received remote stream:", currentStream);
+        console.log("✅ Received remote stream (caller side):", {
+          id: currentStream.id,
+          active: currentStream.active,
+          audioTracks: currentStream.getAudioTracks().map((t) => ({
+            id: t.id,
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+          })),
+          videoTracks: currentStream.getVideoTracks().map((t) => ({
+            id: t.id,
+            enabled: t.enabled,
+            readyState: t.readyState,
+          })),
+        });
+
         if (userVideo.current) {
+          // Set the stream
           userVideo.current.srcObject = currentStream;
-          // Ensure video plays
-          userVideo.current
-            .play()
-            .catch((err) => console.error("Error playing remote video:", err));
+
+          // Ensure all tracks are enabled
+          currentStream.getTracks().forEach((track) => {
+            track.enabled = true;
+          });
+
+          userVideo.current.muted = false;
+          userVideo.current.volume = 1.0;
+
+          // For audio elements, ensure autoplay
+          if (userVideo.current.tagName === "AUDIO") {
+            userVideo.current.setAttribute("autoplay", "");
+            userVideo.current.setAttribute("playsinline", "");
+          }
+
+          // Try to play with retry logic
+          const attemptPlay = (retries = 3) => {
+            userVideo.current
+              .play()
+              .then(() => {
+                console.log("✅ Remote media playing successfully");
+              })
+              .catch((err) => {
+                console.error(
+                  `❌ Error playing remote media (${retries} retries left):`,
+                  err.name,
+                  err.message
+                );
+
+                if (retries > 0) {
+                  // Retry after a short delay
+                  setTimeout(() => attemptPlay(retries - 1), 500);
+                } else {
+                  // Last resort: show user a message to click
+                  toast.error("Click anywhere to enable audio/video");
+
+                  // Add one-time click listener to start playback
+                  const playOnClick = () => {
+                    userVideo.current
+                      ?.play()
+                      .then(() => {
+                        console.log(
+                          "✅ Playback started after user interaction"
+                        );
+                        toast.success("Audio/Video enabled!");
+                      })
+                      .catch((e) => console.error("Still failed:", e));
+                    document.removeEventListener("click", playOnClick);
+                  };
+                  document.addEventListener("click", playOnClick, {
+                    once: true,
+                  });
+                }
+              });
+          };
+
+          attemptPlay();
+        } else {
+          console.warn("⚠️ userVideo ref is null");
         }
       });
 
+      peer.on("connect", () => {
+        console.log("🎉 Peer connection established (caller)!");
+      });
+
+      peer.on("error", (err) => {
+        console.error("❌ Peer error (caller):", err);
+        toast.error("Connection error: " + err.message);
+      });
+
+      // Monitor ICE connection state
+      peer._pc.oniceconnectionstatechange = () => {
+        console.log(
+          "ICE connection state (caller):",
+          peer._pc.iceConnectionState
+        );
+        if (peer._pc.iceConnectionState === "failed") {
+          console.error("ICE connection failed - may need TURN server");
+          toast.error("Connection failed. Please check your network.");
+        }
+      };
+
       socketService.onCallAccepted((signal) => {
-        console.log("Socket: call_accepted received. Signal:", signal);
+        console.log("✅ Socket: call_accepted received. Signal:", signal);
         setCallAccepted(true);
         peer.signal(signal);
       });
 
+      // Listen for ICE candidates from receiver
+      const handleIceCandidate = (data) => {
+        if (
+          data.candidate &&
+          connectionRef.current &&
+          !connectionRef.current.destroyed
+        ) {
+          console.log("🧊 Received ICE candidate from receiver");
+          try {
+            connectionRef.current.signal(data.candidate);
+          } catch (err) {
+            console.warn("Failed to signal ICE candidate:", err.message);
+          }
+        }
+      };
+
+      socketService.onIceCandidate(handleIceCandidate);
+
       connectionRef.current = peer;
     }
+
+    return () => {
+      // Cleanup ICE candidate listener when call ends
+      socketService.removeListener("ice_candidate");
+    };
   }, [isOpen, isIncomingCall, stream, userToCall]);
 
   // Start call timer when call is accepted
@@ -227,42 +482,223 @@ const VideoCall = ({
 
     const peer = new Peer({
       initiator: false,
-      trickle: false,
-      stream: stream, // Pass the stream to the peer
+      trickle: true, // Enable ICE trickle
+      stream: stream,
       config: {
         iceServers: [
+          // Google STUN servers
           { urls: "stun:stun.l.google.com:19302" },
           { urls: "stun:stun1.l.google.com:19302" },
+          { urls: "stun:stun2.l.google.com:19302" },
+          { urls: "stun:stun3.l.google.com:19302" },
+          { urls: "stun:stun4.l.google.com:19302" },
+          // Free public TURN servers
+          {
+            urls: "turn:openrelay.metered.ca:80",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443?transport=tcp",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          // Numb Viagenie (Free)
+          {
+            urls: "turn:numb.viagenie.ca",
+            username: "webrtc@live.com",
+            credential: "muazkh",
+          },
+          // Anyfirewall (Free)
+          {
+            urls: "turn:turn.anyfirewall.com:443?transport=tcp",
+            username: "webrtc",
+            credential: "webrtc",
+          },
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" },
+
+          // Twilio STUN (more reliable)
+          { urls: "stun:global.stun.twilio.com:3478" },
+
+          // Metered TURN servers (Free, most reliable)
+          {
+            urls: "turn:a.relay.metered.ca:80",
+            username: "87c4d050e52ff083f0c8694e",
+            credential: "sBUFLFd7optT7W8q",
+          },
+          {
+            urls: "turn:a.relay.metered.ca:80?transport=tcp",
+            username: "87c4d050e52ff083f0c8694e",
+            credential: "sBUFLFd7optT7W8q",
+          },
+          {
+            urls: "turn:a.relay.metered.ca:443",
+            username: "87c4d050e52ff083f0c8694e",
+            credential: "sBUFLFd7optT7W8q",
+          },
+          {
+            urls: "turn:a.relay.metered.ca:443?transport=tcp",
+            username: "87c4d050e52ff083f0c8694e",
+            credential: "sBUFLFd7optT7W8q",
+          },
+          // Custom TURN server (commented out - causing connection failures)
+          // Uncomment after setting up coturn properly
+          // {
+          //   urls: "turn:gyan.lekhaak.com:3478",
+          //   username: "user",
+          //   credential:
+          //     "HJDSFYUHEW8EV7ERVYDFG7TGWE7F#YGFDYUG&DSHFYUSDGI%YDSFYF@YDGSYGSY",
+          // },
         ],
       },
     });
 
     peer.on("signal", (data) => {
       console.log("Peer (answerer): signal generated.", data);
-      socketService.answerCall({ signal: data, to: callerData.from });
-    });
-
-    peer.on("stream", (currentStream) => {
-      console.log("Received remote stream (answer):", currentStream);
-      if (userVideo.current) {
-        userVideo.current.srcObject = currentStream;
-        // Ensure video plays
-        userVideo.current
-          .play()
-          .catch((err) => console.error("Error playing remote video:", err));
+      // Send answer or ICE candidates
+      if (data.type === "answer") {
+        socketService.answerCall({ signal: data, to: callerData.from });
+      } else if (data.candidate) {
+        // Send ICE candidate
+        socketService.sendIceCandidate({
+          to: callerData.from,
+          candidate: data,
+        });
       }
     });
 
-    peer.on("error", (err) => {
-      console.error("Peer error:", err);
-      toast.error("Connection error");
+    peer.on("stream", (currentStream) => {
+      console.log("✅ Received remote stream (answerer side):", {
+        id: currentStream.id,
+        active: currentStream.active,
+        audioTracks: currentStream.getAudioTracks().map((t) => ({
+          id: t.id,
+          enabled: t.enabled,
+          muted: t.muted,
+          readyState: t.readyState,
+        })),
+        videoTracks: currentStream.getVideoTracks().map((t) => ({
+          id: t.id,
+          enabled: t.enabled,
+          readyState: t.readyState,
+        })),
+      });
+
+      if (userVideo.current) {
+        // Set the stream
+        userVideo.current.srcObject = currentStream;
+
+        // Ensure all tracks are enabled
+        currentStream.getTracks().forEach((track) => {
+          track.enabled = true;
+        });
+
+        // For video elements, ensure not muted (audio should play)
+        if (userVideo.current.tagName === "VIDEO") {
+          userVideo.current.muted = false;
+          userVideo.current.volume = 1.0;
+        }
+
+        // Try to play with retry logic
+        const attemptPlay = (retries = 3) => {
+          userVideo.current
+            .play()
+            .then(() => {
+              console.log("✅ Remote media playing successfully");
+            })
+            .catch((err) => {
+              console.error(
+                `❌ Error playing remote media (${retries} retries left):`,
+                err.name,
+                err.message
+              );
+
+              if (retries > 0) {
+                // Retry after a short delay
+                setTimeout(() => attemptPlay(retries - 1), 500);
+              } else {
+                // Last resort: show user a message to click
+                toast.error("Click anywhere to enable audio/video");
+
+                // Add one-time click listener to start playback
+                const playOnClick = () => {
+                  userVideo.current
+                    ?.play()
+                    .then(() => {
+                      console.log("✅ Playback started after user interaction");
+                      toast.success("Audio/Video enabled!");
+                    })
+                    .catch((e) => console.error("Still failed:", e));
+                  document.removeEventListener("click", playOnClick);
+                };
+                document.addEventListener("click", playOnClick, { once: true });
+              }
+            });
+        };
+
+        attemptPlay();
+      } else {
+        console.warn("⚠️ userVideo ref is null");
+      }
     });
 
+    peer.on("connect", () => {
+      console.log("🎉 Peer connection established (answerer)!");
+    });
+
+    peer.on("error", (err) => {
+      console.error("❌ Peer error (answerer):", err);
+      toast.error("Connection error: " + err.message);
+    });
+
+    peer.on("close", () => {
+      console.log("Peer closed (answerer)");
+    });
+
+    // Monitor ICE connection state
+    peer._pc.oniceconnectionstatechange = () => {
+      console.log(
+        "ICE connection state (answerer):",
+        peer._pc.iceConnectionState
+      );
+      if (peer._pc.iceConnectionState === "failed") {
+        console.error("ICE connection failed - may need TURN server");
+        toast.error("Connection failed. Please check your network.");
+      } else if (peer._pc.iceConnectionState === "connected") {
+        console.log("✅ ICE connection successful!");
+      }
+    };
+
+    // Listen for ICE candidates from caller
+    const handleIceCandidate = (data) => {
+      if (
+        data.candidate &&
+        connectionRef.current &&
+        !connectionRef.current.destroyed
+      ) {
+        console.log("🧊 Received ICE candidate from caller");
+        try {
+          connectionRef.current.signal(data.candidate);
+        } catch (err) {
+          console.warn("Failed to signal ICE candidate:", err.message);
+        }
+      }
+    };
+
+    socketService.onIceCandidate(handleIceCandidate);
+
+    // Signal AFTER all event handlers are set up
+    console.log("Signaling with caller's signal data");
     peer.signal(callerData.signal);
 
     connectionRef.current = peer;
   };
-
   const leaveCall = (notifyOtherUser = true) => {
     setCallEnded(true);
 
@@ -298,16 +734,20 @@ const VideoCall = ({
   };
 
   const toggleMute = () => {
-    if (stream) {
-      stream.getAudioTracks()[0].enabled = isMuted;
-      setIsMuted(!isMuted);
+    if (stream && stream.getAudioTracks().length > 0) {
+      const audioTrack = stream.getAudioTracks()[0];
+      audioTrack.enabled = !audioTrack.enabled;
+      setIsMuted(!audioTrack.enabled);
+      console.log("Audio track enabled:", audioTrack.enabled);
     }
   };
 
   const toggleVideo = () => {
-    if (stream) {
-      stream.getVideoTracks()[0].enabled = isVideoOff;
-      setIsVideoOff(!isVideoOff);
+    if (stream && stream.getVideoTracks().length > 0) {
+      const videoTrack = stream.getVideoTracks()[0];
+      videoTrack.enabled = !videoTrack.enabled;
+      setIsVideoOff(!videoTrack.enabled);
+      console.log("Video track enabled:", videoTrack.enabled);
     }
   };
 
@@ -377,6 +817,14 @@ const VideoCall = ({
                 ref={myVideo}
                 autoPlay
                 className="w-full h-full object-cover transform scale-x-[-1]"
+                onLoadedMetadata={(e) => {
+                  console.log("Local video metadata loaded");
+                  e.target
+                    .play()
+                    .catch((err) =>
+                      console.error("Error playing local video:", err)
+                    );
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -400,6 +848,14 @@ const VideoCall = ({
                   ref={userVideo}
                   autoPlay
                   className="w-full h-full object-cover"
+                  onLoadedMetadata={(e) => {
+                    console.log("Remote video metadata loaded");
+                    e.target
+                      .play()
+                      .catch((err) =>
+                        console.error("Error playing remote video:", err)
+                      );
+                  }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
@@ -409,6 +865,20 @@ const VideoCall = ({
                       {isIncomingCall ? callerData.name : userToCall?.name}
                     </p>
                     <p className="text-gray-400 text-sm mt-2">Audio Call</p>
+                    {/* Hidden audio element for audio-only calls */}
+                    <audio
+                      ref={userVideo}
+                      autoPlay
+                      playsInline
+                      onLoadedMetadata={(e) => {
+                        console.log("Remote audio metadata loaded");
+                        e.target
+                          .play()
+                          .catch((err) =>
+                            console.error("Error playing remote audio:", err)
+                          );
+                      }}
+                    />
                   </div>
                 </div>
               )}

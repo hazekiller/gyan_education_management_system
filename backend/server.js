@@ -211,6 +211,22 @@ io.on("connection", (socket) => {
     }
   });
 
+  // ICE candidate exchange (critical for WebRTC connection through NAT/firewalls)
+  socket.on("ice_candidate", (data) => {
+    const { to, candidate } = data;
+    const socketId = onlineUsers.get(to.toString());
+
+    if (socketId) {
+      io.to(socketId).emit("ice_candidate", {
+        candidate,
+        from: socket.userId,
+      });
+      console.log(`🧊 ICE candidate relayed from ${socket.userId} to ${to}`);
+    } else {
+      console.warn(`⚠️ Cannot relay ICE candidate: user ${to} not found`);
+    }
+  });
+
   // Handle private messages (legacy support)
   socket.on("private_message", (data) => {
     const recipientSocketId = onlineUsers.get(data.recipientId.toString());

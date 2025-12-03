@@ -6,6 +6,8 @@ const pool = require("../config/database");
 const getAllClasses = async (req, res) => {
   try {
     const { status, grade_level } = req.query;
+    const userRole = req.user?.role;
+    const userId = req.user?.id;
 
     let query = `
       SELECT 
@@ -22,9 +24,30 @@ const getAllClasses = async (req, res) => {
 
     const params = [];
 
+    // Filter for students
+    if (userRole === "student") {
+      const [studentProfile] = await pool.query(
+        "SELECT class_id FROM students WHERE user_id = ?",
+        [userId]
+      );
+
+      if (studentProfile.length > 0 && studentProfile[0].class_id) {
+        query += " AND c.id = ?";
+        params.push(studentProfile[0].class_id);
+      } else {
+        // If student has no class assigned, show nothing or handle appropriately
+        // For now, let's return empty list if no class assigned
+        return res.json({
+          success: true,
+          count: 0,
+          data: [],
+        });
+      }
+    }
+
     if (status) {
       query += " AND c.is_active = ?";
-      params.push(status === 'active' ? 1 : 0);
+      params.push(status === "active" ? 1 : 0);
     }
 
     if (grade_level) {

@@ -55,6 +55,9 @@ const toFormData = (data) => {
         } else if (Array.isArray(data[key])) {
           data[key].forEach((file) => formData.append("attachments", file));
         }
+      } else if (Array.isArray(data[key])) {
+        // Handle other arrays (like section_id)
+        data[key].forEach((value) => formData.append(`${key}[]`, value));
       } else {
         formData.append(key, data[key]);
       }
@@ -563,6 +566,8 @@ export const dashboardAPI = {
 export const hostelAPI = {
   getAllRooms: (params) => api.get("/hostel/rooms", { params }),
   createRoom: (data) => api.post("/hostel/rooms", data),
+  updateRoom: (id, data) => api.put(`/hostel/rooms/${id}`, data),
+  deleteRoom: (id) => api.delete(`/hostel/rooms/${id}`),
   getRoomDetails: (id) => api.get(`/hostel/rooms/${id}`),
   allocateRoom: (data) => api.post("/hostel/allocate", data),
   vacateRoom: (data) => api.post("/hostel/vacate", data),
@@ -581,10 +586,47 @@ export const transportAPI = {
   createRoute: (data) => api.post("/transport/routes", data),
   updateRoute: (id, data) => api.put(`/transport/routes/${id}`, data),
   deleteRoute: (id) => api.delete(`/transport/routes/${id}`),
-  getAllocations: () => api.get("/transport/allocations"),
+  getAllLocations: () => api.get("/transport/allocations"),
   allocateTransport: (data) => api.post("/transport/allocate", data),
+  updateAllocation: (id, data) => api.put(`/transport/allocations/${id}`, data),
   cancelAllocation: (id) => api.delete(`/transport/allocations/${id}`),
   getMyTransport: () => api.get("/transport/my-transport"),
+};
+
+// ============================================
+// RESULTS API
+// ============================================
+export const resultsAPI = {
+  // Get all exam results for a student
+  getStudentResults: (studentId) => api.get(`/results/student/${studentId}`),
+
+  // Get results for a specific exam
+  getStudentExamResults: (studentId, examId) =>
+    api.get(`/results/student/${studentId}/exam/${examId}`),
+
+  // Download PDF marksheet
+  downloadResultPDF: (studentId, examId) => {
+    const token = localStorage.getItem("token");
+    return fetch(`${API_URL}/results/student/${studentId}/exam/${examId}/pdf`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to download PDF");
+        return response.blob();
+      })
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `marksheet_${studentId}_${examId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      });
+  },
 };
 
 // ============================================

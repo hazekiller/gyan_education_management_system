@@ -393,48 +393,84 @@ const createTeacher = async (req, res) => {
 // UPDATE TEACHER
 // ---------------------
 const updateTeacher = async (req, res) => {
+  const connection = await pool.getConnection();
   try {
+    await connection.beginTransaction();
     const { id } = req.params;
     const updateData = { ...req.body };
 
-    const [existing] = await pool.query(
-      "SELECT id FROM teachers WHERE id = ?",
+    // 1. Check if teacher exists
+    const [existing] = await connection.query(
+      "SELECT id, user_id FROM teachers WHERE id = ?",
       [id]
     );
-    if (existing.length === 0)
+    if (existing.length === 0) {
+      await connection.rollback();
       return res
         .status(404)
         .json({ success: false, message: "Teacher not found" });
+    }
 
-    // Remove protected fields
+    const teacher = existing[0];
+
+    // 2. Handle User table updates (Email)
+    if (updateData.email) {
+      // Check if email is being changed and if it's already taken
+      const [emailCheck] = await connection.query(
+        "SELECT id FROM users WHERE email = ? AND id != ?",
+        [updateData.email, teacher.user_id]
+      );
+      if (emailCheck.length > 0) {
+        await connection.rollback();
+        return res
+          .status(409)
+          .json({ success: false, message: "Email already exists" });
+      }
+
+      await connection.query("UPDATE users SET email = ? WHERE id = ?", [
+        updateData.email,
+        teacher.user_id,
+      ]);
+      delete updateData.email; // Remove from teacher update
+    }
+
+    // 3. Handle Teacher table updates
+    // Remove protected/non-teacher fields
     delete updateData.user_id;
     delete updateData.password;
+    delete updateData.id;
+    delete updateData.created_at;
+    delete updateData.updated_at;
 
     // Handle profile photo
-    if (req.file) updateData.profile_photo = req.file.path.replace(/\\/g, "/");
+    if (req.file) {
+      updateData.profile_photo = req.file.path.replace(/\\/g, "/");
+    }
 
     const fields = Object.keys(updateData);
-    if (!fields.length)
-      return res
-        .status(400)
-        .json({ success: false, message: "No fields to update" });
+    if (fields.length > 0) {
+      const values = Object.values(updateData);
+      const setClause = fields.map((f) => `${f} = ?`).join(", ");
+      values.push(id);
 
-    const values = Object.values(updateData);
-    const setClause = fields.map((f) => `${f} = ?`).join(", ");
-    values.push(id);
+      await connection.query(
+        `UPDATE teachers SET ${setClause}, updated_at = NOW() WHERE id = ?`,
+        values
+      );
+    }
 
-    await pool.query(
-      `UPDATE teachers SET ${setClause}, updated_at = NOW() WHERE id = ?`,
-      values
-    );
+    await connection.commit();
     res.json({ success: true, message: "Teacher updated successfully" });
   } catch (error) {
+    await connection.rollback();
     console.error("Update teacher error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to update teacher",
       error: error.message,
     });
+  } finally {
+    connection.release();
   }
 };
 
