@@ -438,7 +438,6 @@ const Attendance = () => {
                 <tr>
                   <th>Date</th>
                   <th>Status</th>
-                  <th>Remarks</th>
                   <th>Marked By</th>
                 </tr>
               </thead>
@@ -475,7 +474,6 @@ const Attendance = () => {
                           {record.status}
                         </span>
                       </td>
-                      <td className="text-gray-500">{record.remarks || "-"}</td>
                       <td className="text-gray-500">
                         {record.marked_by_email || "System"}
                       </td>
