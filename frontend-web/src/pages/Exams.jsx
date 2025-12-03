@@ -13,6 +13,9 @@ import { examsAPI } from "../lib/api";
 import Modal from "../components/common/Modal";
 import ExamForm from "../components/common/ExamForm";
 import ExamTable from "../components/exams/ExamTable";
+import PermissionGuard from "../components/common/PermissionGuard";
+import { PERMISSIONS } from "../utils/rbac";
+
 import toast from "react-hot-toast";
 
 const Exams = () => {
@@ -124,13 +127,15 @@ const Exams = () => {
             Manage exams, schedules, and results
           </p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="btn btn-primary flex items-center space-x-2 shadow-lg hover:shadow-xl transition-shadow"
-        >
-          <Plus className="w-5 h-5" />
+        <PermissionGuard permissions={[PERMISSIONS.CREATE_EXAM]}>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="btn btn-primary flex items-center space-x-2 shadow-lg hover:shadow-xl transition-shadow"
+          >
+            <Plus className="w-5 h-5" />
           <span>Create Exam</span>
         </button>
+        </PermissionGuard>
       </div>
 
       {/* Quick Stats */}

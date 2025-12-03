@@ -6,6 +6,8 @@ import Modal from "../components/common/Modal";
 import AnnouncementForm from "../components/common/AnnouncementForm";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import PermissionGuard from "../components/common/PermissionGuard";
+import { PERMISSIONS } from "../utils/rbac";
 
 const Announcements = () => {
   const queryClient = useQueryClient();
@@ -121,13 +123,15 @@ const Announcements = () => {
             Important notices and updates
           </p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-2 whitespace-nowrap"
-        >
-          <Plus className="w-5 h-5" />
-          <span>New Announcement</span>
-        </button>
+        <PermissionGuard permissions={[PERMISSIONS.CREATE_ANNOUNCEMENTS]}>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-2 whitespace-nowrap"
+          >
+            <Plus className="w-5 h-5" />
+            <span>New Announcement</span>
+          </button>
+        </PermissionGuard>
       </div>
 
       {/* Announcements List */}
