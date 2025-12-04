@@ -92,11 +92,13 @@ const TeacherDetails = () => {
             </div>
             <div className="mt-4 md:mt-0">
               <span
-                className={`badge ${
-                  teacher.status === "active" ? "badge-success" : "badge-danger"
-                } text-lg px-4 py-2`}
+                className={`badge ${teacher.status === "active" ? "badge-success" : "badge-danger"
+                  } text-lg px-4 py-2`}
               >
                 {teacher.status}
+              </span>
+              <span className="badge badge-info text-lg px-4 py-2 ml-2">
+                {teacher.employment_type === 'full_time' ? 'Full Time' : 'Part Time'}
               </span>
             </div>
           </div>
@@ -197,7 +199,7 @@ const TeacherDetails = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Class Assignments */}
       {teacher.assignments && teacher.assignments.length > 0 && (
         <div className="bg-white rounded-lg shadow-md p-6">

@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { examsAPI } from "../lib/api";
 import ExamScheduleSection from "../components/exams/ExamScheduleSection";
+import PermissionGuard from "../components/common/PermissionGuard";
+import { PERMISSIONS } from "../utils/rbac";
 
 const ExamDetails = () => {
   const { id } = useParams();
@@ -162,13 +164,15 @@ const ExamDetails = () => {
           <ArrowLeft className="w-5 h-5" />
           <span className="font-medium">Back to Exams</span>
         </button>
-        <button
-          onClick={() => navigate(`/exams/${id}/edit`)}
-          className="btn btn-primary flex items-center space-x-2 shadow-lg hover:shadow-xl transition-shadow"
-        >
-          <Edit className="w-5 h-5" />
-          <span>Edit Exam</span>
-        </button>
+        <PermissionGuard permission={PERMISSIONS.CREATE_EXAMS}>
+          <button
+            onClick={() => navigate(`/exams/${id}/edit`)}
+            className="btn btn-primary flex items-center space-x-2 shadow-lg hover:shadow-xl transition-shadow"
+          >
+            <Edit className="w-5 h-5" />
+            <span>Edit Exam</span>
+          </button>
+        </PermissionGuard>
       </div>
 
       {/* Exam Profile Card */}

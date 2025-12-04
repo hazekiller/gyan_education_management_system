@@ -278,13 +278,12 @@ const ClassDetails = () => {
             </div>
             <div className="mt-4 md:mt-0">
               <span
-                className={`badge ${
-                  classData.status === "active"
+                className={`badge ${classData.status === "active"
                     ? "badge-success"
                     : classData.status === "inactive"
-                    ? "badge-warning"
-                    : "badge-secondary"
-                } text-lg px-4 py-2`}
+                      ? "badge-warning"
+                      : "badge-secondary"
+                  } text-lg px-4 py-2`}
               >
                 {classData.status || "active"}
               </span>
@@ -417,11 +416,10 @@ const ClassDetails = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`${
-                    activeTab === tab.id
+                  className={`${activeTab === tab.id
                       ? "border-purple-500 text-purple-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
                 >
                   <Icon className="w-5 h-5" />
                   <span>{tab.label}</span>
@@ -640,11 +638,10 @@ const ClassDetails = () => {
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span
-                              className={`px-2 py-1 text-xs rounded-full ${
-                                student.status === "active"
+                              className={`px-2 py-1 text-xs rounded-full ${student.status === "active"
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
-                              }`}
+                                }`}
                             >
                               {student.status}
                             </span>
@@ -777,11 +774,10 @@ const ClassDetails = () => {
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Status:</span>
                           <span
-                            className={`px-2 py-1 text-xs rounded-full ${
-                              section.is_active
+                            className={`px-2 py-1 text-xs rounded-full ${section.is_active
                                 ? "bg-green-100 text-green-800"
                                 : "bg-gray-100 text-gray-800"
-                            }`}
+                              }`}
                           >
                             {section.is_active ? "Active" : "Inactive"}
                           </span>

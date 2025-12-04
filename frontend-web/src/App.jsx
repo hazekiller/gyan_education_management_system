@@ -39,6 +39,9 @@ import ExamResults from "./pages/ExamResults";
 import Notifications from "./pages/Notifications";
 import Admissions from "./pages/Admissions";
 import Results from "./pages/Results";
+import DailyReports from "./pages/DailyReports";
+import DailyReportDetails from "./pages/DailyReportDetails";
+import BusAttendanceReports from "./pages/BusAttendanceReports";
 import Blog from "./pages/Blogs/Blog";
 import BlogDetail from "./pages/Blogs/BlogDetail";
 
@@ -112,6 +115,9 @@ function App() {
         <Route path="results" element={<Results />} />
         <Route path="blogs" element={<Blog />} />
         <Route path="blogs/:id" element={<BlogDetail />} />
+        <Route path="reports" element={<DailyReports />} />
+        <Route path="reports/:id" element={<DailyReportDetails />} />
+        <Route path="bus-attendance-reports" element={<BusAttendanceReports />} />
       </Route>
 
       {/* 404 */}

@@ -43,6 +43,7 @@ export const PERMISSIONS = {
   VIEW_EXAMS: "view_exams",
   CREATE_EXAMS: "create_exams",
   EDIT_EXAMS: "edit_exams",
+  DELETE_EXAMS: "delete_exams",
   ENTER_RESULTS: "enter_results",
 
   // Assignments
@@ -55,12 +56,16 @@ export const PERMISSIONS = {
   MANAGE_FEES: "manage_fees",
 
   // Events
-  VIEW_EVENTS: "view_events",
   CREATE_EVENTS: "create_events",
+  VIEW_EVENTS: "view_events",
+  EDIT_EVENTS: "edit_events",
+  DELETE_EVENTS: "delete_events",
 
   // Announcements
-  VIEW_ANNOUNCEMENTS: "view_announcements",
   CREATE_ANNOUNCEMENTS: "create_announcements",
+  VIEW_ANNOUNCEMENTS: "view_announcements",
+  EDIT_ANNOUNCEMENTS: "edit_announcements",
+  DELETE_ANNOUNCEMENTS: "delete_announcements",
 
   // Messages
   SEND_MESSAGES: "send_messages",
