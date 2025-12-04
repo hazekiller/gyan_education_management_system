@@ -152,13 +152,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Hostel",
       path: "/hostel",
       icon: Home,
-      show: true,
+      show: role !== "teacher", // Hide from teachers
     },
     {
       name: "Transport",
       path: "/transport",
       icon: Bus,
-      show: true,
+      show: role !== "teacher", // Hide from teachers
     },
     {
       name: "Payroll",
@@ -173,10 +173,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       show: role !== "student", // Hide from students
     },
     {
+       name: "Blogs",
+      path: "/blogs",
+      icon: BookOpen,
+      show: hasPermission(PERMISSIONS.VIEW_BLOGS),
+    },
+    {
       name: "Bus Attendance",
       path: "/bus-attendance-reports",
       icon: ClipboardList,
-      show: true, // Visible to all roles (page handles role-based views)
+      show: role !== "teacher", // Hide from teachers
     },
   ];
 

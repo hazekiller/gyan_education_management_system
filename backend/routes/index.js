@@ -53,6 +53,7 @@ router.use("/transport", require("./transport.routes"));
 router.use("/payroll", require("./payroll.routes"));
 router.use("/notifications", require("./notifications.routes"));
 router.use("/results", require("./results.routes"));
+router.use("/blogs", require("./blog.routes"));
 router.use("/daily-reports", dailyReportsRoutes);
 // ===== DEFAULT ROUTE =====
 router.get("/", (req, res) => {

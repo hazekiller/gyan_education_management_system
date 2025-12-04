@@ -151,7 +151,7 @@ const getAttendanceReport = async (req, res) => {
         a.*,
         c.name as class_name,
         sec.name as section_name,
-        CONCAT(u.first_name, ' ', u.last_name) as marked_by_name
+        u.email as marked_by_name
       FROM attendance a
       LEFT JOIN classes c ON a.class_id = c.id
       LEFT JOIN sections sec ON a.section_id = sec.id
@@ -345,7 +345,7 @@ const getFeeReport = async (req, res) => {
         fp.*,
         fs.fee_type,
         fh.name as fee_head_name,
-        CONCAT(u.first_name, ' ', u.last_name) as collected_by_name
+        u.email as collected_by_name
       FROM fee_payments fp
       JOIN fee_structure fs ON fp.fee_structure_id = fs.id
       LEFT JOIN fee_heads fh ON fs.fee_head_id = fh.id
@@ -484,7 +484,7 @@ const getLibraryReport = async (req, res) => {
         lb.author,
         lb.isbn,
         lb.category,
-        CONCAT(u.first_name, ' ', u.last_name) as issued_by_name
+        u.email as issued_by_name
       FROM library_transactions lt
       JOIN library_books lb ON lt.book_id = lb.id
       LEFT JOIN users u ON lt.issued_by = u.id
