@@ -127,7 +127,7 @@ const Exams = () => {
             Manage exams, schedules, and results
           </p>
         </div>
-        <PermissionGuard permissions={[PERMISSIONS.CREATE_EXAM]}>
+        <PermissionGuard permissions={[PERMISSIONS.CREATE_EXAMS]}>
           <button
             onClick={() => setIsModalOpen(true)}
             className="btn btn-primary flex items-center space-x-2 shadow-lg hover:shadow-xl transition-shadow"

@@ -1,4 +1,3 @@
-// File: frontend-web/src/pages/Attendance.jsx
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,9 +9,15 @@ import {
   Unlock,
   AlertCircle,
   Info,
+  BookOpen,
 } from "lucide-react";
 import { useSelector } from "react-redux";
-import { attendanceAPI, classesAPI, studentsAPI } from "../lib/api";
+import {
+  attendanceAPI,
+  classesAPI,
+  studentsAPI,
+  classSubjectsAPI,
+} from "../lib/api";
 import toast from "react-hot-toast";
 import { selectCurrentUser, selectUserRole } from "../store/slices/authSlice";
 
@@ -22,6 +27,7 @@ const Attendance = () => {
   );
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("");
   const [attendanceData, setAttendanceData] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -53,6 +59,26 @@ const Attendance = () => {
 
   const sections = sectionsData?.data || [];
 
+  // Fetch subjects when section is selected
+  const { data: subjectsData } = useQuery({
+    queryKey: ["section-subjects", selectedSection],
+    queryFn: () => classSubjectsAPI.getBySection(selectedSection),
+    enabled: !!selectedSection,
+  });
+
+  const allSubjects = subjectsData?.data || [];
+
+  // Filter subjects for teachers
+  const subjects =
+    userRole === "teacher"
+      ? allSubjects.filter(
+          (s) =>
+            s.section_teacher_email === currentUser?.email ||
+            (!s.section_teacher_email &&
+              s.default_teacher_email === currentUser?.email)
+        )
+      : allSubjects;
+
   // Fetch students when class and section are selected
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ["students", selectedClass, selectedSection],
@@ -69,14 +95,25 @@ const Attendance = () => {
 
   // Fetch existing attendance
   const { data: existingAttendance, refetch: refetchAttendance } = useQuery({
-    queryKey: ["attendance", selectedClass, selectedSection, selectedDate],
+    queryKey: [
+      "attendance",
+      selectedClass,
+      selectedSection,
+      selectedSubject,
+      selectedDate,
+    ],
     queryFn: () =>
       attendanceAPI.get({
         class_id: selectedClass,
         section_id: selectedSection,
+        subject_id: selectedSubject,
         date: selectedDate,
       }),
-    enabled: !!selectedClass && !!selectedSection && !!selectedDate,
+    enabled:
+      !!selectedClass &&
+      !!selectedSection &&
+      !!selectedSubject &&
+      !!selectedDate,
   });
 
   // Check submission status
@@ -85,15 +122,21 @@ const Attendance = () => {
       "attendance-submission",
       selectedClass,
       selectedSection,
+      selectedSubject,
       selectedDate,
     ],
     queryFn: () =>
       attendanceAPI.checkSubmission({
         class_id: selectedClass,
         section_id: selectedSection,
+        subject_id: selectedSubject,
         date: selectedDate,
       }),
-    enabled: !!selectedClass && !!selectedSection && !!selectedDate,
+    enabled:
+      !!selectedClass &&
+      !!selectedSection &&
+      !!selectedSubject &&
+      !!selectedDate,
   });
 
   // Update submission status
@@ -101,6 +144,9 @@ const Attendance = () => {
     if (submissionStatus?.data) {
       setIsSubmitted(submissionStatus.data.is_submitted || false);
       setSubmissionInfo(submissionStatus.data);
+    } else {
+      setIsSubmitted(false);
+      setSubmissionInfo(null);
     }
   }, [submissionStatus]);
 
@@ -136,8 +182,8 @@ const Attendance = () => {
   };
 
   const handleSaveAttendance = async () => {
-    if (!selectedClass || !selectedSection) {
-      toast.error("Please select class and section");
+    if (!selectedClass || !selectedSection || !selectedSubject) {
+      toast.error("Please select class, section, and subject");
       return;
     }
 
@@ -161,9 +207,9 @@ const Attendance = () => {
 
     setSubmitting(true);
     try {
-      // FIXED: Backend expects { date, attendance_records }
       await attendanceAPI.mark({
         date: selectedDate,
+        subject_id: parseInt(selectedSubject),
         attendance_records: attendanceRecords,
       });
       toast.success("Attendance saved successfully");
@@ -177,8 +223,8 @@ const Attendance = () => {
   };
 
   const handleSubmitAttendance = async () => {
-    if (!selectedClass || !selectedSection) {
-      toast.error("Please select class and section");
+    if (!selectedClass || !selectedSection || !selectedSubject) {
+      toast.error("Please select class, section, and subject");
       return;
     }
 
@@ -201,9 +247,10 @@ const Attendance = () => {
 
     setSubmitting(true);
     try {
-      // Save attendance first - FIXED: Backend expects { date, attendance_records }
+      // Save attendance first
       await attendanceAPI.mark({
         date: selectedDate,
+        subject_id: parseInt(selectedSubject),
         attendance_records: attendanceRecords,
       });
 
@@ -211,6 +258,7 @@ const Attendance = () => {
       await attendanceAPI.submit({
         class_id: parseInt(selectedClass),
         section_id: parseInt(selectedSection),
+        subject_id: parseInt(selectedSubject),
         date: selectedDate,
       });
 
@@ -244,6 +292,7 @@ const Attendance = () => {
       await attendanceAPI.unlock({
         class_id: parseInt(selectedClass),
         section_id: parseInt(selectedSection),
+        subject_id: parseInt(selectedSubject),
         date: selectedDate,
       });
 
@@ -437,6 +486,7 @@ const Attendance = () => {
               <thead>
                 <tr>
                   <th>Date</th>
+                  <th>Subject</th>
                   <th>Status</th>
                   <th>Marked By</th>
                 </tr>
@@ -459,6 +509,7 @@ const Attendance = () => {
                           day: "numeric",
                         })}
                       </td>
+                      <td>{record.subject_name || "N/A"}</td>
                       <td>
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
@@ -471,7 +522,9 @@ const Attendance = () => {
                               : "bg-blue-100 text-blue-800"
                           }`}
                         >
-                          {record.status}
+                          {record.status === "excused"
+                            ? "Leave"
+                            : record.status}
                         </span>
                       </td>
                       <td className="text-gray-500">
@@ -500,7 +553,7 @@ const Attendance = () => {
       </div>
 
       {/* Submission Status Alert */}
-      {isSubmitted && selectedClass && selectedSection && (
+      {isSubmitted && selectedClass && selectedSection && selectedSubject && (
         <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">
@@ -566,6 +619,7 @@ const Attendance = () => {
               onChange={(e) => {
                 setSelectedClass(e.target.value);
                 setSelectedSection("");
+                setSelectedSubject("");
               }}
               className="input"
             >
@@ -584,7 +638,10 @@ const Attendance = () => {
             </label>
             <select
               value={selectedSection}
-              onChange={(e) => setSelectedSection(e.target.value)}
+              onChange={(e) => {
+                setSelectedSection(e.target.value);
+                setSelectedSubject("");
+              }}
               className="input"
               disabled={!selectedClass}
             >
@@ -597,33 +654,60 @@ const Attendance = () => {
             </select>
           </div>
 
-          <div className="flex items-end gap-2">
-            <button
-              onClick={handleSaveAttendance}
-              disabled={
-                submitting || students.length === 0 || (isSubmitted && !isAdmin)
-              }
-              className="btn btn-secondary flex-1 disabled:opacity-50"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Subject
+            </label>
+            <select
+              value={selectedSubject}
+              onChange={(e) => setSelectedSubject(e.target.value)}
+              className="input"
+              disabled={!selectedSection}
             >
-              {submitting ? "Saving..." : "Save"}
-            </button>
-            <button
-              onClick={handleSubmitAttendance}
-              disabled={submitting || students.length === 0 || isSubmitted}
-              className="btn btn-primary flex-1 disabled:opacity-50"
-            >
-              {submitting
-                ? "Submitting..."
-                : isSubmitted
-                ? "Submitted"
-                : "Submit"}
-            </button>
+              <option value="">Select Subject</option>
+              {subjects.map((subject) => (
+                <option key={subject.subject_id} value={subject.subject_id}>
+                  {subject.subject_name}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
+
+        <div className="flex items-end gap-2 mt-4 justify-end">
+          <button
+            onClick={handleSaveAttendance}
+            disabled={
+              submitting ||
+              students.length === 0 ||
+              (isSubmitted && !isAdmin) ||
+              !selectedSubject
+            }
+            className="btn btn-secondary w-32 disabled:opacity-50"
+          >
+            {submitting ? "Saving..." : "Save"}
+          </button>
+          <button
+            onClick={handleSubmitAttendance}
+            disabled={
+              submitting ||
+              students.length === 0 ||
+              isSubmitted ||
+              !selectedSubject
+            }
+            className="btn btn-primary w-32 disabled:opacity-50"
+          >
+            {submitting
+              ? "Submitting..."
+              : isSubmitted
+              ? "Submitted"
+              : "Submit"}
+          </button>
         </div>
       </div>
 
       {/* Statistics */}
-      {students.length > 0 && (
+      {students.length > 0 && selectedSubject && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white rounded-lg shadow-md p-4">
             <div className="flex items-center justify-between">
@@ -670,7 +754,7 @@ const Attendance = () => {
           <div className="bg-white rounded-lg shadow-md p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Excused</p>
+                <p className="text-sm text-gray-600">Leave</p>
                 <p className="text-2xl font-bold text-blue-600">
                   {statusCounts.excused}
                 </p>
@@ -685,10 +769,10 @@ const Attendance = () => {
 
       {/* Students List */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {!selectedClass || !selectedSection ? (
+        {!selectedClass || !selectedSection || !selectedSubject ? (
           <div className="p-12 text-center text-gray-500">
             <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-            <p>Please select class and section to view students</p>
+            <p>Please select class, section, and subject to view students</p>
           </div>
         ) : studentsLoading ? (
           <div className="flex justify-center items-center h-64">
@@ -787,7 +871,7 @@ const Attendance = () => {
                               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
                         >
-                          Excused
+                          Leave
                         </button>
                       </div>
                     </td>

@@ -210,20 +210,28 @@ const Announcements = () => {
                         {announcement.priority.toUpperCase()}
                       </span>
                       <div className="flex space-x-2">
-                        <button
-                          onClick={() => openEditModal(announcement)}
-                          className="p-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                          title="Edit"
+                        <PermissionGuard
+                          permission={PERMISSIONS.EDIT_ANNOUNCEMENTS}
                         >
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => openDeleteModal(announcement)}
-                          className="p-3 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                          title="Delete"
+                          <button
+                            onClick={() => openEditModal(announcement)}
+                            className="p-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+                            title="Edit"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                        </PermissionGuard>
+                        <PermissionGuard
+                          permission={PERMISSIONS.DELETE_ANNOUNCEMENTS}
                         >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                          <button
+                            onClick={() => openDeleteModal(announcement)}
+                            className="p-3 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </PermissionGuard>
                       </div>
                     </div>
                   </div>
