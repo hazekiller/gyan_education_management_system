@@ -9,6 +9,9 @@ require("dotenv").config();
 const db = require("./config/database");
 const routes = require("./routes");
 const { errorHandler } = require("./middleware/errorHandler");
+const {
+  initializeScheduler,
+} = require("./services/classNotificationScheduler");
 
 const app = express();
 const server = http.createServer(app);
@@ -278,6 +281,9 @@ const startServer = async () => {
     await db.query("SELECT 1");
     console.log("✅ Database connected successfully");
 
+    // Initialize class notification scheduler
+    initializeScheduler(io);
+
     server.listen(PORT, () => {
       console.log(`
 🚀 ============================================
@@ -289,6 +295,7 @@ const startServer = async () => {
    Health check: http://localhost:${PORT}/health
    Socket.io: ✅ Ready (${onlineUsers.size} users online)
    Database: ✅ Connected
+   Class Scheduler: ✅ Active (checks every minute)
 ============================================
       `);
     });
