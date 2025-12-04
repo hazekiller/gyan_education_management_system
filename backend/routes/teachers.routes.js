@@ -13,12 +13,16 @@ const {
   getTeacherSchedule,
   getScheduleDetail,
   assignSchedule,
+  getMySubjects,
 } = require("../controllers/teachersController");
 
 router.use(authenticate);
 
 // READ
 router.get("/", requirePermission("teachers", "read"), getAllTeachers);
+
+// MY SUBJECTS (for teachers) - must come before /:id route
+router.get("/my-subjects", getMySubjects);
 
 // READ single
 router.get("/:id", requirePermission("teachers", "read"), getTeacherById);
