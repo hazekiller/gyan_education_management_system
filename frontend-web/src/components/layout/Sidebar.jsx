@@ -166,6 +166,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       icon: FileText,
       show: role !== "student", // Hide from students
     },
+    {
+      name: "Bus Attendance",
+      path: "/bus-attendance-reports",
+      icon: ClipboardList,
+      show: true, // Visible to all roles (page handles role-based views)
+    },
   ];
 
   const visibleNavigation = navigationItems.filter((item) => item.show);
