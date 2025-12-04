@@ -22,6 +22,7 @@ const eventsRoutes = require("./events.routes");
 const feesRoutes = require("./fees.routes");
 const libraryRoutes = require("./library.routes");
 const admissionsRoutes = require("./admissions.routes");
+const dailyReportsRoutes = require("./dailyReports.routes");
 
 // ===== PUBLIC ROUTES =====
 router.use("/auth", authRoutes);
@@ -51,7 +52,7 @@ router.use("/payroll", require("./payroll.routes"));
 router.use("/notifications", require("./notifications.routes"));
 router.use("/results", require("./results.routes"));
 router.use("/blogs", require("./blog.routes"));
-
+router.use("/daily-reports", dailyReportsRoutes);
 // ===== DEFAULT ROUTE =====
 router.get("/", (req, res) => {
   res.status(200).json({

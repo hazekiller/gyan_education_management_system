@@ -126,6 +126,7 @@ export const teachersAPI = {
   getSchedule: (id, params) => api.get(`/teachers/${id}/schedule`, { params }),
   getScheduleDetail: (periodId) => api.get(`/teachers/my-schedule/${periodId}`),
   assignSchedule: (data) => api.post("/teachers/schedule", data),
+  getMySubjects: () => api.get("/teachers/my-subjects"),
 };
 
 // ============================================
@@ -591,6 +592,24 @@ export const transportAPI = {
   updateAllocation: (id, data) => api.put(`/transport/allocations/${id}`, data),
   cancelAllocation: (id) => api.delete(`/transport/allocations/${id}`),
   getMyTransport: () => api.get("/transport/my-transport"),
+
+  // Bus Attendance Reports
+  getBusAttendanceReports: (params) =>
+    api.get("/transport/attendance-reports", { params }),
+  getBusAttendanceReportById: (id) =>
+    api.get(`/transport/attendance-reports/${id}`),
+  createBusAttendanceReport: (data) =>
+    api.post("/transport/attendance-reports", data),
+  updateBusAttendanceReport: (id, data) =>
+    api.put(`/transport/attendance-reports/${id}`, data),
+  deleteBusAttendanceReport: (id) =>
+    api.delete(`/transport/attendance-reports/${id}`),
+  verifyBusAttendanceReport: (id) =>
+    api.patch(`/transport/attendance-reports/${id}/verify`),
+  getRouteStudents: (routeId) =>
+    api.get(`/transport/routes/${routeId}/students`),
+  getMyBusAttendance: (params) =>
+    api.get("/transport/my-bus-attendance", { params }),
 };
 
 // ============================================
@@ -639,6 +658,17 @@ export const payrollAPI = {
   update: (id, data) => api.put(`/payroll/${id}`, data),
   delete: (id) => api.delete(`/payroll/${id}`),
   getEmployeePayroll: (type, id) => api.get(`/payroll/employee/${type}/${id}`),
+};
+
+// ============================================
+// DAILY REPORTS API
+// ============================================
+export const dailyReportsAPI = {
+  getAll: (params) => api.get("/daily-reports", { params }),
+  getById: (id) => api.get(`/daily-reports/${id}`),
+  create: (data) => api.post("/daily-reports", data),
+  update: (id, data) => api.put(`/daily-reports/${id}`, data),
+  delete: (id) => api.delete(`/daily-reports/${id}`),
 };
 
 //==============================================

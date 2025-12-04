@@ -15,6 +15,8 @@ import {
 import { examScheduleAPI } from "../../lib/api";
 import ExamScheduleModal from "./ExamScheduleModal";
 import toast from "react-hot-toast";
+import PermissionGuard from "../common/PermissionGuard";
+import { PERMISSIONS } from "../../utils/rbac";
 
 const ExamScheduleSection = ({ examId, examData }) => {
   const queryClient = useQueryClient();
@@ -280,20 +282,24 @@ const ExamScheduleSection = ({ examId, examData }) => {
 
                       {/* Actions */}
                       <div className="flex items-center space-x-2 ml-4">
-                        <button
-                          onClick={() => handleEditSchedule(schedule)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit Schedule"
-                        >
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteSchedule(schedule)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete Schedule"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        <PermissionGuard permission={PERMISSIONS.EDIT_EXAMS}>
+                          <button
+                            onClick={() => handleEditSchedule(schedule)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit Schedule"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                        </PermissionGuard>
+                        <PermissionGuard permission={PERMISSIONS.DELETE_EXAMS}>
+                          <button
+                            onClick={() => setDeleteSchedule(schedule)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Schedule"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </PermissionGuard>
                       </div>
                     </div>
                   </div>
