@@ -217,6 +217,8 @@ const PERMISSIONS = {
     fees: ['read'],
     payroll: [],
     library: ['read'],
+    transport: ['read'], // Students can view their own transport info
+    hostel: ['read'], // Students can view their own hostel info
     events: ['read'],
     announcements: ['read'],
     messages: ['create', 'read', 'update', 'delete'],
@@ -250,7 +252,7 @@ function hasPermission(role, resource, action) {
 
   // Check if action is allowed
   const hasAccess = PERMISSIONS[role][resource].includes(action);
-  
+
   if (!hasAccess) {
     console.log(`❌ Permission denied: ${role} cannot ${action} ${resource}`);
   }
