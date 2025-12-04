@@ -42,6 +42,8 @@ import Results from "./pages/Results";
 import DailyReports from "./pages/DailyReports";
 import DailyReportDetails from "./pages/DailyReportDetails";
 import BusAttendanceReports from "./pages/BusAttendanceReports";
+import StudentReports from "./pages/StudentReports";
+import MyReports from "./pages/MyReports";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -87,6 +89,8 @@ function App() {
 
         <Route path="students" element={<Students />} />
         <Route path="students/:id" element={<StudentDetails />} />
+        <Route path="student-reports/:id" element={<StudentReports />} />
+        <Route path="my-reports" element={<MyReports />} />
         <Route path="teachers" element={<Teachers />} />
         <Route path="teachers/:id" element={<TeacherDetails />} />
         <Route path="attendance" element={<Attendance />} />
