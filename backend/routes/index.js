@@ -23,6 +23,7 @@ const feesRoutes = require("./fees.routes");
 const libraryRoutes = require("./library.routes");
 const admissionsRoutes = require("./admissions.routes");
 const dailyReportsRoutes = require("./dailyReports.routes");
+const studentReportsRoutes = require("./studentReports.routes");
 
 // ===== PUBLIC ROUTES =====
 router.use("/auth", authRoutes);
@@ -31,6 +32,7 @@ router.use("/auth", authRoutes);
 router.use(authenticate);
 
 router.use("/students", studentsRoutes);
+router.use("/students", studentReportsRoutes);
 router.use("/teachers", teachersRoutes);
 router.use("/classes", classesRoutes);
 router.use("/subjects", subjectsRoutes);

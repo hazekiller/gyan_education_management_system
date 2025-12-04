@@ -671,5 +671,20 @@ export const dailyReportsAPI = {
   delete: (id) => api.delete(`/daily-reports/${id}`),
 };
 
+// ============================================
+// STUDENT REPORTS API
+// ============================================
+export const studentReportsAPI = {
+  getComprehensiveReport: (id) => api.get(`/students/${id}/comprehensive-report`),
+  getAttendanceReport: (id, params) => api.get(`/students/${id}/reports/attendance`, { params }),
+  getExamReport: (id, params) => api.get(`/students/${id}/reports/exams`, { params }),
+  getAssignmentReport: (id, params) => api.get(`/students/${id}/reports/assignments`, { params }),
+  getFeeReport: (id) => api.get(`/students/${id}/reports/fees`),
+  getTransportReport: (id) => api.get(`/students/${id}/reports/transport`),
+  getHostelReport: (id) => api.get(`/students/${id}/reports/hostel`),
+  getLibraryReport: (id, params) => api.get(`/students/${id}/reports/library`, { params })
+};
+
 // Final export
 export default api;
+

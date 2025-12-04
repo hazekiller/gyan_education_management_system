@@ -1,11 +1,11 @@
 // File: frontend-web/src/pages/StudentDetails.jsx
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Mail, 
-  Phone, 
-  MapPin, 
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
+  MapPin,
   Calendar,
   User,
   Edit
@@ -50,13 +50,22 @@ const StudentDetails = () => {
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Students</span>
         </button>
-        <button
-          onClick={() => navigate(`/students/${id}/edit`)}
-          className="btn btn-primary flex items-center space-x-2"
-        >
-          <Edit className="w-5 h-5" />
-          <span>Edit Student</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => navigate(`/student-reports/${id}`)}
+            className="btn btn-secondary flex items-center space-x-2"
+          >
+            <FileText className="w-5 h-5" />
+            <span>View Reports</span>
+          </button>
+          <button
+            onClick={() => navigate(`/students/${id}/edit`)}
+            className="btn btn-primary flex items-center space-x-2"
+          >
+            <Edit className="w-5 h-5" />
+            <span>Edit Student</span>
+          </button>
+        </div>
       </div>
 
       {/* Student Profile Card */}
@@ -86,9 +95,8 @@ const StudentDetails = () => {
               </p>
             </div>
             <div className="mt-4 md:mt-0">
-              <span className={`badge ${
-                student.status === 'active' ? 'badge-success' : 'badge-danger'
-              } text-lg px-4 py-2`}>
+              <span className={`badge ${student.status === 'active' ? 'badge-success' : 'badge-danger'
+                } text-lg px-4 py-2`}>
                 {student.status}
               </span>
             </div>
@@ -101,7 +109,7 @@ const StudentDetails = () => {
               <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
                 Personal Information
               </h3>
-              
+
               <div className="flex items-start space-x-3">
                 <User className="w-5 h-5 text-gray-400 mt-1" />
                 <div>
