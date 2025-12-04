@@ -160,6 +160,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       icon: DollarSign,
       show: hasPermission(PERMISSIONS.VIEW_PAYROLL),
     },
+    {
+      name: "Blogs",
+      path: "/blogs",
+      icon: BookOpen,
+      show: hasPermission(PERMISSIONS.VIEW_BLOGS),
+    },
   ];
 
   const visibleNavigation = navigationItems.filter((item) => item.show);
@@ -266,10 +272,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden ${
-                      isActive
-                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
-                        : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:shadow-md"
+                    `nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden ${isActive
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:shadow-md"
                     }`
                   }
                   onClick={() => {
@@ -282,9 +287,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-purple-600/0 group-hover:from-blue-500/10 group-hover:to-purple-600/10 transition-all duration-300"></div>
                       )}
                       <item.icon
-                        className={`w-5 h-5 relative z-10 transition-transform duration-300 ${
-                          isActive ? "" : "group-hover:scale-110"
-                        }`}
+                        className={`w-5 h-5 relative z-10 transition-transform duration-300 ${isActive ? "" : "group-hover:scale-110"
+                          }`}
                       />
                       <span className="font-medium relative z-10">
                         {item.name}
