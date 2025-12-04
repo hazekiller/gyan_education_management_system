@@ -659,6 +659,90 @@ const getScheduleDetail = async (req, res) => {
   }
 };
 
+// ---------------------
+// GET MY SUBJECTS (Teacher's assigned subjects with class/section info)
+// ---------------------
+const getMySubjects = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    // Get teacher ID from user ID
+    const [teacher] = await pool.query(
+      "SELECT id FROM teachers WHERE user_id = ?",
+      [userId]
+    );
+
+    if (teacher.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Teacher profile not found",
+      });
+    }
+
+    const teacherId = teacher[0].id;
+
+    // Get subjects assigned at section level
+    const [sectionSubjects] = await pool.query(
+      `SELECT DISTINCT
+        s.id as subject_id,
+        s.name as subject_name,
+        s.code as subject_code,
+        s.description as subject_description,
+        c.id as class_id,
+        c.name as class_name,
+        c.grade_level,
+        sec.id as section_id,
+        sec.name as section_name,
+        'section' as assignment_level
+      FROM section_subject_teachers sst
+      JOIN subjects s ON sst.subject_id = s.id
+      JOIN sections sec ON sst.section_id = sec.id
+      JOIN classes c ON sec.class_id = c.id
+      WHERE sst.teacher_id = ? AND sst.is_active = 1 AND s.is_active = 1
+      ORDER BY s.name, c.grade_level, c.name, sec.name`,
+      [teacherId]
+    );
+
+    // Get subjects assigned at class level (where no section-specific assignment exists)
+    const [classSubjects] = await pool.query(
+      `SELECT DISTINCT
+        s.id as subject_id,
+        s.name as subject_name,
+        s.code as subject_code,
+        s.description as subject_description,
+        c.id as class_id,
+        c.name as class_name,
+        c.grade_level,
+        NULL as section_id,
+        'All Sections' as section_name,
+        'class' as assignment_level
+      FROM class_subjects cs
+      JOIN subjects s ON cs.subject_id = s.id
+      JOIN classes c ON cs.class_id = c.id
+      WHERE cs.teacher_id = ? AND cs.is_active = 1 AND s.is_active = 1
+      ORDER BY s.name, c.grade_level, c.name`,
+      [teacherId]
+    );
+
+    // Combine both results
+    const allSubjects = [...sectionSubjects, ...classSubjects];
+
+    res.json({
+      success: true,
+      count: allSubjects.length,
+      data: allSubjects,
+    });
+  } catch (error) {
+    console.error("Get my subjects error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch assigned subjects",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllTeachers,
   getTeacherById,
@@ -669,4 +753,5 @@ module.exports = {
   getScheduleDetail,
   getTeacherSchedule,
   assignSchedule,
+  getMySubjects,
 };
