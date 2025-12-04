@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Calendar,
@@ -78,6 +78,11 @@ const Attendance = () => {
               s.default_teacher_email === currentUser?.email)
         )
       : allSubjects;
+
+  // For teachers, check if marking for today
+  const isMarkingForToday = useMemo(() => {
+    return selectedDate === new Date().toISOString().split("T")[0];
+  }, [selectedDate]);
 
   // Fetch students when class and section are selected
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
@@ -681,9 +686,15 @@ const Attendance = () => {
               submitting ||
               students.length === 0 ||
               (isSubmitted && !isAdmin) ||
-              !selectedSubject
+              !selectedSubject ||
+              (userRole === "teacher" && !isMarkingForToday)
             }
             className="btn btn-secondary w-32 disabled:opacity-50"
+            title={
+              userRole === "teacher" && !isMarkingForToday
+                ? "You can only mark attendance for today during scheduled time"
+                : ""
+            }
           >
             {submitting ? "Saving..." : "Save"}
           </button>
@@ -693,9 +704,15 @@ const Attendance = () => {
               submitting ||
               students.length === 0 ||
               isSubmitted ||
-              !selectedSubject
+              !selectedSubject ||
+              (userRole === "teacher" && !isMarkingForToday)
             }
             className="btn btn-primary w-32 disabled:opacity-50"
+            title={
+              userRole === "teacher" && !isMarkingForToday
+                ? "You can only mark attendance for today during scheduled time"
+                : ""
+            }
           >
             {submitting
               ? "Submitting..."

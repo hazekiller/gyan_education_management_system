@@ -126,6 +126,7 @@ export const teachersAPI = {
   getSchedule: (id, params) => api.get(`/teachers/${id}/schedule`, { params }),
   getScheduleDetail: (periodId) => api.get(`/teachers/my-schedule/${periodId}`),
   assignSchedule: (data) => api.post("/teachers/schedule", data),
+  getMySubjects: () => api.get("/teachers/my-subjects"),
 };
 
 // ============================================
