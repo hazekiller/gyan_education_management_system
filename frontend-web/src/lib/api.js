@@ -671,6 +671,17 @@ export const dailyReportsAPI = {
   delete: (id) => api.delete(`/daily-reports/${id}`),
 };
 
+//==============================================
+// Blog API
+//==============================================
+export const blogAPI = {
+  getAllBlogs: () => api.get("/blogs"),
+  getBlogById: (id) => api.get(`/blogs/${id}`),
+  createBlog: (data) => api.post("/blogs", data),
+  updateBlog: (id, data) => api.put(`/blogs/${id}`, data),
+  deleteBlog: (id) => api.delete(`/blogs/${id}`),
+};
+
 // ============================================
 // STUDENT REPORTS API
 // ============================================
