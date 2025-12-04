@@ -592,6 +592,24 @@ export const transportAPI = {
   updateAllocation: (id, data) => api.put(`/transport/allocations/${id}`, data),
   cancelAllocation: (id) => api.delete(`/transport/allocations/${id}`),
   getMyTransport: () => api.get("/transport/my-transport"),
+
+  // Bus Attendance Reports
+  getBusAttendanceReports: (params) =>
+    api.get("/transport/attendance-reports", { params }),
+  getBusAttendanceReportById: (id) =>
+    api.get(`/transport/attendance-reports/${id}`),
+  createBusAttendanceReport: (data) =>
+    api.post("/transport/attendance-reports", data),
+  updateBusAttendanceReport: (id, data) =>
+    api.put(`/transport/attendance-reports/${id}`, data),
+  deleteBusAttendanceReport: (id) =>
+    api.delete(`/transport/attendance-reports/${id}`),
+  verifyBusAttendanceReport: (id) =>
+    api.patch(`/transport/attendance-reports/${id}/verify`),
+  getRouteStudents: (routeId) =>
+    api.get(`/transport/routes/${routeId}/students`),
+  getMyBusAttendance: (params) =>
+    api.get("/transport/my-bus-attendance", { params }),
 };
 
 // ============================================
