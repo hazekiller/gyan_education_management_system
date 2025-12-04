@@ -24,6 +24,7 @@ const TeacherForm = ({ teacher = null, onSubmit, onCancel, isSubmitting }) => {
     state: teacher?.state || '',
     pincode: teacher?.pincode || '',
     status: teacher?.status || 'active',
+    employment_type: teacher?.employment_type || 'full_time',
     profile_photo: null
   });
 
@@ -37,7 +38,7 @@ const TeacherForm = ({ teacher = null, onSubmit, onCancel, isSubmitting }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!formData.first_name || !formData.last_name || !formData.email || !formData.phone) {
       toast.error('Please fill all required fields');
       return;
@@ -315,6 +316,21 @@ const TeacherForm = ({ teacher = null, onSubmit, onCancel, isSubmitting }) => {
               <option value="on_leave">On Leave</option>
               <option value="resigned">Resigned</option>
               <option value="terminated">Terminated</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Employment Type
+            </label>
+            <select
+              name="employment_type"
+              value={formData.employment_type}
+              onChange={handleChange}
+              className="input"
+            >
+              <option value="full_time">Full Time</option>
+              <option value="part_time">Part Time</option>
             </select>
           </div>
         </div>
