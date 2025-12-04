@@ -7,6 +7,7 @@ import {
   Phone,
   MapPin,
   Calendar,
+  FileText,
   User,
   Edit
 } from 'lucide-react';
