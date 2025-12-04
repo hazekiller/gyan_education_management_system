@@ -84,6 +84,76 @@ const Attendance = () => {
     return selectedDate === new Date().toISOString().split("T")[0];
   }, [selectedDate]);
 
+  // Fetch schedule for the selected subject to check time validity
+  const { data: scheduleData } = useQuery({
+    queryKey: [
+      "subject-schedule",
+      selectedClass,
+      selectedSection,
+      selectedSubject,
+    ],
+    queryFn: async () => {
+      if (!selectedClass || !selectedSection || !selectedSubject) return null;
+
+      // Get current day of week
+      const days = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+      const today = days[new Date().getDay()];
+
+      // Fetch teacher's schedule for this subject
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_URL
+        }/timetable?class_id=${selectedClass}&section_id=${selectedSection}&subject_id=${selectedSubject}&day_of_week=${today}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.data && data.data.length > 0 ? data.data[0] : null;
+    },
+    enabled:
+      !!selectedClass &&
+      !!selectedSection &&
+      !!selectedSubject &&
+      isMarkingForToday &&
+      userRole === "teacher",
+    refetchInterval: 60000, // Refetch every minute to keep time check updated
+  });
+
+  // Check if current time is within the scheduled class time
+  const isWithinScheduledTime = useMemo(() => {
+    if (isAdmin) return true; // Admins can mark anytime
+    if (!isMarkingForToday) return false; // Must be today
+    if (!scheduleData) return false; // Must have schedule data
+
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes since midnight
+
+    // Parse schedule times (format: "HH:MM:SS")
+    const [startHour, startMin] = scheduleData.start_time
+      .split(":")
+      .map(Number);
+    const [endHour, endMin] = scheduleData.end_time.split(":").map(Number);
+
+    const scheduleStart = startHour * 60 + startMin;
+    const scheduleEnd = endHour * 60 + endMin;
+
+    // Check if current time is within schedule (inclusive)
+    return currentTime >= scheduleStart && currentTime <= scheduleEnd;
+  }, [scheduleData, isMarkingForToday, isAdmin]);
+
   // Fetch students when class and section are selected
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ["students", selectedClass, selectedSection],
@@ -687,12 +757,14 @@ const Attendance = () => {
               students.length === 0 ||
               (isSubmitted && !isAdmin) ||
               !selectedSubject ||
-              (userRole === "teacher" && !isMarkingForToday)
+              (userRole === "teacher" && !isWithinScheduledTime)
             }
             className="btn btn-secondary w-32 disabled:opacity-50"
             title={
-              userRole === "teacher" && !isMarkingForToday
-                ? "You can only mark attendance for today during scheduled time"
+              userRole === "teacher" && !isWithinScheduledTime
+                ? scheduleData
+                  ? `You can only mark attendance during scheduled time: ${scheduleData.start_time} - ${scheduleData.end_time}`
+                  : "No schedule found for this subject today"
                 : ""
             }
           >
@@ -705,12 +777,14 @@ const Attendance = () => {
               students.length === 0 ||
               isSubmitted ||
               !selectedSubject ||
-              (userRole === "teacher" && !isMarkingForToday)
+              (userRole === "teacher" && !isWithinScheduledTime)
             }
             className="btn btn-primary w-32 disabled:opacity-50"
             title={
-              userRole === "teacher" && !isMarkingForToday
-                ? "You can only mark attendance for today during scheduled time"
+              userRole === "teacher" && !isWithinScheduledTime
+                ? scheduleData
+                  ? `You can only mark attendance during scheduled time: ${scheduleData.start_time} - ${scheduleData.end_time}`
+                  : "No schedule found for this subject today"
                 : ""
             }
           >
