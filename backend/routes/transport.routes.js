@@ -3,6 +3,7 @@ const router = express.Router();
 const { authenticate } = require("../middleware/auth");
 const { requireRole } = require("../middleware/authorization");
 const transportController = require("../controllers/transportController");
+const busAttendanceController = require("../controllers/busAttendanceReportsController");
 
 router.use(authenticate);
 
@@ -77,6 +78,62 @@ router.get(
   "/my-transport",
   requireRole(["student"]),
   transportController.getMyTransport
+);
+
+// ==========================================
+// BUS ATTENDANCE REPORTS ROUTES
+// ==========================================
+
+// Admin Routes - CRUD Operations
+router.get(
+  "/attendance-reports",
+  requireRole(["super_admin", "admin", "principal", "hod"]),
+  busAttendanceController.getReports
+);
+
+router.get(
+  "/attendance-reports/:id",
+  requireRole(["super_admin", "admin", "principal", "hod"]),
+  busAttendanceController.getReportById
+);
+
+router.post(
+  "/attendance-reports",
+  requireRole(["super_admin", "admin", "principal", "hod"]),
+  busAttendanceController.createReport
+);
+
+router.put(
+  "/attendance-reports/:id",
+  requireRole(["super_admin", "admin", "principal", "hod"]),
+  busAttendanceController.updateReport
+);
+
+router.delete(
+  "/attendance-reports/:id",
+  requireRole(["super_admin", "admin", "principal"]),
+  busAttendanceController.deleteReport
+);
+
+// Verify Report (Principal/SuperAdmin only)
+router.patch(
+  "/attendance-reports/:id/verify",
+  requireRole(["super_admin", "principal"]),
+  busAttendanceController.verifyReport
+);
+
+// Helper - Get students for a route (for creating reports)
+router.get(
+  "/routes/:route_id/students",
+  requireRole(["super_admin", "admin", "principal", "hod"]),
+  busAttendanceController.getRouteStudents
+);
+
+// Student Route - View their own attendance
+router.get(
+  "/my-bus-attendance",
+  requireRole(["student"]),
+  busAttendanceController.getMyAttendance
 );
 
 module.exports = router;
