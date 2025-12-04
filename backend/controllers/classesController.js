@@ -96,15 +96,24 @@ const getMyClasses = async (req, res) => {
       });
     }
 
-    // For teachers, get only their assigned classes (via sections)
+    // For teachers, get classes where they are either:
+    // 1. Class teacher (homeroom teacher)
+    // 2. Subject teacher (via section_subject_teachers)
     const [classes] = await pool.query(
       `SELECT DISTINCT c.* 
        FROM classes c
-       JOIN sections s ON s.class_id = c.id
-       JOIN teachers t ON s.class_teacher_id = t.id
-       WHERE t.user_id = ? AND c.is_active = 1
+       WHERE c.is_active = 1 AND c.id IN (
+         SELECT DISTINCT s.class_id FROM sections s
+         JOIN teachers t ON s.class_teacher_id = t.id
+         WHERE t.user_id = ?
+         UNION
+         SELECT DISTINCT sec.class_id FROM section_subject_teachers sst
+         JOIN sections sec ON sst.section_id = sec.id
+         JOIN teachers t ON sst.teacher_id = t.id
+         WHERE t.user_id = ? AND sst.is_active = 1
+       )
        ORDER BY c.grade_level, c.name`,
-      [userId]
+      [userId, userId]
     );
 
     res.json({
@@ -154,7 +163,9 @@ const getMySections = async (req, res) => {
       });
     }
 
-    // For teachers, get only their assigned sections
+    // For teachers, get sections where they are either:
+    // 1. Class teacher (homeroom teacher)
+    // 2. Subject teacher (via section_subject_teachers)
     const [sections] = await pool.query(
       `SELECT 
         sec.*,
@@ -162,12 +173,20 @@ const getMySections = async (req, res) => {
         t.employee_id as teacher_employee_id,
         COUNT(DISTINCT s.id) as student_count
       FROM sections sec
-      JOIN teachers t ON sec.class_teacher_id = t.id
+      LEFT JOIN teachers t ON sec.class_teacher_id = t.id
       LEFT JOIN students s ON sec.id = s.section_id
-      WHERE sec.class_id = ? AND t.user_id = ? AND sec.is_active = 1
+      WHERE sec.class_id = ? AND sec.is_active = 1 AND sec.id IN (
+        SELECT section_id FROM sections WHERE class_teacher_id IN (
+          SELECT id FROM teachers WHERE user_id = ?
+        )
+        UNION
+        SELECT section_id FROM section_subject_teachers 
+        WHERE teacher_id IN (SELECT id FROM teachers WHERE user_id = ?) 
+        AND is_active = 1
+      )
       GROUP BY sec.id
       ORDER BY sec.name`,
-      [id, userId]
+      [id, userId, userId]
     );
 
     res.json({

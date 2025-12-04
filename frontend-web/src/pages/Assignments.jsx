@@ -15,6 +15,9 @@ import { assignmentsAPI, authAPI } from "../lib/api";
 import Modal from "../components/common/Modal";
 import AssignmentForm from "../components/common/AssignmentForm";
 import toast from "react-hot-toast";
+import PermissionGuard from "../components/common/PermissionGuard";
+import { PERMISSIONS } from "../utils/rbac";
+
 
 const Assignments = () => {
   const queryClient = useQueryClient();
@@ -137,17 +140,19 @@ const Assignments = () => {
               : "Manage homework and assignments"}
           </p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="btn btn-primary flex items-center space-x-2"
-        >
-          <Plus className="w-5 h-5" />
-          <span>
-            {userRole === "admin" || userRole === "super_admin"
-              ? "Create Assignment (as Teacher)"
-              : "Create Assignment"}
-          </span>
-        </button>
+        <PermissionGuard permissions={[PERMISSIONS.CREATE_ASSIGNMENTS]}>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="btn btn-primary flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>
+              {userRole === "admin" || userRole === "super_admin"
+                ? "Create Assignment (as Teacher)"
+                : "Create Assignment"}
+            </span>
+          </button>
+        </PermissionGuard>
       </div>
 
       {/* Admin Notice */}
