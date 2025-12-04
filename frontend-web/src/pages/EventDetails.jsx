@@ -15,6 +15,8 @@ import { eventsAPI } from "../lib/api";
 import Modal from "../components/common/Modal";
 import EventForm from "../components/common/EventForm";
 import toast from "react-hot-toast";
+import PermissionGuard from "../components/common/PermissionGuard";
+import { PERMISSIONS } from "../utils/rbac";
 
 const EventDetails = () => {
   const { id } = useParams();
@@ -125,20 +127,24 @@ const EventDetails = () => {
         </div>
 
         <div className="flex items-center space-x-3">
-          <button
-            onClick={() => setIsEditModalOpen(true)}
-            className="btn btn-primary flex items-center space-x-2"
-          >
-            <Edit className="w-4 h-4" />
-            <span>Edit</span>
-          </button>
-          <button
-            onClick={() => setIsDeleteModalOpen(true)}
-            className="btn btn-danger flex items-center space-x-2"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>Delete</span>
-          </button>
+          <PermissionGuard permission={PERMISSIONS.EDIT_EVENTS}>
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="btn btn-primary flex items-center space-x-2"
+            >
+              <Edit className="w-4 h-4" />
+              <span>Edit</span>
+            </button>
+          </PermissionGuard>
+          <PermissionGuard permission={PERMISSIONS.DELETE_EVENTS}>
+            <button
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="btn btn-danger flex items-center space-x-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Delete</span>
+            </button>
+          </PermissionGuard>
         </div>
       </div>
 
