@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Search, 
-  Plus, 
+import {
+  Search,
+  Plus,
   Eye,
   Edit,
   Trash2,
@@ -141,7 +141,7 @@ const Teachers = () => {
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               <div className="bg-gradient-to-r from-green-500 to-green-600 h-24"></div>
-              
+
               <div className="px-6 pb-6">
                 <div className="flex flex-col items-center -mt-12 mb-4">
                   <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center">
@@ -181,10 +181,12 @@ const Teachers = () => {
                 </div>
 
                 <div className="mb-4">
-                  <span className={`badge ${
-                    teacher.status === 'active' ? 'badge-success' : 'badge-danger'
-                  }`}>
+                  <span className={`badge ${teacher.status === 'active' ? 'badge-success' : 'badge-danger'
+                    }`}>
                     {teacher.status}
+                  </span>
+                  <span className="badge badge-info ml-2">
+                    {teacher.employment_type === 'full_time' ? 'Full Time' : 'Part Time'}
                   </span>
                 </div>
 

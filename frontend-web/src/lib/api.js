@@ -641,5 +641,16 @@ export const payrollAPI = {
   getEmployeePayroll: (type, id) => api.get(`/payroll/employee/${type}/${id}`),
 };
 
+// ============================================
+// DAILY REPORTS API
+// ============================================
+export const dailyReportsAPI = {
+  getAll: (params) => api.get("/daily-reports", { params }),
+  getById: (id) => api.get(`/daily-reports/${id}`),
+  create: (data) => api.post("/daily-reports", data),
+  update: (id, data) => api.put(`/daily-reports/${id}`, data),
+  delete: (id) => api.delete(`/daily-reports/${id}`),
+};
+
 // Final export
 export default api;

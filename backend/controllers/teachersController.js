@@ -279,6 +279,7 @@ const createTeacher = async (req, res) => {
       joining_date,
       salary,
       status,
+      employment_type,
     } = req.body;
 
     if (
@@ -343,8 +344,8 @@ const createTeacher = async (req, res) => {
         user_id, employee_id, first_name, middle_name, last_name,
         date_of_birth, gender, blood_group, address, city, state, pincode,
         phone, emergency_contact, qualification, experience_years, specialization,
-        joining_date, salary, profile_photo, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        joining_date, salary, profile_photo, status, employment_type
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
         employee_id,
@@ -367,6 +368,7 @@ const createTeacher = async (req, res) => {
         salary || null,
         profilePhotoPath,
         status || "active",
+        employment_type || "full_time",
       ]
     );
 
