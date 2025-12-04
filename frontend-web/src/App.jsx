@@ -41,6 +41,7 @@ import Admissions from "./pages/Admissions";
 import Results from "./pages/Results";
 import DailyReports from "./pages/DailyReports";
 import DailyReportDetails from "./pages/DailyReportDetails";
+import BusAttendanceReports from "./pages/BusAttendanceReports";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -112,6 +113,7 @@ function App() {
         <Route path="results" element={<Results />} />
         <Route path="reports" element={<DailyReports />} />
         <Route path="reports/:id" element={<DailyReportDetails />} />
+        <Route path="bus-attendance-reports" element={<BusAttendanceReports />} />
       </Route>
 
       {/* 404 */}
