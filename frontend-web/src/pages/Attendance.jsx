@@ -723,51 +723,94 @@ const Attendance = () => {
                     {/* Week Details */}
                     {isExpanded && (
                       <div className="px-6 pb-4 bg-gray-50">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="text-left text-xs text-gray-500 uppercase">
-                              <th className="py-2">Date</th>
-                              <th>Subject</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y">
-                            {weekData.records.map((record) => (
-                              <tr key={record.id} className="text-sm">
-                                <td className="py-3 font-medium">
-                                  {new Date(record.date).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      weekday: "short",
-                                      month: "short",
-                                      day: "numeric",
-                                    }
-                                  )}
-                                </td>
-                                <td className="text-gray-600">
-                                  {record.subject_name || "N/A"}
-                                </td>
-                                <td>
-                                  <span
-                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-                                      record.status === "present"
-                                        ? "bg-green-100 text-green-800"
-                                        : record.status === "absent"
-                                        ? "bg-red-100 text-red-800"
-                                        : record.status === "late"
-                                        ? "bg-orange-100 text-orange-800"
-                                        : "bg-blue-100 text-blue-800"
-                                    }`}
-                                  >
-                                    {record.status === "excused"
-                                      ? "Leave"
-                                      : record.status}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                        {(() => {
+                          const recordsByDate = weekData.records.reduce(
+                            (acc, record) => {
+                              const dateStr = new Date(record.date)
+                                .toISOString()
+                                .split("T")[0];
+                              if (!acc[dateStr]) acc[dateStr] = [];
+                              acc[dateStr].push(record);
+                              return acc;
+                            },
+                            {}
+                          );
+
+                          // Sort dates descending
+                          const sortedDates = Object.keys(recordsByDate).sort(
+                            (a, b) => new Date(b) - new Date(a)
+                          );
+
+                          return (
+                            <div className="space-y-4">
+                              {sortedDates.map((date) => (
+                                <div
+                                  key={date}
+                                  className="bg-white rounded-lg border shadow-sm overflow-hidden"
+                                >
+                                  {/* Date Header */}
+                                  <div className="bg-gray-50 px-4 py-2 border-b flex justify-between items-center">
+                                    <span className="font-semibold text-gray-700">
+                                      {new Date(date).toLocaleDateString(
+                                        "en-US",
+                                        {
+                                          weekday: "long",
+                                          month: "long",
+                                          day: "numeric",
+                                        }
+                                      )}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {recordsByDate[date].length} Subject
+                                      {recordsByDate[date].length !== 1
+                                        ? "s"
+                                        : ""}
+                                    </span>
+                                  </div>
+
+                                  {/* Subjects List */}
+                                  <div className="divide-y">
+                                    {recordsByDate[date].map((record) => (
+                                      <div
+                                        key={record.id}
+                                        className="px-4 py-3 flex items-center justify-between hover:bg-gray-50"
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <div className="p-2 bg-blue-50 rounded-full text-blue-600">
+                                            {record.subject_name ? (
+                                              <BookOpen className="w-4 h-4" />
+                                            ) : (
+                                              <Calendar className="w-4 h-4" />
+                                            )}
+                                          </div>
+                                          <span className="font-medium text-gray-900">
+                                            {record.subject_name ||
+                                              "General Attendance"}
+                                          </span>
+                                        </div>
+                                        <span
+                                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
+                                            record.status === "present"
+                                              ? "bg-green-100 text-green-800"
+                                              : record.status === "absent"
+                                              ? "bg-red-100 text-red-800"
+                                              : record.status === "late"
+                                              ? "bg-orange-100 text-orange-800"
+                                              : "bg-blue-100 text-blue-800"
+                                          }`}
+                                        >
+                                          {record.status === "excused"
+                                            ? "Leave"
+                                            : record.status}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
