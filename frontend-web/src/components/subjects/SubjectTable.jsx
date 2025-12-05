@@ -4,6 +4,7 @@ import { Edit, Trash2, BookOpen } from "lucide-react";
 import { subjectsAPI } from "../../lib/api";
 import Modal from "../common/Modal";
 import SubjectForm from "./SubjectForm";
+import SubjectActionsMenu from "./SubjectActionsMenu";
 import PermissionGuard from "../common/PermissionGuard";
 import { PERMISSIONS } from "../../utils/rbac";
 import toast from "react-hot-toast";
@@ -83,10 +84,19 @@ const SubjectTable = ({ subjects, isLoading, onRefetch }) => {
                   Code
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Nature
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Prerequisite
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  Quick Actions
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Manage
                 </th>
               </tr>
             </thead>
@@ -120,6 +130,33 @@ const SubjectTable = ({ subjects, isLoading, onRefetch }) => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        subject.subject_nature === "compulsory"
+                          ? "bg-indigo-100 text-indigo-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {subject.subject_nature === "compulsory"
+                        ? "📚 Compulsory"
+                        : "⭐ Elective"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    {subject.prerequisite_type === "subject_exam" &&
+                    subject.prerequisite_subject_names ? (
+                      <div className="text-xs">
+                        <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full font-medium">
+                          🔒 Requires: {subject.prerequisite_subject_names}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-500">
+                        No prerequisite
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         subject.is_active === 1
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
@@ -127,6 +164,19 @@ const SubjectTable = ({ subjects, isLoading, onRefetch }) => {
                     >
                       {subject.is_active === 1 ? "Active" : "Inactive"}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {/* Add Subject Actions Menu for file/attendance/assignment access */}
+                    <SubjectActionsMenu
+                      subject={{
+                        subject_id: subject.id,
+                        subject_name: subject.name,
+                        subject_code: subject.code,
+                      }}
+                      classId={null}
+                      sectionId={null}
+                      teacherId={null}
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">

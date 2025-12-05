@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { selectUserRole } from "../store/slices/authSlice";
 import SubjectTable from "../components/subjects/SubjectTable";
 import SubjectForm from "../components/subjects/SubjectForm";
+import SubjectActionsMenu from "../components/subjects/SubjectActionsMenu";
 import Modal from "../components/common/Modal";
 import PermissionGuard from "../components/common/PermissionGuard";
 import { PERMISSIONS } from "../utils/rbac";
@@ -46,6 +47,109 @@ const Subjects = () => {
     }
   };
 
+  // Student view - show enrolled subjects with file access
+  if (userRole === "student") {
+    const user = useSelector((state) => state.auth.user);
+    const studentClassId = user?.details?.class_id;
+    const studentSectionId = user?.details?.section_id;
+
+    // Fetch class subjects for the student
+    const { data: studentSubjectsData, isLoading: studentLoading } = useQuery({
+      queryKey: ["student-subjects", studentClassId, studentSectionId],
+      queryFn: async () => {
+        // Students see subjects assigned to their class/section
+        if (!studentClassId) return { data: [] };
+        const response = await subjectsAPI.getAll({ status: "active" });
+        return response;
+      },
+      enabled: !!studentClassId,
+    });
+
+    const studentSubjects = studentSubjectsData?.data || [];
+
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">My Subjects</h1>
+          <p className="text-gray-600 mt-1">
+            View course materials and resources
+          </p>
+        </div>
+
+        {/* Subjects Grid */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          {studentLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="loading"></div>
+            </div>
+          ) : studentSubjects.length === 0 ? (
+            <div className="p-12 text-center text-gray-500">
+              <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <p>No subjects assigned yet</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+              {studentSubjects.map((subject) => (
+                <div
+                  key={subject.id}
+                  className="border rounded-lg p-4 hover:shadow-lg transition-shadow"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                        <BookOpen className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          {subject.name}
+                        </h3>
+                        <p className="text-sm text-gray-500">{subject.code}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {subject.description && (
+                    <p className="text-sm text-gray-600 mb-4">
+                      {subject.description}
+                    </p>
+                  )}
+
+                  {/* Subject Actions */}
+                  <div className="border-t pt-4">
+                    <p className="text-xs text-gray-500 mb-2">Quick Access</p>
+                    <SubjectActionsMenu
+                      subject={{
+                        subject_id: subject.id,
+                        subject_name: subject.name,
+                        subject_code: subject.code,
+                        teacher_ids: subject.teacher_ids,
+                        teacher_names: subject.teacher_names,
+                        teacher_user_ids: subject.teacher_user_ids,
+                      }}
+                      classId={studentClassId}
+                      sectionId={studentSectionId}
+                      teacherId={
+                        subject.teacher_user_ids
+                          ? parseInt(subject.teacher_user_ids.split(",")[0])
+                          : null
+                      }
+                      teacherName={
+                        subject.teacher_names
+                          ? subject.teacher_names.split(",")[0]
+                          : null
+                      }
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // Teacher view - show subjects with class/section info
   if (isTeacher) {
     const mySubjects = subjectsData?.data || [];
@@ -81,6 +185,7 @@ const Subjects = () => {
                     <th>Class</th>
                     <th>Section</th>
                     <th>Assignment Level</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -136,6 +241,14 @@ const Subjects = () => {
                         <span className="text-sm text-gray-600 capitalize">
                           {subject.assignment_level}
                         </span>
+                      </td>
+                      <td>
+                        <SubjectActionsMenu
+                          subject={subject}
+                          classId={subject.class_id}
+                          sectionId={subject.section_id}
+                          teacherId={subject.teacher_id}
+                        />
                       </td>
                     </tr>
                   ))}

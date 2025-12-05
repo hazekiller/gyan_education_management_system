@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 import {
   Send,
   Search,
@@ -27,6 +28,7 @@ const Messages = () => {
   const currentUser = useSelector(selectCurrentUser);
   const queryClient = useQueryClient();
   const messagesEndRef = useRef(null);
+  const location = useLocation();
 
   const [selectedChat, setSelectedChat] = useState(null);
   const [message, setMessage] = useState("");
@@ -215,6 +217,30 @@ const Messages = () => {
     setShowNewChatModal(false);
     setUserSearchQuery("");
   };
+
+  // Handle navigation state (from SubjectEnquiryButton)
+  useEffect(() => {
+    if (location.state?.recipientId && location.state?.recipientName) {
+      // Set the chat with the teacher
+      setSelectedChat({
+        user_id: location.state.recipientId,
+        name: location.state.recipientName,
+        email: "",
+        role: "teacher",
+        profile_photo: null,
+        is_online: onlineUsers.has(location.state.recipientId),
+        unread_count: 0,
+      });
+
+      // Pre-fill message if provided
+      if (location.state.prefillMessage) {
+        setMessage(location.state.prefillMessage);
+      }
+
+      // Clear navigation state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, onlineUsers]);
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
