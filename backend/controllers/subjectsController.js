@@ -7,11 +7,47 @@ const getAllSubjects = async (req, res) => {
     const userRole = req.user?.role;
     const userId = req.user?.id;
 
+    // Store class_id and section_id for teacher filtering
+    let studentClassId = null;
+    let studentSectionId = null;
+
+    // For students, we need to fetch teacher from timetable (section-specific)
+    // For others, use class_subjects (class-level)
+    let teacherJoinTable = "class_subjects";
+    let teacherJoinCondition = "cs.subject_id = s.id AND cs.is_active = 1";
+
+    // If student, get their class and section first
+    if (userRole === "student") {
+      const [students] = await pool.query(
+        "SELECT class_id, section_id FROM students WHERE user_id = ?",
+        [userId]
+      );
+
+      if (students.length > 0 && students[0].class_id) {
+        studentClassId = students[0].class_id;
+        studentSectionId = students[0].section_id;
+      }
+    }
+
     let query = `
       SELECT s.*, 
-        COUNT(DISTINCT tca.teacher_id) as teacher_count
+        GROUP_CONCAT(DISTINCT ps.name ORDER BY ps.name SEPARATOR ', ') as prerequisite_subject_names,
+        GROUP_CONCAT(DISTINCT CONCAT(t.first_name, ' ', t.last_name) SEPARATOR ', ') as teacher_names,
+        GROUP_CONCAT(DISTINCT tt.teacher_id) as teacher_ids,
+        GROUP_CONCAT(DISTINCT t.user_id) as teacher_user_ids,
+        COUNT(DISTINCT tt.teacher_id) as teacher_count
       FROM subjects s
-      LEFT JOIN class_subjects tca ON s.id = tca.subject_id
+      LEFT JOIN subject_prerequisites sp ON s.id = sp.subject_id
+      LEFT JOIN subjects ps ON sp.prerequisite_subject_id = ps.id
+      ${
+        userRole === "student" && studentSectionId
+          ? `LEFT JOIN timetable tt ON s.id = tt.subject_id 
+           AND tt.class_id = ${studentClassId} 
+           AND tt.section_id = ${studentSectionId}
+           AND tt.is_active = 1`
+          : `LEFT JOIN timetable tt ON s.id = tt.subject_id AND tt.is_active = 1`
+      }
+      LEFT JOIN teachers t ON tt.teacher_id = t.id
       WHERE 1=1
     `;
 
@@ -19,18 +55,13 @@ const getAllSubjects = async (req, res) => {
 
     // Role-based filtering
     if (userRole === "student") {
-      // Students: Only see subjects for their assigned class
-      const [students] = await pool.query(
-        "SELECT class_id FROM students WHERE user_id = ?",
-        [userId]
-      );
-
-      if (students.length > 0 && students[0].class_id) {
+      // Already fetched student class/section data above
+      if (studentClassId) {
         query += ` AND s.id IN (
           SELECT subject_id FROM class_subjects 
           WHERE class_id = ? AND is_active = 1
         )`;
-        params.push(students[0].class_id);
+        params.push(studentClassId);
       } else {
         // Student has no class assigned, return empty
         return res.json({
@@ -162,51 +193,111 @@ const getSubjectById = async (req, res) => {
 
 // Create subject
 const createSubject = async (req, res) => {
+  const connection = await pool.getConnection();
+
   try {
-    const { name, code, description } = req.body;
+    await connection.beginTransaction();
+
+    const {
+      name,
+      code,
+      description,
+      prerequisite_type,
+      prerequisite_subject_ids, // Now an array!
+      subject_nature,
+    } = req.body;
 
     if (!name || !code) {
+      await connection.rollback();
       return res.status(400).json({
         success: false,
         message: "Name and code are required",
       });
     }
 
+    // Validate prerequisite consistency
+    if (
+      prerequisite_type === "subject_exam" &&
+      (!prerequisite_subject_ids || prerequisite_subject_ids.length === 0)
+    ) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        message:
+          "At least one prerequisite subject is required when prerequisite type is 'subject_exam'",
+      });
+    }
+
     // Check if subject code already exists
-    const [existing] = await pool.query(
+    const [existing] = await connection.query(
       "SELECT id FROM subjects WHERE code = ?",
       [code]
     );
 
     if (existing.length > 0) {
+      await connection.rollback();
       return res.status(409).json({
         success: false,
         message: "Subject code already exists",
       });
     }
 
-    const [result] = await pool.query(
-      `INSERT INTO subjects (name, code, description, is_active) 
-       VALUES (?, ?, ?, 1)`,
-      [name, code, description || null]
+    // Insert subject
+    const [result] = await connection.query(
+      `INSERT INTO subjects (
+        name, code, description, 
+        prerequisite_type, subject_nature,
+        is_active
+      ) VALUES (?, ?, ?, ?, ?, 1)`,
+      [
+        name,
+        code,
+        description || null,
+        prerequisite_type || "none",
+        subject_nature || "compulsory",
+      ]
     );
+
+    const subjectId = result.insertId;
+
+    // Insert prerequisites if any
+    if (
+      prerequisite_type === "subject_exam" &&
+      prerequisite_subject_ids &&
+      prerequisite_subject_ids.length > 0
+    ) {
+      const prerequisiteValues = prerequisite_subject_ids.map((prereqId) => [
+        subjectId,
+        prereqId,
+      ]);
+
+      await connection.query(
+        "INSERT INTO subject_prerequisites (subject_id, prerequisite_subject_id) VALUES ?",
+        [prerequisiteValues]
+      );
+    }
+
+    await connection.commit();
 
     res.status(201).json({
       success: true,
       message: "Subject created successfully",
       data: {
-        id: result.insertId,
+        id: subjectId,
         name,
         code,
       },
     });
   } catch (error) {
+    await connection.rollback();
     console.error("Create subject error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to create subject",
       error: error.message,
     });
+  } finally {
+    connection.release();
   }
 };
 // Update subject

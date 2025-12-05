@@ -405,6 +405,7 @@ const Attendance = () => {
   if (userRole === "student") {
     const [viewMonth, setViewMonth] = useState(new Date().getMonth());
     const [viewYear, setViewYear] = useState(new Date().getFullYear());
+    const [expandedWeeks, setExpandedWeeks] = useState(new Set());
 
     const getMonthDateRange = (year, month) => {
       const startDate = new Date(year, month, 1).toISOString().split("T")[0];
@@ -436,6 +437,47 @@ const Attendance = () => {
       attendance_percentage: 0,
     };
 
+    // Group attendance by week
+    const groupedByWeek = useMemo(() => {
+      const weeks = {};
+
+      attendanceList.forEach((record) => {
+        const date = new Date(record.date);
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay()); // Sunday
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6); // Saturday
+
+        const weekKey = `${weekStart.toISOString().split("T")[0]}_${
+          weekEnd.toISOString().split("T")[0]
+        }`;
+
+        if (!weeks[weekKey]) {
+          weeks[weekKey] = {
+            start: weekStart,
+            end: weekEnd,
+            records: [],
+            stats: { present: 0, absent: 0, late: 0, excused: 0 },
+          };
+        }
+
+        weeks[weekKey].records.push(record);
+        weeks[weekKey].stats[record.status]++;
+      });
+
+      return Object.entries(weeks).sort((a, b) => b[1].start - a[1].start); // Most recent first
+    }, [attendanceList]);
+
+    const toggleWeek = (weekKey) => {
+      const newExpanded = new Set(expandedWeeks);
+      if (newExpanded.has(weekKey)) {
+        newExpanded.delete(weekKey);
+      } else {
+        newExpanded.add(weekKey);
+      }
+      setExpandedWeeks(newExpanded);
+    };
+
     const months = [
       "January",
       "February",
@@ -456,6 +498,29 @@ const Attendance = () => {
       (_, i) => new Date().getFullYear() - i
     );
 
+    // Quick filter functions
+    const setQuickFilter = (type) => {
+      const now = new Date();
+      switch (type) {
+        case "thisWeek":
+          const weekStart = new Date(now);
+          weekStart.setDate(now.getDate() - now.getDay());
+          setViewMonth(weekStart.getMonth());
+          setViewYear(weekStart.getFullYear());
+          break;
+        case "thisMonth":
+          setViewMonth(now.getMonth());
+          setViewYear(now.getFullYear());
+          break;
+        case "last30Days":
+          const last30 = new Date(now);
+          last30.setDate(now.getDate() - 30);
+          setViewMonth(last30.getMonth());
+          setViewYear(last30.getFullYear());
+          break;
+      }
+    };
+
     return (
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -464,41 +529,69 @@ const Attendance = () => {
             <p className="text-gray-600 mt-1">View your attendance history</p>
           </div>
 
-          <div className="flex space-x-4">
-            <select
-              value={viewMonth}
-              onChange={(e) => setViewMonth(parseInt(e.target.value))}
-              className="input w-40"
-            >
-              {months.map((month, index) => (
-                <option key={month} value={index}>
-                  {month}
-                </option>
-              ))}
-            </select>
-            <select
-              value={viewYear}
-              onChange={(e) => setViewYear(parseInt(e.target.value))}
-              className="input w-32"
-            >
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Quick Filters with Icons */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setQuickFilter("thisWeek")}
+                className="btn btn-sm btn-outline flex items-center gap-1"
+                title="This Week"
+              >
+                <Calendar className="w-4 h-4" />
+                <span className="hidden sm:inline">Week</span>
+              </button>
+              <button
+                onClick={() => setQuickFilter("thisMonth")}
+                className="btn btn-sm btn-outline flex items-center gap-1"
+                title="This Month"
+              >
+                <Calendar className="w-4 h-4" />
+                <span className="hidden sm:inline">Month</span>
+              </button>
+            </div>
+
+            {/* Month/Year Selectors */}
+            <div className="flex gap-2">
+              <select
+                value={viewMonth}
+                onChange={(e) => setViewMonth(parseInt(e.target.value))}
+                className="input w-40"
+              >
+                {months.map((month, index) => (
+                  <option key={month} value={index}>
+                    📅 {month}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={viewYear}
+                onChange={(e) => setViewYear(parseInt(e.target.value))}
+                className="input w-32"
+              >
+                {years.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Updated with percentage next to Present */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white rounded-lg shadow-md p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Present</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {stats.present_count}
-                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold text-green-600">
+                    {stats.present_count}
+                  </p>
+                  <span className="text-sm font-medium text-green-600">
+                    ({stats.attendance_percentage}%)
+                  </span>
+                </div>
               </div>
               <div className="bg-green-100 p-3 rounded-lg">
                 <Check className="w-6 h-6 text-green-600" />
@@ -537,9 +630,9 @@ const Attendance = () => {
           <div className="bg-white rounded-lg shadow-md p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Percentage</p>
+                <p className="text-sm text-gray-600">Total Days</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {stats.attendance_percentage}%
+                  {stats.total_days}
                 </p>
               </div>
               <div className="bg-blue-100 p-3 rounded-lg">
@@ -549,68 +642,139 @@ const Attendance = () => {
           </div>
         </div>
 
-        {/* Attendance History */}
+        {/* Collapsible Attendance History by Week */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-6 border-b">
             <h2 className="text-lg font-semibold text-gray-900">
               Attendance History
             </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Grouped by week • Click to expand/collapse
+            </p>
           </div>
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Subject</th>
-                  <th>Status</th>
-                  <th>Marked By</th>
-                </tr>
-              </thead>
-              <tbody>
-                {attendanceList.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="text-center py-8 text-gray-500">
-                      No attendance records found
-                    </td>
-                  </tr>
-                ) : (
-                  attendanceList.map((record) => (
-                    <tr key={record.id}>
-                      <td className="font-medium">
-                        {new Date(record.date).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </td>
-                      <td>{record.subject_name || "N/A"}</td>
-                      <td>
+
+          {groupedByWeek.length === 0 ? (
+            <div className="p-12 text-center text-gray-500">
+              <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <p>No attendance records found for this period</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {groupedByWeek.map(([weekKey, weekData]) => {
+                const isExpanded = expandedWeeks.has(weekKey);
+                const weekLabel = `${weekData.start.toLocaleDateString(
+                  "en-US",
+                  { month: "short", day: "numeric" }
+                )} - ${weekData.end.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}`;
+
+                return (
+                  <div key={weekKey}>
+                    {/* Week Header */}
+                    <button
+                      onClick={() => toggleWeek(weekKey)}
+                      className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Calendar className="w-5 h-5 text-gray-400" />
+                        <div className="text-left">
+                          <h3 className="font-semibold text-gray-900">
+                            {weekLabel}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {weekData.records.length} day
+                            {weekData.records.length !== 1 ? "s" : ""}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        {/* Week Stats */}
+                        <div className="flex gap-3 text-sm">
+                          {weekData.stats.present > 0 && (
+                            <span className="text-green-600 font-medium">
+                              ✓ {weekData.stats.present}
+                            </span>
+                          )}
+                          {weekData.stats.absent > 0 && (
+                            <span className="text-red-600 font-medium">
+                              ✗ {weekData.stats.absent}
+                            </span>
+                          )}
+                          {weekData.stats.late > 0 && (
+                            <span className="text-orange-600 font-medium">
+                              ⏰ {weekData.stats.late}
+                            </span>
+                          )}
+                        </div>
+
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-                            record.status === "present"
-                              ? "bg-green-100 text-green-800"
-                              : record.status === "absent"
-                              ? "bg-red-100 text-red-800"
-                              : record.status === "late"
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-blue-100 text-blue-800"
+                          className={`transform transition-transform ${
+                            isExpanded ? "rotate-180" : ""
                           }`}
                         >
-                          {record.status === "excused"
-                            ? "Leave"
-                            : record.status}
+                          ▼
                         </span>
-                      </td>
-                      <td className="text-gray-500">
-                        {record.marked_by_email || "System"}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </button>
+
+                    {/* Week Details */}
+                    {isExpanded && (
+                      <div className="px-6 pb-4 bg-gray-50">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="text-left text-xs text-gray-500 uppercase">
+                              <th className="py-2">Date</th>
+                              <th>Subject</th>
+                              <th>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {weekData.records.map((record) => (
+                              <tr key={record.id} className="text-sm">
+                                <td className="py-3 font-medium">
+                                  {new Date(record.date).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      weekday: "short",
+                                      month: "short",
+                                      day: "numeric",
+                                    }
+                                  )}
+                                </td>
+                                <td className="text-gray-600">
+                                  {record.subject_name || "N/A"}
+                                </td>
+                                <td>
+                                  <span
+                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
+                                      record.status === "present"
+                                        ? "bg-green-100 text-green-800"
+                                        : record.status === "absent"
+                                        ? "bg-red-100 text-red-800"
+                                        : record.status === "late"
+                                        ? "bg-orange-100 text-orange-800"
+                                        : "bg-blue-100 text-blue-800"
+                                    }`}
+                                  >
+                                    {record.status === "excused"
+                                      ? "Leave"
+                                      : record.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     );

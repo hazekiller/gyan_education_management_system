@@ -34,7 +34,10 @@ app.use(
 );
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: process.env.FRONTEND_URL || [
+      "http://localhost:5173",
+      "https://localhost:5173",
+    ],
     credentials: true,
   })
 );
@@ -284,7 +287,7 @@ const startServer = async () => {
     // Initialize class notification scheduler
     initializeScheduler(io);
 
-    server.listen(PORT, () => {
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(`
 🚀 ============================================
    GYAN School Management System - Backend

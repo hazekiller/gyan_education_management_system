@@ -141,6 +141,31 @@ export const subjectsAPI = {
 };
 
 // ============================================
+// SUBJECT FILES API
+// ============================================
+export const subjectFilesAPI = {
+  getFiles: (params) => api.get("/subject-files", { params }),
+  uploadFile: (formData) =>
+    api.post("/subject-files/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  createFolder: (data) => api.post("/subject-files/folder", data),
+  updateItem: (id, data) => api.put(`/subject-files/${id}`, data),
+  deleteItem: (id) => api.delete(`/subject-files/${id}`),
+  downloadFile: (id) => {
+    const token = localStorage.getItem("token");
+    return fetch(
+      `${
+        import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+      }/subject-files/${id}/download`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    ).then((res) => res.blob());
+  },
+};
+
+// ============================================
 // ADMISSIONS API
 // ============================================
 export const admissionsAPI = {
@@ -284,6 +309,7 @@ export const classesAPI = {
 export const attendanceAPI = {
   mark: (data) => api.post("/attendance", data),
   get: (params) => api.get("/attendance", { params }),
+  getStats: (params) => api.get("/attendance/stats", { params }),
   checkSubmission: (params) =>
     api.get("/attendance/check-submission", { params }),
   submit: (data) => api.post("/attendance/submit", data),
@@ -557,7 +583,8 @@ export const libraryAPI = {
 
 export const dashboardAPI = {
   getStats: () => api.get("/dashboard/stats"),
-  getTeacherStats: (teacherId) => api.get(`/dashboard/teacher-stats/${teacherId}`),
+  getTeacherStats: (teacherId) =>
+    api.get(`/dashboard/teacher-stats/${teacherId}`),
   getRecentRegistrations: (limit = 5) =>
     api.get("/dashboard/recent-registrations", { params: { limit } }),
 };
@@ -687,16 +714,20 @@ export const blogAPI = {
 // STUDENT REPORTS API
 // ============================================
 export const studentReportsAPI = {
-  getComprehensiveReport: (id) => api.get(`/students/${id}/comprehensive-report`),
-  getAttendanceReport: (id, params) => api.get(`/students/${id}/reports/attendance`, { params }),
-  getExamReport: (id, params) => api.get(`/students/${id}/reports/exams`, { params }),
-  getAssignmentReport: (id, params) => api.get(`/students/${id}/reports/assignments`, { params }),
+  getComprehensiveReport: (id) =>
+    api.get(`/students/${id}/comprehensive-report`),
+  getAttendanceReport: (id, params) =>
+    api.get(`/students/${id}/reports/attendance`, { params }),
+  getExamReport: (id, params) =>
+    api.get(`/students/${id}/reports/exams`, { params }),
+  getAssignmentReport: (id, params) =>
+    api.get(`/students/${id}/reports/assignments`, { params }),
   getFeeReport: (id) => api.get(`/students/${id}/reports/fees`),
   getTransportReport: (id) => api.get(`/students/${id}/reports/transport`),
   getHostelReport: (id) => api.get(`/students/${id}/reports/hostel`),
-  getLibraryReport: (id, params) => api.get(`/students/${id}/reports/library`, { params })
+  getLibraryReport: (id, params) =>
+    api.get(`/students/${id}/reports/library`, { params }),
 };
 
 // Final export
 export default api;
-
