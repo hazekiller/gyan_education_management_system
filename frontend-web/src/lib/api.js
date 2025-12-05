@@ -557,6 +557,7 @@ export const libraryAPI = {
 
 export const dashboardAPI = {
   getStats: () => api.get("/dashboard/stats"),
+  getTeacherStats: (teacherId) => api.get(`/dashboard/teacher-stats/${teacherId}`),
   getRecentRegistrations: (limit = 5) =>
     api.get("/dashboard/recent-registrations", { params: { limit } }),
 };

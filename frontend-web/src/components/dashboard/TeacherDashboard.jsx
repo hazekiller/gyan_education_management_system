@@ -122,29 +122,14 @@ const TeacherDashboard = () => {
         return;
       }
 
-      // Dashboard Stats
+      // Dashboard Stats - Use teacher-specific endpoint
       try {
-        const statsRes = await dashboardAPI.getStats(
-          hasPermission(PERMISSIONS.VIEW_ALL_STATS),
-          currentUser.id
-        );
+        const statsRes = await dashboardAPI.getTeacherStats(teacherId);
         finalStats = statsRes.data || {};
+        // Override students count with the one from teacher stats
+        finalStudents = finalStats.students || 0;
       } catch (err) {
         console.error("Stats fetch error:", err);
-      }
-
-      // Students Count
-      if (hasPermission(PERMISSIONS.VIEW_STUDENTS)) {
-        try {
-          const studentsRes = await api.get("/students", {
-            params: { teacherId: teacherId },
-          });
-
-          const list = studentsRes.data?.data || studentsRes.data || [];
-          finalStudents = Array.isArray(list) ? list.length : 0;
-        } catch (err) {
-          console.error("Students fetch error:", err);
-        }
       }
 
       // Teacher Schedule
@@ -156,10 +141,7 @@ const TeacherDashboard = () => {
       }
 
       // UPDATE UI
-      setStats({
-        ...finalStats,
-        students: finalStudents,
-      });
+      setStats(finalStats);
       setSchedule(finalSchedule);
     } catch (error) {
       console.error("Dashboard fetch error:", error);
@@ -242,9 +224,9 @@ const TeacherDashboard = () => {
         {hasPermission(PERMISSIONS.VIEW_CLASSES) && (
           <StatCard
             ref={(el) => (statsCardsRef.current[1] = el)}
-            title="Classes Today"
-            value={todaySchedule.length}
-            subtitle="Scheduled periods"
+            title="Subjects Taught"
+            value={stats?.subjects || 0}
+            subtitle="Unique subjects"
             icon={BookOpen}
             gradient="from-green-600 to-emerald-600"
             bgGradient="from-white to-green-50/30"
@@ -315,10 +297,10 @@ const TeacherDashboard = () => {
                   <div
                     key={period.id}
                     className={`p-4 rounded-xl border-l-4 transition-all duration-300 ${isCurrent()
-                        ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-500 shadow-md"
-                        : isPast()
-                          ? "bg-gray-50 border-gray-300 opacity-60"
-                          : "bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-500"
+                      ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-500 shadow-md"
+                      : isPast()
+                        ? "bg-gray-50 border-gray-300 opacity-60"
+                        : "bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-500"
                       }`}
                   >
                     <div className="flex items-start justify-between">
@@ -456,21 +438,21 @@ const TeacherDashboard = () => {
           action={() => navigate("/announcements")}
           actionLabel="View All"
         >
-          {stats?.upcomingEvents && stats.upcomingEvents.length > 0 ? (
+          {stats?.announcements && stats.announcements.length > 0 ? (
             <div className="space-y-3">
-              {stats.upcomingEvents.slice(0, 3).map((event) => (
+              {stats.announcements.slice(0, 3).map((announcement) => (
                 <div
-                  key={event.id}
+                  key={announcement.id}
                   className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-blue-600 rounded-xl hover:shadow-md transition-all duration-300"
                 >
                   <div className="flex items-start space-x-3">
                     <Megaphone className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900 mb-1">
-                        {event.title}
+                        {announcement.title}
                       </p>
                       <p className="text-xs text-gray-600">
-                        {new Date(event.event_date).toLocaleDateString("en-US", {
+                        {new Date(announcement.published_at).toLocaleDateString("en-US", {
                           weekday: "short",
                           month: "short",
                           day: "numeric",
