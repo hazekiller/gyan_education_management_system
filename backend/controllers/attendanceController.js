@@ -235,11 +235,19 @@ const markAttendance = async (req, res) => {
         const isWithinTime = schedule.some((slot) => {
           const start = dayjs(slot.start_time, "HH:mm:ss");
           const end = dayjs(slot.end_time, "HH:mm:ss");
-          const now = dayjs();
+          // Server is in UTC, add 5h 45m for Nepal Time
+          const now = dayjs().add(5, "hour").add(45, "minute");
           // We need to compare only times.
           const nowTime = dayjs(now.format("HH:mm:ss"), "HH:mm:ss");
-          return nowTime.isAfter(start) && nowTime.isBefore(end);
-          // Strict time validation (no buffer)
+
+          console.log("Debug Attendance Time Check:");
+          console.log("Slot Start:", start.format("HH:mm:ss"));
+          console.log("Slot End:", end.format("HH:mm:ss"));
+          console.log("Server Now:", nowTime.format("HH:mm:ss"));
+          console.log("Is Between:", nowTime.isBetween(start, end, null, "[]"));
+
+          // Inclusive check: start <= now <= end
+          return nowTime.isBetween(start, end, null, "[]");
         });
 
         if (!isWithinTime) {
@@ -247,7 +255,7 @@ const markAttendance = async (req, res) => {
           return res.status(403).json({
             success: false,
             message:
-              "You can only mark attendance during the scheduled class time (with 10min buffer).",
+              "You can only mark attendance during the scheduled class time.",
           });
         }
       } else {
