@@ -2,6 +2,20 @@ const pool = require("../config/database");
 const path = require("path");
 const fs = require("fs").promises;
 
+// Helper to sanitize IDs
+const sanitizeId = (id) => {
+  if (
+    id === "null" ||
+    id === "undefined" ||
+    id === "" ||
+    id === null ||
+    id === undefined
+  ) {
+    return null;
+  }
+  return id;
+};
+
 /**
  * Subject Files Controller
  * Handles CRUD operations for subject files and folders
@@ -10,13 +24,18 @@ const fs = require("fs").promises;
 // Get files/folders for a subject
 const getFiles = async (req, res) => {
   try {
-    const { subject_id, class_id, section_id, parent_folder_id } = req.query;
-    const userRole = req.user.role;
+    let { subject_id, class_id, section_id, parent_folder_id } = req.query;
 
-    if (!subject_id || !class_id) {
+    // Sanitize inputs
+    subject_id = sanitizeId(subject_id);
+    class_id = sanitizeId(class_id);
+    section_id = sanitizeId(section_id);
+    parent_folder_id = sanitizeId(parent_folder_id);
+
+    if (!subject_id) {
       return res.status(400).json({
         success: false,
-        message: "subject_id and class_id are required",
+        message: "subject_id is required",
       });
     }
 
@@ -33,10 +52,18 @@ const getFiles = async (req, res) => {
       LEFT JOIN users u ON sf.uploaded_by = u.id
       LEFT JOIN teachers t ON u.id = t.user_id
       LEFT JOIN students s ON u.id = s.user_id
-      WHERE sf.subject_id = ? AND sf.class_id = ?
+      WHERE sf.subject_id = ?
     `;
 
-    const params = [subject_id, class_id];
+    const params = [subject_id];
+
+    // Class filter
+    if (class_id) {
+      query += " AND (sf.class_id = ? OR sf.class_id IS NULL)";
+      params.push(class_id);
+    } else {
+      query += " AND sf.class_id IS NULL";
+    }
 
     // Section filter
     if (section_id) {
@@ -82,32 +109,37 @@ const uploadFile = async (req, res) => {
       });
     }
 
-    const { subject_id, class_id, section_id, parent_folder_id, description } =
-      req.body;
+    let { subject_id, class_id, section_id, parent_folder_id } = req.body;
+
+    // Sanitize inputs
+    subject_id = sanitizeId(subject_id);
+    class_id = sanitizeId(class_id);
+    section_id = sanitizeId(section_id);
+    parent_folder_id = sanitizeId(parent_folder_id);
+
     const uploaded_by = req.user.id;
 
-    if (!subject_id || !class_id) {
+    if (!subject_id) {
       return res.status(400).json({
         success: false,
-        message: "subject_id and class_id are required",
+        message: "subject_id is required",
       });
     }
 
     const [result] = await pool.query(
       `INSERT INTO subject_files 
-       (subject_id, class_id, section_id, file_name, file_path, file_type, file_size, parent_folder_id, is_folder, uploaded_by, description)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE, ?, ?)`,
+       (subject_id, class_id, section_id, file_name, file_path, file_type, file_size, parent_folder_id, is_folder, uploaded_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE, ?)`,
       [
         subject_id,
         class_id,
-        section_id || null,
+        section_id,
         req.file.originalname,
         req.file.path,
         req.file.mimetype,
         req.file.size,
-        parent_folder_id || null,
+        parent_folder_id,
         uploaded_by,
-        description || null,
       ]
     );
 
@@ -133,39 +165,40 @@ const uploadFile = async (req, res) => {
 // Create folder
 const createFolder = async (req, res) => {
   try {
-    const {
-      subject_id,
-      class_id,
-      section_id,
-      folder_name,
-      parent_folder_id,
-      description,
-    } = req.body;
+    let { subject_id, class_id, section_id, folder_name, parent_folder_id } =
+      req.body;
+
+    // Sanitize inputs
+    subject_id = sanitizeId(subject_id);
+    class_id = sanitizeId(class_id);
+    section_id = sanitizeId(section_id);
+    parent_folder_id = sanitizeId(parent_folder_id);
+
     const uploaded_by = req.user.id;
 
-    if (!subject_id || !class_id || !folder_name) {
+    if (!subject_id || !folder_name) {
       return res.status(400).json({
         success: false,
-        message: "subject_id, class_id, and folder_name are required",
+        message: "subject_id and folder_name are required",
       });
     }
 
     // Generate folder path
-    const folderPath = `subjects/${subject_id}/class_${class_id}/${folder_name}/`;
+    const classPart = class_id ? `class_${class_id}` : "general";
+    const folderPath = `subjects/${subject_id}/${classPart}/${folder_name}/`;
 
     const [result] = await pool.query(
       `INSERT INTO subject_files 
-       (subject_id, class_id, section_id, file_name, file_path, parent_folder_id, is_folder, uploaded_by, description)
-       VALUES (?, ?, ?, ?, ?, ?, TRUE, ?, ?)`,
+       (subject_id, class_id, section_id, file_name, file_path, parent_folder_id, is_folder, uploaded_by)
+       VALUES (?, ?, ?, ?, ?, ?, TRUE, ?)`,
       [
         subject_id,
         class_id,
-        section_id || null,
+        section_id,
         folder_name,
         folderPath,
-        parent_folder_id || null,
+        parent_folder_id,
         uploaded_by,
-        description || null,
       ]
     );
 
@@ -192,7 +225,7 @@ const createFolder = async (req, res) => {
 const updateItem = async (req, res) => {
   try {
     const { id } = req.params;
-    const { file_name, description } = req.body;
+    const { file_name } = req.body;
 
     if (!file_name) {
       return res.status(400).json({
@@ -202,8 +235,8 @@ const updateItem = async (req, res) => {
     }
 
     await pool.query(
-      "UPDATE subject_files SET file_name = ?, description = ?, updated_at = NOW() WHERE id = ?",
-      [file_name, description || null, id]
+      "UPDATE subject_files SET file_name = ?, updated_at = NOW() WHERE id = ?",
+      [file_name, id]
     );
 
     res.json({

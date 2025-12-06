@@ -16,8 +16,6 @@ const getStudentData = async (studentId, options = {}) => {
       c.grade_level,
       sec.name as section_name,
       u.email,
-      u.phone_number as user_phone,
-      u.profile_photo as user_profile_photo,
       u.is_active as account_active,
       u.Role as account_role,
       u.last_login,
