@@ -248,11 +248,14 @@ const getAssignmentById = async (req, res) => {
       `SELECT a.*, 
               c.name as class_name, 
               sec.name as section_name, 
-              s.name as subject_name
+              s.name as subject_name,
+              t.first_name as teacher_first_name,
+              t.last_name as teacher_last_name
        FROM assignments a
        LEFT JOIN classes c ON a.class_id = c.id
        LEFT JOIN sections sec ON a.section_id = sec.id
        LEFT JOIN subjects s ON a.subject_id = s.id
+       LEFT JOIN teachers t ON a.created_by = t.id
        WHERE a.id = ?`,
       [req.params.id]
     );
