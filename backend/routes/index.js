@@ -25,6 +25,7 @@ const libraryRoutes = require("./library.routes");
 const admissionsRoutes = require("./admissions.routes");
 const dailyReportsRoutes = require("./dailyReports.routes");
 const studentReportsRoutes = require("./studentReports.routes");
+const timetableRoutes = require("./timetable.routes");
 
 // ===== PUBLIC ROUTES =====
 router.use("/auth", authRoutes);
@@ -57,6 +58,7 @@ router.use("/notifications", require("./notifications.routes"));
 router.use("/results", require("./results.routes"));
 router.use("/blogs", require("./blog.routes"));
 router.use("/daily-reports", dailyReportsRoutes);
+router.use("/timetable", timetableRoutes);
 // ===== DEFAULT ROUTE =====
 router.get("/", (req, res) => {
   res.status(200).json({

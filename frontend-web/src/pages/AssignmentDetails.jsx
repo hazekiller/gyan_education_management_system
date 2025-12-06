@@ -299,7 +299,8 @@ const AssignmentDetails = () => {
                 <div>
                   <p className="text-sm text-gray-600">Created By</p>
                   <p className="font-semibold text-gray-900">
-                    Teacher ID: {assignment.created_by}
+                    {assignment.teacher_first_name}{" "}
+                    {assignment.teacher_last_name}
                   </p>
                 </div>
               </div>

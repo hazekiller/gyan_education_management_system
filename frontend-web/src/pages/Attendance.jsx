@@ -17,6 +17,7 @@ import {
   classesAPI,
   studentsAPI,
   classSubjectsAPI,
+  timetableAPI,
 } from "../lib/api";
 import toast from "react-hot-toast";
 import { selectCurrentUser, selectUserRole } from "../store/slices/authSlice";
@@ -108,20 +109,17 @@ const Attendance = () => {
       const today = days[new Date().getDay()];
 
       // Fetch teacher's schedule for this subject
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_API_URL
-        }/timetable?class_id=${selectedClass}&section_id=${selectedSection}&subject_id=${selectedSubject}&day_of_week=${today}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await timetableAPI.get({
+        class_id: selectedClass,
+        section_id: selectedSection,
+        subject_id: selectedSubject,
+        day_of_week: today,
+        user_id: currentUser.id, // Ensure we check for this specific teacher
+      });
 
-      if (!response.ok) return null;
-      const data = await response.json();
-      return data.data && data.data.length > 0 ? data.data[0] : null;
+      return response.data && response.data.length > 0
+        ? response.data[0]
+        : null;
     },
     enabled:
       !!selectedClass &&
@@ -262,6 +260,13 @@ const Attendance = () => {
       return;
     }
 
+    if (!isWithinScheduledTime && userRole === "teacher") {
+      toast.error(
+        "You can only mark attendance during the scheduled class time."
+      );
+      return;
+    }
+
     if (isSubmitted && !isAdmin) {
       toast.error(
         "Attendance is already submitted. Contact admin to make changes."
@@ -300,6 +305,13 @@ const Attendance = () => {
   const handleSubmitAttendance = async () => {
     if (!selectedClass || !selectedSection || !selectedSubject) {
       toast.error("Please select class, section, and subject");
+      return;
+    }
+
+    if (!isWithinScheduledTime && userRole === "teacher") {
+      toast.error(
+        "You can only submit attendance during the scheduled class time."
+      );
       return;
     }
 
@@ -1064,6 +1076,34 @@ const Attendance = () => {
           </div>
         </div>
       )}
+
+      {/* Schedule Warning */}
+      {userRole === "teacher" &&
+        isMarkingForToday &&
+        !isWithinScheduledTime && (
+          <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+            <div className="flex items-start">
+              <AlertCircle className="w-5 h-5 text-yellow-400 mt-0.5 mr-3" />
+              <div>
+                <h3 className="text-sm font-medium text-yellow-800">
+                  Outside Scheduled Time
+                </h3>
+                <div className="mt-1 text-sm text-yellow-700">
+                  <p>
+                    You can only mark attendance during your scheduled class
+                    time.
+                    {scheduleData && (
+                      <span className="block mt-1 font-semibold">
+                        Scheduled: {scheduleData.start_time} -{" "}
+                        {scheduleData.end_time}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       {/* Students List */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">

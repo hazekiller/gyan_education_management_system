@@ -729,5 +729,15 @@ export const studentReportsAPI = {
     api.get(`/students/${id}/reports/library`, { params }),
 };
 
+// ============================================
+// TIMETABLE API
+// ============================================
+export const timetableAPI = {
+  get: (params) => api.get("/timetable", { params }),
+  create: (data) => api.post("/timetable", data),
+  update: (id, data) => api.put(`/timetable/${id}`, data),
+  delete: (id) => api.delete(`/timetable/${id}`),
+};
+
 // Final export
 export default api;
