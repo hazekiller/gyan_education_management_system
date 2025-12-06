@@ -235,7 +235,8 @@ const markAttendance = async (req, res) => {
         const isWithinTime = schedule.some((slot) => {
           const start = dayjs(slot.start_time, "HH:mm:ss");
           const end = dayjs(slot.end_time, "HH:mm:ss");
-          const now = dayjs();
+          // Server is in UTC, add 5h 45m for Nepal Time
+          const now = dayjs().add(5, "hour").add(45, "minute");
           // We need to compare only times.
           const nowTime = dayjs(now.format("HH:mm:ss"), "HH:mm:ss");
 
