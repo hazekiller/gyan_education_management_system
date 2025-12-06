@@ -238,6 +238,13 @@ const markAttendance = async (req, res) => {
           const now = dayjs();
           // We need to compare only times.
           const nowTime = dayjs(now.format("HH:mm:ss"), "HH:mm:ss");
+
+          console.log("Debug Attendance Time Check:");
+          console.log("Slot Start:", start.format("HH:mm:ss"));
+          console.log("Slot End:", end.format("HH:mm:ss"));
+          console.log("Server Now:", nowTime.format("HH:mm:ss"));
+          console.log("Is Between:", nowTime.isBetween(start, end, null, "[]"));
+
           // Inclusive check: start <= now <= end
           return nowTime.isBetween(start, end, null, "[]");
         });
