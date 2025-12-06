@@ -69,7 +69,20 @@ const SubjectAssignmentIndicator = ({
       <div className="space-y-6">
         {/* Summary Cards */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div
+            onClick={() => {
+              navigate("/assignments", {
+                state: {
+                  subject_id: subjectId,
+                  class_id: classId,
+                  section_id: sectionId,
+                  filter: "upcoming",
+                },
+              });
+              onClose();
+            }}
+            className="bg-green-50 border border-green-200 rounded-lg p-4 cursor-pointer hover:bg-green-100 transition-colors"
+          >
             <div className="flex items-center gap-2 mb-2">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
               <p className="text-sm font-medium text-green-800">Active</p>
@@ -79,7 +92,20 @@ const SubjectAssignmentIndicator = ({
             </p>
           </div>
 
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div
+            onClick={() => {
+              navigate("/assignments", {
+                state: {
+                  subject_id: subjectId,
+                  class_id: classId,
+                  section_id: sectionId,
+                  filter: "overdue",
+                },
+              });
+              onClose();
+            }}
+            className="bg-gray-50 border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-100 transition-colors"
+          >
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 className="w-4 h-4 text-gray-600" />
               <p className="text-sm font-medium text-gray-800">Completed</p>
