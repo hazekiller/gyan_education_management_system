@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Plus,
   FileText,
@@ -10,6 +10,7 @@ import {
   Edit,
   Trash2,
   Eye,
+  X,
 } from "lucide-react";
 import { assignmentsAPI, authAPI } from "../lib/api";
 import Modal from "../components/common/Modal";
@@ -22,10 +23,31 @@ import { PERMISSIONS } from "../utils/rbac";
 const Assignments = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
   const [filter, setFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+
+  // Advanced filters from navigation state
+  const [advancedFilters, setAdvancedFilters] = useState({
+    subject_id: null,
+    class_id: null,
+    section_id: null,
+  });
+
+  useEffect(() => {
+    if (location.state) {
+      if (location.state.filter) {
+        setFilter(location.state.filter);
+      }
+      setAdvancedFilters({
+        subject_id: location.state.subject_id || null,
+        class_id: location.state.class_id || null,
+        section_id: location.state.section_id || null,
+      });
+    }
+  }, [location.state]);
 
   // Get user profile to determine role
   const { data: profileData } = useQuery({
@@ -36,11 +58,21 @@ const Assignments = () => {
   const userRole = profileData?.data?.role;
 
   const { data: assignmentsData, isLoading } = useQuery({
-    queryKey: ["assignments"],
-    queryFn: () => assignmentsAPI.getAll(),
+    queryKey: ["assignments", advancedFilters],
+    queryFn: () => assignmentsAPI.getAll(advancedFilters),
   });
 
   const assignments = assignmentsData?.data || [];
+
+  const clearAdvancedFilters = () => {
+    setAdvancedFilters({
+      subject_id: null,
+      class_id: null,
+      section_id: null,
+    });
+    // Clear location state
+    navigate(location.pathname, { replace: true, state: {} });
+  };
 
   // Create assignment mutation
   const createMutation = useMutation({
@@ -178,35 +210,53 @@ const Assignments = () => {
         <div className="flex space-x-4">
           <button
             onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === "all"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === "all"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
           >
             All Assignments
           </button>
           <button
             onClick={() => setFilter("upcoming")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === "upcoming"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === "upcoming"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
           >
             Upcoming
           </button>
           <button
             onClick={() => setFilter("overdue")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === "overdue"
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === "overdue"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+              }`}
           >
             Overdue
           </button>
         </div>
+
+        {/* Active Advanced Filters Indicator */}
+        {(advancedFilters.subject_id ||
+          advancedFilters.class_id ||
+          advancedFilters.section_id) && (
+            <div className="mt-4 flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-100">
+              <div className="text-sm text-blue-800">
+                <span className="font-semibold">Filtered by:</span>
+                {advancedFilters.subject_id && " Subject"}
+                {advancedFilters.class_id && " • Class"}
+                {advancedFilters.section_id && " • Section"}
+              </div>
+              <button
+                onClick={clearAdvancedFilters}
+                className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              >
+                <X className="w-4 h-4" />
+                Clear Filters
+              </button>
+            </div>
+          )}
       </div>
 
       {/* Assignments List */}
@@ -282,7 +332,7 @@ const Assignments = () => {
                           {(() => {
                             const days = Math.ceil(
                               (new Date(assignment.due_date) - new Date()) /
-                                (1000 * 60 * 60 * 24)
+                              (1000 * 60 * 60 * 24)
                             );
                             if (days < 0)
                               return `${Math.abs(days)} days overdue`;
@@ -389,8 +439,8 @@ const Assignments = () => {
           editingAssignment
             ? "Edit Assignment"
             : userRole === "admin" || userRole === "super_admin"
-            ? "Create Assignment (as Teacher)"
-            : "Create New Assignment"
+              ? "Create Assignment (as Teacher)"
+              : "Create New Assignment"
         }
         size="lg"
       >

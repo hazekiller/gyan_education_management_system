@@ -1,5 +1,6 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { FileCheck, Clock, CheckCircle2 } from "lucide-react";
 import { assignmentsAPI } from "../../lib/api";
 import Modal from "../common/Modal";
@@ -15,6 +16,8 @@ const SubjectAssignmentIndicator = ({
   sectionId,
   onClose,
 }) => {
+  const navigate = useNavigate();
+
   // Fetch assignments for this subject
   const { data: assignmentsData, isLoading } = useQuery({
     queryKey: ["subject-assignments", subjectId, classId, sectionId],
@@ -38,6 +41,23 @@ const SubjectAssignmentIndicator = ({
     const dueDate = new Date(assignment.due_date);
     return dueDate < new Date();
   });
+
+  const handleAssignmentClick = (assignmentId) => {
+    navigate(`/assignments/${assignmentId}`);
+    onClose();
+  };
+
+  const handleViewAllClick = () => {
+    navigate("/assignments", {
+      state: {
+        subject_id: subjectId,
+        class_id: classId,
+        section_id: sectionId,
+        filter: "all",
+      },
+    });
+    onClose();
+  };
 
   return (
     <Modal
@@ -69,7 +89,10 @@ const SubjectAssignmentIndicator = ({
             </p>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div
+            onClick={handleViewAllClick}
+            className="bg-blue-50 border border-blue-200 rounded-lg p-4 cursor-pointer hover:bg-blue-100 transition-colors"
+          >
             <div className="flex items-center gap-2 mb-2">
               <FileCheck className="w-4 h-4 text-blue-600" />
               <p className="text-sm font-medium text-blue-800">Total</p>
@@ -91,13 +114,14 @@ const SubjectAssignmentIndicator = ({
               {activeAssignments.map((assignment) => {
                 const daysLeft = Math.ceil(
                   (new Date(assignment.due_date) - new Date()) /
-                    (1000 * 60 * 60 * 24)
+                  (1000 * 60 * 60 * 24)
                 );
 
                 return (
                   <div
                     key={assignment.id}
-                    className="border border-green-200 bg-green-50 rounded-lg p-4"
+                    onClick={() => handleAssignmentClick(assignment.id)}
+                    className="border border-green-200 bg-green-50 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all"
                   >
                     <div className="flex items-start justify-between">
                       <div>
@@ -141,7 +165,8 @@ const SubjectAssignmentIndicator = ({
               {completedAssignments.map((assignment) => (
                 <div
                   key={assignment.id}
-                  className="border rounded-lg p-3 bg-gray-50"
+                  onClick={() => handleAssignmentClick(assignment.id)}
+                  className="border rounded-lg p-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div>

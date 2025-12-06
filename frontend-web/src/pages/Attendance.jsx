@@ -72,11 +72,11 @@ const Attendance = () => {
   const subjects =
     userRole === "teacher"
       ? allSubjects.filter(
-          (s) =>
-            s.section_teacher_email === currentUser?.email ||
-            (!s.section_teacher_email &&
-              s.default_teacher_email === currentUser?.email)
-        )
+        (s) =>
+          s.section_teacher_email === currentUser?.email ||
+          (!s.section_teacher_email &&
+            s.default_teacher_email === currentUser?.email)
+      )
       : allSubjects;
 
   // For teachers, check if marking for today
@@ -109,8 +109,7 @@ const Attendance = () => {
 
       // Fetch teacher's schedule for this subject
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_URL
+        `${import.meta.env.VITE_API_URL
         }/timetable?class_id=${selectedClass}&section_id=${selectedSection}&subject_id=${selectedSubject}&day_of_week=${today}`,
         {
           headers: {
@@ -448,9 +447,8 @@ const Attendance = () => {
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6); // Saturday
 
-        const weekKey = `${weekStart.toISOString().split("T")[0]}_${
-          weekEnd.toISOString().split("T")[0]
-        }`;
+        const weekKey = `${weekStart.toISOString().split("T")[0]}_${weekEnd.toISOString().split("T")[0]
+          }`;
 
         if (!weeks[weekKey]) {
           weeks[weekKey] = {
@@ -654,9 +652,31 @@ const Attendance = () => {
           </div>
 
           {groupedByWeek.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">
-              <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-              <p>No attendance records found for this period</p>
+            <div className="p-6">
+              <div className="text-center text-gray-500 mb-4">
+                <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                <p>No attendance records found for this period ({startDate} to {endDate})</p>
+                <p className="text-xs mt-2">Debug: Found {attendanceList.length} records from API.</p>
+              </div>
+              {/* Always show table headers as requested */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left text-xs text-gray-500 uppercase bg-gray-50">
+                      <th className="px-6 py-3">Date</th>
+                      <th className="px-6 py-3">Subject</th>
+                      <th className="px-6 py-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colSpan="3" className="px-6 py-4 text-center text-gray-500">
+                        No data available
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : (
             <div className="divide-y">
@@ -711,9 +731,8 @@ const Attendance = () => {
                         </div>
 
                         <span
-                          className={`transform transition-transform ${
-                            isExpanded ? "rotate-180" : ""
-                          }`}
+                          className={`transform transition-transform ${isExpanded ? "rotate-180" : ""
+                            }`}
                         >
                           ▼
                         </span>
@@ -732,40 +751,60 @@ const Attendance = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y">
-                            {weekData.records.map((record) => (
-                              <tr key={record.id} className="text-sm">
-                                <td className="py-3 font-medium">
-                                  {new Date(record.date).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      weekday: "short",
-                                      month: "short",
-                                      day: "numeric",
-                                    }
-                                  )}
-                                </td>
-                                <td className="text-gray-600">
-                                  {record.subject_name || "N/A"}
-                                </td>
-                                <td>
-                                  <span
-                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-                                      record.status === "present"
-                                        ? "bg-green-100 text-green-800"
-                                        : record.status === "absent"
-                                        ? "bg-red-100 text-red-800"
-                                        : record.status === "late"
-                                        ? "bg-orange-100 text-orange-800"
-                                        : "bg-blue-100 text-blue-800"
-                                    }`}
-                                  >
-                                    {record.status === "excused"
-                                      ? "Leave"
-                                      : record.status}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
+                            {Object.entries(
+                              weekData.records.reduce((acc, record) => {
+                                const dateKey = new Date(
+                                  record.date
+                                ).toISOString().split("T")[0];
+                                if (!acc[dateKey]) acc[dateKey] = [];
+                                acc[dateKey].push(record);
+                                return acc;
+                              }, {})
+                            )
+                              .sort(
+                                ([dateA], [dateB]) =>
+                                  new Date(dateB) - new Date(dateA)
+                              )
+                              .map(([date, records]) =>
+                                records.map((record, index) => (
+                                  <tr key={record.id} className="text-sm">
+                                    {index === 0 && (
+                                      <td
+                                        className="py-3 font-medium align-top"
+                                        rowSpan={records.length}
+                                      >
+                                        {new Date(date).toLocaleDateString(
+                                          "en-US",
+                                          {
+                                            weekday: "short",
+                                            month: "short",
+                                            day: "numeric",
+                                          }
+                                        )}
+                                      </td>
+                                    )}
+                                    <td className="text-gray-600 py-3">
+                                      {record.subject_name || "N/A"}
+                                    </td>
+                                    <td className="py-3">
+                                      <span
+                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${record.status === "present"
+                                          ? "bg-green-100 text-green-800"
+                                          : record.status === "absent"
+                                            ? "bg-red-100 text-red-800"
+                                            : record.status === "late"
+                                              ? "bg-orange-100 text-orange-800"
+                                              : "bg-blue-100 text-blue-800"
+                                          }`}
+                                      >
+                                        {record.status === "excused"
+                                          ? "Leave"
+                                          : record.status}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))
+                              )}
                           </tbody>
                         </table>
                       </div>
@@ -955,8 +994,8 @@ const Attendance = () => {
             {submitting
               ? "Submitting..."
               : isSubmitted
-              ? "Submitted"
-              : "Submit"}
+                ? "Submitted"
+                : "Submit"}
           </button>
         </div>
       </div>
@@ -1081,11 +1120,10 @@ const Attendance = () => {
                             handleAttendanceChange(student.id, "present")
                           }
                           disabled={isSubmitted && !isAdmin}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                            attendanceData[student.id] === "present"
-                              ? "bg-green-600 text-white"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${attendanceData[student.id] === "present"
+                            ? "bg-green-600 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
                         >
                           Present
                         </button>
@@ -1094,11 +1132,10 @@ const Attendance = () => {
                             handleAttendanceChange(student.id, "absent")
                           }
                           disabled={isSubmitted && !isAdmin}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                            attendanceData[student.id] === "absent"
-                              ? "bg-red-600 text-white"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${attendanceData[student.id] === "absent"
+                            ? "bg-red-600 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
                         >
                           Absent
                         </button>
@@ -1107,11 +1144,10 @@ const Attendance = () => {
                             handleAttendanceChange(student.id, "late")
                           }
                           disabled={isSubmitted && !isAdmin}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                            attendanceData[student.id] === "late"
-                              ? "bg-orange-600 text-white"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${attendanceData[student.id] === "late"
+                            ? "bg-orange-600 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
                         >
                           Late
                         </button>
@@ -1120,11 +1156,10 @@ const Attendance = () => {
                             handleAttendanceChange(student.id, "excused")
                           }
                           disabled={isSubmitted && !isAdmin}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                            attendanceData[student.id] === "excused"
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${attendanceData[student.id] === "excused"
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
                         >
                           Leave
                         </button>
