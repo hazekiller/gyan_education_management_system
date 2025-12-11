@@ -256,8 +256,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <div className="flex items-center space-x-3">
             <div
               ref={logoRef}
-              className="bg-gradient-to-br from-blue-600 to-purple-600 p-2 rounded-xl shadow-lg relative overflow-hidden"
-            >
+              className="bg-gradient-to-br from-blue-600 to-blue-400 p-2 rounded-xl shadow-lg shadow-blue-500/20 relative overflow-hidden"
+              >
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-white opacity-20"></div>
               <GraduationCap className="w-6 h-6 text-white relative z-10" />
             </div>
@@ -291,8 +291,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   to={item.path}
                   className={({ isActive }) =>
                     `nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden ${isActive
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:shadow-md"
+                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:shadow-md"
                     }`
                   }
                   onClick={() => {
@@ -346,21 +346,22 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
       </aside>
 
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #3b82f6, #9333ea);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #2563eb, #7c3aed);
-        }
-      `}</style>
+     <style jsx>{`
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #1e40af, #3b82f6);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #1e3a8a, #2563eb);
+  }
+`}</style>
+
     </>
   );
 };
