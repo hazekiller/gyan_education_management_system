@@ -4,7 +4,6 @@ import {
   Plus,
   Search,
   Filter,
-  Eye,
   Edit,
   Trash2,
   FileText,
@@ -87,57 +86,56 @@ const Admissions = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Admissions</h1>
-          <p className="text-gray-600 mt-1">
-            Manage student admission applications
+          <h1 className="text-3xl font-extrabold text-gray-900">Admissions</h1>
+          <p className="text-gray-600 mt-1 max-w-md">
+            Manage student admission applications with ease.
           </p>
         </div>
         <PermissionGuard permission={PERMISSIONS.MANAGE_ADMISSIONS}>
           <button
             onClick={() => setShowAddModal(true)}
-            className="btn btn-primary flex items-center space-x-2"
+            className="inline-flex items-center px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md transition-colors"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-5 h-5 mr-2" />
             <span>New Admission</span>
           </button>
         </PermissionGuard>
       </div>
 
       {/* Filters */}
-      <div className="card">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-2 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+      <div className="card p-6 bg-white rounded-lg shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+          <div className="relative md:col-span-3">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
             <input
               type="text"
               placeholder="Search by name, application number..."
               value={filters.search}
-              onChange={(e) =>
-                setFilters({ ...filters, search: e.target.value })
-              }
-              className="input pl-10 w-full"
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              className="input pl-12 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500"
             />
           </div>
-          <div>
-            <select
-              value={filters.status}
-              onChange={(e) =>
-                setFilters({ ...filters, status: e.target.value })
-              }
-              className="input w-full"
-            >
-              <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="admitted">Admitted</option>
-              <option value="rejected">Rejected</option>
-            </select>
-          </div>
+
+          <select
+            value={filters.status}
+            onChange={(e) =>
+              setFilters({ ...filters, status: e.target.value })
+            }
+            className="input w-full border border-gray-300 rounded-lg py-2 px-3 focus:ring-2 focus:ring-blue-400 focus:border-blue-500"
+          >
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="admitted">Admitted</option>
+            <option value="rejected">Rejected</option>
+          </select>
+
           <button
             onClick={() => setFilters({ search: "", status: "" })}
-            className="btn btn-outline flex items-center justify-center space-x-2"
+            className="btn btn-outline flex items-center justify-center space-x-2 rounded-lg border border-gray-300 hover:bg-gray-50 px-4 py-2"
           >
             <Filter className="w-4 h-4" />
             <span>Reset</span>
@@ -146,38 +144,29 @@ const Admissions = () => {
       </div>
 
       {/* Table */}
-      <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+      <div className="card overflow-hidden rounded-lg shadow-sm bg-white border border-gray-200">
+        <div className="overflow-x-auto max-h-[600px]">
+          <table className="w-full table-auto border-collapse">
+            <thead className="bg-gray-50 border-b border-gray-300 sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-48">
                   Application No
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Student Name
+                <th
+                  className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                  colSpan={5}
+                >
+                  Details
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Class
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Parent Info
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 bg-white">
               {isLoading ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-4 text-center">
+                  <td colSpan="7" className="px-6 py-8 text-center">
                     <div className="loading mx-auto"></div>
                   </td>
                 </tr>
@@ -192,40 +181,61 @@ const Admissions = () => {
                   </td>
                 </tr>
               ) : (
-                admissionsData?.data?.map((admission) => (
-                  <tr key={admission.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                admissionsData.data.map((admission) => (
+                  <tr
+                    key={admission.id}
+                    className="hover:bg-blue-50 transition-colors"
+                  >
+                    {/* LEFT SIDE — APPLICATION NUMBER */}
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900 border-r border-gray-200 align-middle whitespace-nowrap">
                       {admission.application_number}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {admission.first_name} {admission.last_name}
+
+                    {/* RIGHT SIDE — DETAILS */}
+                    <td colSpan={5} className="px-6 py-4 align-middle">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm text-gray-700">
+                        {/* Student Info */}
+                        <div>
+                          <p className="font-medium text-gray-900 truncate">
+                            {admission.first_name} {admission.last_name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {admission.gender}
+                          </p>
+                        </div>
+
+                        {/* Class */}
+                        <div className="truncate">
+                          <p>{admission.class_name}</p>
+                        </div>
+
+                        {/* Parent */}
+                        <div>
+                          <p className="font-semibold truncate">
+                            {admission.parent_name}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {admission.parent_phone}
+                          </p>
+                        </div>
+
+                        {/* Date + Status */}
+                        <div>
+                          <p>
+                            {new Date(
+                              admission.application_date
+                            ).toLocaleDateString()}
+                          </p>
+                          <div className="mt-1">
+                            {getStatusBadge(admission.status)}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {admission.gender}
-                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {admission.class_name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {admission.parent_name}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {admission.parent_phone}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(
-                        admission.application_date
-                      ).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(admission.status)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
+
+                    {/* ACTIONS */}
+                    <td className="px-6 py-4 whitespace-nowrap text-right align-middle text-sm font-medium">
+                      <div className="flex justify-end space-x-3">
                         <PermissionGuard
                           permission={PERMISSIONS.MANAGE_ADMISSIONS}
                         >
@@ -234,18 +244,21 @@ const Admissions = () => {
                               setSelectedAdmission(admission);
                               setShowEditModal(true);
                             }}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-blue-600 hover:text-blue-800 transition-colors rounded p-1"
                             title="Edit"
+                            aria-label={`Edit admission ${admission.application_number}`}
                           >
                             <Edit className="w-5 h-5" />
                           </button>
+
                           <button
                             onClick={() => {
                               setSelectedAdmission(admission);
                               setShowDeleteModal(true);
                             }}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-red-600 hover:text-red-800 transition-colors rounded p-1"
                             title="Delete"
+                            aria-label={`Delete admission ${admission.application_number}`}
                           >
                             <Trash2 className="w-5 h-5" />
                           </button>
