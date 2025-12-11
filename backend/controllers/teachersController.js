@@ -344,8 +344,8 @@ const createTeacher = async (req, res) => {
         user_id, employee_id, first_name, middle_name, last_name,
         date_of_birth, gender, blood_group, address, city, state, pincode,
         phone, emergency_contact, qualification, experience_years, specialization,
-        joining_date, salary, profile_photo, status, employment_type
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        joining_date, salary, profile_photo, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
         employee_id,
@@ -361,14 +361,13 @@ const createTeacher = async (req, res) => {
         pincode || null,
         phone,
         emergency_contact || null,
-        qualification,
-        experience_years || null,
+        qualification || null,
+        experience_years || 0,
         specialization || null,
         joining_date || new Date(),
         salary || null,
         profilePhotoPath,
         status || "active",
-        employment_type || "full_time",
       ]
     );
 

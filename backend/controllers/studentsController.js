@@ -215,18 +215,17 @@ const createStudent = async (req, res) => {
     const [studentResult] = await connection.query(
       `INSERT INTO students (
         user_id, admission_number, first_name, middle_name, last_name,
-        email, phone, date_of_birth, gender, blood_group,
+        phone, date_of_birth, gender, blood_group,
         class_id, section_id, roll_number, admission_date,
         father_name, mother_name, parent_phone, parent_email,
         address, city, state, pincode, profile_photo, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
         admission_number,
         first_name,
         middle_name || null,
         last_name,
-        email,
         phone || null,
         date_of_birth,
         gender,

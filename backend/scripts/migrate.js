@@ -223,6 +223,8 @@ const migrate = async () => {
         department VARCHAR(100),
         joining_date DATE NOT NULL,
         salary DECIMAL(10, 2),
+        shift_timing VARCHAR(50),
+        is_frontdesk BOOLEAN DEFAULT false,
         status ENUM('active', 'inactive', 'resigned', 'retired') DEFAULT 'active',
         profile_photo VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

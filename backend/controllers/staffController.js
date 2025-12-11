@@ -10,7 +10,7 @@ const getAllStaff = async (req, res) => {
     try {
         const { status, search } = req.query;
         let query = `
-      SELECT s.*, u.email, u.is_active, u.last_login 
+      SELECT s.*, u.email, u.is_active, u.last_login, s.is_frontdesk, s.shift_timing 
       FROM staff s 
       LEFT JOIN users u ON s.user_id = u.id 
       WHERE 1=1
@@ -106,6 +106,8 @@ const createStaff = async (req, res) => {
             department,
             joining_date,
             salary,
+            shift_timing,
+            is_frontdesk,
             status,
         } = req.body;
 
@@ -180,8 +182,8 @@ const createStaff = async (req, res) => {
         user_id, employee_id, first_name, middle_name, last_name,
         date_of_birth, gender, blood_group, address, city, state, pincode,
         phone, emergency_contact, designation, department,
-        joining_date, salary, profile_photo, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        joining_date, salary, shift_timing, is_frontdesk, profile_photo, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 userId,
                 employee_id,
@@ -201,6 +203,8 @@ const createStaff = async (req, res) => {
                 department || "General",
                 joining_date || new Date(),
                 salary || null,
+                shift_timing || null,
+                is_frontdesk === true || is_frontdesk === 'true' ? 1 : 0,
                 profilePhotoPath,
                 status || "active",
             ]

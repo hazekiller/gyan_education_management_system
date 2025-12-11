@@ -18,6 +18,8 @@ const StaffForm = ({ staff = null, onSubmit, onCancel, isSubmitting }) => {
         department: staff?.department || '',
         joining_date: staff?.joining_date?.split('T')[0] || new Date().toISOString().split('T')[0],
         salary: staff?.salary || '',
+        shift_timing: staff?.shift_timing || '',
+        is_frontdesk: staff?.is_frontdesk || false,
         address: staff?.address || '',
         city: staff?.city || '',
         state: staff?.state || '',
@@ -27,10 +29,10 @@ const StaffForm = ({ staff = null, onSubmit, onCancel, isSubmitting }) => {
     });
 
     const handleChange = (e) => {
-        const { name, value, files } = e.target;
+        const { name, value, files, type, checked } = e.target;
         setFormData({
             ...formData,
-            [name]: files ? files[0] : value
+            [name]: files ? files[0] : type === 'checkbox' ? checked : value
         });
     };
 
@@ -308,6 +310,37 @@ const StaffForm = ({ staff = null, onSubmit, onCancel, isSubmitting }) => {
                             step="0.01"
                         />
                     </div>
+
+                    <div className="md:col-span-2">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                name="is_frontdesk"
+                                checked={formData.is_frontdesk}
+                                onChange={handleChange}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                                Related to Front Desk
+                            </span>
+                        </label>
+                    </div>
+
+                    {formData.is_frontdesk && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Shift Timing
+                            </label>
+                            <input
+                                type="text"
+                                name="shift_timing"
+                                value={formData.shift_timing}
+                                onChange={handleChange}
+                                className="input"
+                                placeholder="e.g., 9 AM - 5 PM"
+                            />
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
