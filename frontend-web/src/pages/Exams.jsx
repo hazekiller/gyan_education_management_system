@@ -133,8 +133,8 @@ const Exams = () => {
             className="btn btn-primary flex items-center space-x-2 shadow-lg hover:shadow-xl transition-shadow"
           >
             <Plus className="w-5 h-5" />
-          <span>Create Exam</span>
-        </button>
+            <span>Create Exam</span>
+          </button>
         </PermissionGuard>
       </div>
 
@@ -218,11 +218,10 @@ const Exams = () => {
                 <button
                   key={type.value}
                   onClick={() => setFilterType(type.value)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    filterType === type.value
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filterType === type.value
                       ? `${type.color} border-2 border-current shadow-md`
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
+                    }`}
                 >
                   {type.label}
                   {type.value !== "all" && (
@@ -239,47 +238,37 @@ const Exams = () => {
         {/* Active Filters Summary */}
         {(filterType !== "all" ||
           selectedAcademicYear !== getCurrentAcademicYear()) && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <AlertCircle className="w-4 h-4" />
-                <span>Active filters:</span>
-                {selectedAcademicYear !== getCurrentAcademicYear() && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md font-medium">
-                    {selectedAcademicYear}
-                  </span>
-                )}
-                {filterType !== "all" && (
-                  <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md font-medium">
-                    {examTypes.find((t) => t.value === filterType)?.label}
-                  </span>
-                )}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Active filters:</span>
+                  {selectedAcademicYear !== getCurrentAcademicYear() && (
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md font-medium">
+                      {selectedAcademicYear}
+                    </span>
+                  )}
+                  {filterType !== "all" && (
+                    <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md font-medium">
+                      {examTypes.find((t) => t.value === filterType)?.label}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => {
+                    setSelectedAcademicYear(getCurrentAcademicYear());
+                    setFilterType("all");
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Clear all filters
+                </button>
               </div>
-              <button
-                onClick={() => {
-                  setSelectedAcademicYear(getCurrentAcademicYear());
-                  setFilterType("all");
-                }}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-              >
-                Clear all filters
-              </button>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
-      {/* Results count */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-600">
-          Showing{" "}
-          <span className="font-semibold text-gray-900">
-            {filteredExams.length}
-          </span>{" "}
-          of <span className="font-semibold text-gray-900">{exams.length}</span>{" "}
-          exams
-        </p>
-      </div>
+
 
       {/* Exams List */}
       <ExamTable
