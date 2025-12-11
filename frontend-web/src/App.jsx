@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Classes from "./pages/Classes";
 import Students from "./pages/Students";
 import StudentDetails from "./pages/StudentDetails";
+import UserPage from "./pages/UserPage";
 import Teachers from "./pages/Teachers";
 import TeacherDetails from "./pages/TeacherDetails";
 import Attendance from "./pages/Attendance";
@@ -89,6 +90,7 @@ function App() {
         <Route path="/classes/:id" element={<ClassDetails />} />
         <Route path="/subjects" element={<Subjects />} />
 
+        <Route path="users" element={<UserPage />} />
         <Route path="students" element={<Students />} />
         <Route path="students/:id" element={<StudentDetails />} />
         <Route path="student-reports/:id" element={<StudentReports />} />
