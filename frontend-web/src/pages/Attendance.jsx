@@ -2,14 +2,12 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Calendar,
-  Check,
-  X,
-  Clock,
   Lock,
   Unlock,
   AlertCircle,
-  Info,
-  BookOpen,
+  Clock,
+  CheckCircle,
+  Filter,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import {
@@ -17,10 +15,12 @@ import {
   classesAPI,
   studentsAPI,
   classSubjectsAPI,
-  timetableAPI,
 } from "../lib/api";
 import toast from "react-hot-toast";
 import { selectCurrentUser, selectUserRole } from "../store/slices/authSlice";
+import AttendanceStats from "../components/attendance/AttendanceStats";
+import StudentAttendanceCalendar from "../components/attendance/StudentAttendanceCalendar";
+import TeacherAttendanceTable from "../components/attendance/TeacherAttendanceTable";
 
 const Attendance = () => {
   const [selectedDate, setSelectedDate] = useState(
@@ -43,19 +43,22 @@ const Attendance = () => {
     userRole
   );
 
+  // --- TEACHER/ADMIN LOGIC ---
+
   // Fetch classes (role-based)
   const { data: classesData } = useQuery({
     queryKey: ["my-classes"],
     queryFn: classesAPI.getMyClasses,
+    enabled: userRole !== "student",
   });
 
   const classes = classesData?.data || [];
 
-  // Fetch sections when class is selected (role-based)
+  // Fetch sections when class is selected
   const { data: sectionsData } = useQuery({
     queryKey: ["my-sections", selectedClass],
     queryFn: () => classesAPI.getMySections(selectedClass),
-    enabled: !!selectedClass,
+    enabled: !!selectedClass && userRole !== "student",
   });
 
   const sections = sectionsData?.data || [];
@@ -64,7 +67,7 @@ const Attendance = () => {
   const { data: subjectsData } = useQuery({
     queryKey: ["section-subjects", selectedSection],
     queryFn: () => classSubjectsAPI.getBySection(selectedSection),
-    enabled: !!selectedSection,
+    enabled: !!selectedSection && userRole !== "student",
   });
 
   const allSubjects = subjectsData?.data || [];
@@ -96,7 +99,6 @@ const Attendance = () => {
     queryFn: async () => {
       if (!selectedClass || !selectedSection || !selectedSubject) return null;
 
-      // Get current day of week
       const days = [
         "Sunday",
         "Monday",
@@ -108,7 +110,6 @@ const Attendance = () => {
       ];
       const today = days[new Date().getDay()];
 
-      // Fetch teacher's schedule for this subject
       const response = await fetch(
         `${import.meta.env.VITE_API_URL
         }/timetable?class_id=${selectedClass}&section_id=${selectedSection}&subject_id=${selectedSubject}&day_of_week=${today}`,
@@ -129,33 +130,29 @@ const Attendance = () => {
       !!selectedSubject &&
       isMarkingForToday &&
       userRole === "teacher",
-    refetchInterval: 60000, // Refetch every minute to keep time check updated
+    refetchInterval: 60000,
   });
 
   // Check if current time is within the scheduled class time
   const isWithinScheduledTime = useMemo(() => {
-    if (isAdmin) return true; // Admins can mark anytime
-    if (!isMarkingForToday) return false; // Must be today
-    if (!scheduleData) return false; // Must have schedule data
+    if (isAdmin) return true;
+    if (!isMarkingForToday) return false;
+    if (!scheduleData) return false;
 
     const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes since midnight
+    const currentTime = now.getHours() * 60 + now.getMinutes();
 
-    // Parse schedule times (format: "HH:MM:SS")
-    const [startHour, startMin] = scheduleData.start_time
-      .split(":")
-      .map(Number);
+    const [startHour, startMin] = scheduleData.start_time.split(":").map(Number);
     const [endHour, endMin] = scheduleData.end_time.split(":").map(Number);
 
     const scheduleStart = startHour * 60 + startMin;
     const scheduleEnd = endHour * 60 + endMin;
 
-    // Check if current time is within schedule (inclusive)
     return currentTime >= scheduleStart && currentTime <= scheduleEnd;
   }, [scheduleData, isMarkingForToday, isAdmin]);
 
-  // Fetch students when class and section are selected
-  const { data: studentsData, isLoading: studentsLoading } = useQuery({
+  // Fetch students
+  const { data: studentsData } = useQuery({
     queryKey: ["students", selectedClass, selectedSection],
     queryFn: () =>
       studentsAPI.getAll({
@@ -163,7 +160,7 @@ const Attendance = () => {
         section_id: selectedSection,
         status: "active",
       }),
-    enabled: !!selectedClass && !!selectedSection,
+    enabled: !!selectedClass && !!selectedSection && userRole !== "student",
   });
 
   const students = studentsData?.data || [];
@@ -188,7 +185,8 @@ const Attendance = () => {
       !!selectedClass &&
       !!selectedSection &&
       !!selectedSubject &&
-      !!selectedDate,
+      !!selectedDate &&
+      userRole !== "student",
   });
 
   // Check submission status
@@ -211,10 +209,10 @@ const Attendance = () => {
       !!selectedClass &&
       !!selectedSection &&
       !!selectedSubject &&
-      !!selectedDate,
+      !!selectedDate &&
+      userRole !== "student",
   });
 
-  // Update submission status
   useEffect(() => {
     if (submissionStatus?.data) {
       setIsSubmitted(submissionStatus.data.is_submitted || false);
@@ -225,31 +223,26 @@ const Attendance = () => {
     }
   }, [submissionStatus]);
 
-  // Initialize attendance data when students or existing attendance changes
   useEffect(() => {
     if (students.length > 0) {
       const newAttendanceData = {};
-
       students.forEach((student) => {
         const existing = existingAttendance?.data?.find(
           (a) => a.student_id === student.id
         );
         newAttendanceData[student.id] = existing?.status || "present";
       });
-
       setAttendanceData(newAttendanceData);
     }
   }, [students, existingAttendance]);
 
   const handleAttendanceChange = (studentId, status) => {
-    // Don't allow changes if submitted and not admin
     if (isSubmitted && !isAdmin) {
       toast.error(
         "Attendance is already submitted. Contact admin to make changes."
       );
       return;
     }
-
     setAttendanceData({
       ...attendanceData,
       [studentId]: status,
@@ -257,18 +250,17 @@ const Attendance = () => {
   };
 
   const handleSaveAttendance = async () => {
+    // Validation Logic
     if (!selectedClass || !selectedSection || !selectedSubject) {
       toast.error("Please select class, section, and subject");
       return;
     }
-
     if (!isWithinScheduledTime && userRole === "teacher") {
       toast.error(
         "You can only mark attendance during the scheduled class time."
       );
       return;
     }
-
     if (isSubmitted && !isAdmin) {
       toast.error(
         "Attendance is already submitted. Contact admin to make changes."
@@ -309,20 +301,11 @@ const Attendance = () => {
       toast.error("Please select class, section, and subject");
       return;
     }
-
-    if (!isWithinScheduledTime && userRole === "teacher") {
-      toast.error(
-        "You can only submit attendance during the scheduled class time."
-      );
-      return;
-    }
-
     if (isSubmitted) {
       toast.error("Attendance is already submitted");
       return;
     }
 
-    // First save the attendance
     const attendanceRecords = Object.entries(attendanceData).map(
       ([studentId, status]) => ({
         student_id: parseInt(studentId),
@@ -336,14 +319,14 @@ const Attendance = () => {
 
     setSubmitting(true);
     try {
-      // Save attendance first
+      // Save first
       await attendanceAPI.mark({
         date: selectedDate,
         subject_id: parseInt(selectedSubject),
         attendance_records: attendanceRecords,
       });
 
-      // Then submit it
+      // Then submit
       await attendanceAPI.submit({
         class_id: parseInt(selectedClass),
         section_id: parseInt(selectedSection),
@@ -363,18 +346,13 @@ const Attendance = () => {
   };
 
   const handleUnlockAttendance = async () => {
-    if (!isAdmin) {
-      toast.error("Only administrators can unlock attendance");
-      return;
-    }
-
+    if (!isAdmin) return;
     if (
       !window.confirm(
         "Are you sure you want to unlock this attendance? Teachers will be able to modify it again."
       )
-    ) {
+    )
       return;
-    }
 
     setSubmitting(true);
     try {
@@ -384,8 +362,7 @@ const Attendance = () => {
         subject_id: parseInt(selectedSubject),
         date: selectedDate,
       });
-
-      toast.success("Attendance unlocked successfully");
+      toast.success("Attendance unlocked");
       setIsSubmitted(false);
       refetchAttendance();
       queryClient.invalidateQueries(["attendance-submission"]);
@@ -396,30 +373,10 @@ const Attendance = () => {
     }
   };
 
-  const getStatusCounts = () => {
-    const counts = {
-      present: 0,
-      absent: 0,
-      late: 0,
-      excused: 0,
-    };
-
-    Object.values(attendanceData).forEach((status) => {
-      if (counts.hasOwnProperty(status)) {
-        counts[status]++;
-      }
-    });
-
-    return counts;
-  };
-
-  const statusCounts = getStatusCounts();
-
-  // Student View
+  // --- STUDENT VIEW LOGIC ---
   if (userRole === "student") {
     const [viewMonth, setViewMonth] = useState(new Date().getMonth());
     const [viewYear, setViewYear] = useState(new Date().getFullYear());
-    const [expandedWeeks, setExpandedWeeks] = useState(new Set());
 
     const getMonthDateRange = (year, month) => {
       const startDate = new Date(year, month, 1).toISOString().split("T")[0];
@@ -442,556 +399,88 @@ const Attendance = () => {
     });
 
     const attendanceList = myAttendance?.data || [];
-    const stats = myStats?.data || {
-      total_days: 0,
-      present_count: 0,
-      absent_count: 0,
-      late_count: 0,
-      excused_count: 0,
-      attendance_percentage: 0,
-    };
-
-    // Group attendance by week
-    const groupedByWeek = useMemo(() => {
-      const weeks = {};
-
-      attendanceList.forEach((record) => {
-        const date = new Date(record.date);
-        const weekStart = new Date(date);
-        weekStart.setDate(date.getDate() - date.getDay()); // Sunday
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6); // Saturday
-
-        const weekKey = `${weekStart.toISOString().split("T")[0]}_${weekEnd.toISOString().split("T")[0]
-          }`;
-
-        if (!weeks[weekKey]) {
-          weeks[weekKey] = {
-            start: weekStart,
-            end: weekEnd,
-            records: [],
-            stats: { present: 0, absent: 0, late: 0, excused: 0 },
-          };
-        }
-
-        weeks[weekKey].records.push(record);
-        weeks[weekKey].stats[record.status]++;
-      });
-
-      return Object.entries(weeks).sort((a, b) => b[1].start - a[1].start); // Most recent first
-    }, [attendanceList]);
-
-    const toggleWeek = (weekKey) => {
-      const newExpanded = new Set(expandedWeeks);
-      if (newExpanded.has(weekKey)) {
-        newExpanded.delete(weekKey);
-      } else {
-        newExpanded.add(weekKey);
-      }
-      setExpandedWeeks(newExpanded);
-    };
-
-    const months = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-
-    const years = Array.from(
-      { length: 5 },
-      (_, i) => new Date().getFullYear() - i
-    );
-
-    // Quick filter functions
-    const setQuickFilter = (type) => {
-      const now = new Date();
-      switch (type) {
-        case "thisWeek":
-          const weekStart = new Date(now);
-          weekStart.setDate(now.getDate() - now.getDay());
-          setViewMonth(weekStart.getMonth());
-          setViewYear(weekStart.getFullYear());
-          break;
-        case "thisMonth":
-          setViewMonth(now.getMonth());
-          setViewYear(now.getFullYear());
-          break;
-        case "last30Days":
-          const last30 = new Date(now);
-          last30.setDate(now.getDate() - 30);
-          setViewMonth(last30.getMonth());
-          setViewYear(last30.getFullYear());
-          break;
-      }
-    };
+    const stats = myStats?.data || {};
 
     return (
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto space-y-8 p-4 md:p-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Attendance</h1>
-            <p className="text-gray-600 mt-1">View your attendance history</p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Quick Filters with Icons */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setQuickFilter("thisWeek")}
-                className="btn btn-sm btn-outline flex items-center gap-1"
-                title="This Week"
-              >
-                <Calendar className="w-4 h-4" />
-                <span className="hidden sm:inline">Week</span>
-              </button>
-              <button
-                onClick={() => setQuickFilter("thisMonth")}
-                className="btn btn-sm btn-outline flex items-center gap-1"
-                title="This Month"
-              >
-                <Calendar className="w-4 h-4" />
-                <span className="hidden sm:inline">Month</span>
-              </button>
-            </div>
-
-            {/* Month/Year Selectors */}
-            <div className="flex gap-2">
-              <select
-                value={viewMonth}
-                onChange={(e) => setViewMonth(parseInt(e.target.value))}
-                className="input w-40"
-              >
-                {months.map((month, index) => (
-                  <option key={month} value={index}>
-                    📅 {month}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={viewYear}
-                onChange={(e) => setViewYear(parseInt(e.target.value))}
-                className="input w-32"
-              >
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Cards - Updated with percentage next to Present */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Present</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-green-600">
-                    {stats.present_count}
-                  </p>
-                  <span className="text-sm font-medium text-green-600">
-                    ({stats.attendance_percentage}%)
-                  </span>
-                </div>
-              </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <Check className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Absent</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {stats.absent_count}
-                </p>
-              </div>
-              <div className="bg-red-100 p-3 rounded-lg">
-                <X className="w-6 h-6 text-red-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Late</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {stats.late_count}
-                </p>
-              </div>
-              <div className="bg-orange-100 p-3 rounded-lg">
-                <Clock className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Days</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {stats.total_days}
-                </p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Calendar className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Collapsible Attendance History by Week */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="p-6 border-b">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Attendance History
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Grouped by week • Click to expand/collapse
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+              My Attendance
+            </h1>
+            <p className="text-gray-500 mt-2">
+              Track your daily attendance and performance stats.
             </p>
           </div>
-
-          {groupedByWeek.length === 0 ? (
-            <div className="p-6">
-              <div className="text-center text-gray-500 mb-4">
-                <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                <p>No attendance records found for this period ({startDate} to {endDate})</p>
-                <p className="text-xs mt-2">Debug: Found {attendanceList.length} records from API.</p>
-              </div>
-              {/* Always show table headers as requested */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left text-xs text-gray-500 uppercase bg-gray-50">
-                      <th className="px-6 py-3">Date</th>
-                      <th className="px-6 py-3">Subject</th>
-                      <th className="px-6 py-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td colSpan="3" className="px-6 py-4 text-center text-gray-500">
-                        No data available
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {groupedByWeek.map(([weekKey, weekData]) => {
-                const isExpanded = expandedWeeks.has(weekKey);
-                const weekLabel = `${weekData.start.toLocaleDateString(
-                  "en-US",
-                  { month: "short", day: "numeric" }
-                )} - ${weekData.end.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })}`;
-
-                return (
-                  <div key={weekKey}>
-                    {/* Week Header */}
-                    <button
-                      onClick={() => toggleWeek(weekKey)}
-                      className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Calendar className="w-5 h-5 text-gray-400" />
-                        <div className="text-left">
-                          <h3 className="font-semibold text-gray-900">
-                            {weekLabel}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {weekData.records.length} day
-                            {weekData.records.length !== 1 ? "s" : ""}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        {/* Week Stats */}
-                        <div className="flex gap-3 text-sm">
-                          {weekData.stats.present > 0 && (
-                            <span className="text-green-600 font-medium">
-                              ✓ {weekData.stats.present}
-                            </span>
-                          )}
-                          {weekData.stats.absent > 0 && (
-                            <span className="text-red-600 font-medium">
-                              ✗ {weekData.stats.absent}
-                            </span>
-                          )}
-                          {weekData.stats.late > 0 && (
-                            <span className="text-orange-600 font-medium">
-                              ⏰ {weekData.stats.late}
-                            </span>
-                          )}
-                        </div>
-
-                        <span
-                          className={`transform transition-transform ${isExpanded ? "rotate-180" : ""
-                            }`}
-                        >
-                          ▼
-                        </span>
-                      </div>
-                    </button>
-
-                    {/* Week Details */}
-                    {isExpanded && (
-                      <div className="px-6 pb-4 bg-gray-50">
-                        {(() => {
-                          const recordsByDate = weekData.records.reduce(
-                            (acc, record) => {
-                              const dateStr = new Date(record.date)
-                                .toISOString()
-                                .split("T")[0];
-                              if (!acc[dateStr]) acc[dateStr] = [];
-                              acc[dateStr].push(record);
-                              return acc;
-                            },
-                            {}
-                          );
-
-                          // Sort dates descending
-                          const sortedDates = Object.keys(recordsByDate).sort(
-                            (a, b) => new Date(b) - new Date(a)
-                          );
-
-                          return (
-                            <div className="space-y-4">
-                              {sortedDates.map((date) => (
-                                <div
-                                  key={date}
-                                  className="bg-white rounded-lg border shadow-sm overflow-hidden"
-                                >
-                                  {/* Date Header */}
-                                  <div className="bg-gray-50 px-4 py-2 border-b flex justify-between items-center">
-                                    <span className="font-semibold text-gray-700">
-                                      {new Date(date).toLocaleDateString(
-                                        "en-US",
-                                        {
-                                          weekday: "long",
-                                          month: "long",
-                                          day: "numeric",
-                                        }
-                                      )}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                      {recordsByDate[date].length} Subject
-                                      {recordsByDate[date].length !== 1
-                                        ? "s"
-                                        : ""}
-                                    </span>
-                                  </div>
-
-                                  {/* Subjects List */}
-                                  <div className="divide-y">
-                                    {recordsByDate[date].map((record) => (
-                                      <div
-                                        key={record.id}
-                                        className="px-4 py-3 flex items-center justify-between hover:bg-gray-50"
-                                      >
-                                        <div className="flex items-center gap-3">
-                                          <div className="p-2 bg-blue-50 rounded-full text-blue-600">
-                                            {record.subject_name ? (
-                                              <BookOpen className="w-4 h-4" />
-                                            ) : (
-                                              <Calendar className="w-4 h-4" />
-                                            )}
-                                          </div>
-                                          <span className="font-medium text-gray-900">
-                                            {record.subject_name ||
-                                              "General Attendance"}
-                                          </span>
-                                        </div>
-                                        <span
-                                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${record.status === "present"
-                                              ? "bg-green-100 text-green-800"
-                                              : record.status === "absent"
-                                                ? "bg-red-100 text-red-800"
-                                                : record.status === "late"
-                                                  ? "bg-orange-100 text-orange-800"
-                                                  : "bg-blue-100 text-blue-800"
-                                            }`}
-                                        >
-                                          {record.status === "excused"
-                                            ? "Leave"
-                                            : record.status}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        })()}
-                        <table className="w-full">
-                          <thead>
-                            <tr className="text-left text-xs text-gray-500 uppercase">
-                              <th className="py-2">Date</th>
-                              <th>Subject</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y">
-                            {Object.entries(
-                              weekData.records.reduce((acc, record) => {
-                                const dateKey = new Date(
-                                  record.date
-                                ).toISOString().split("T")[0];
-                                if (!acc[dateKey]) acc[dateKey] = [];
-                                acc[dateKey].push(record);
-                                return acc;
-                              }, {})
-                            )
-                              .sort(
-                                ([dateA], [dateB]) =>
-                                  new Date(dateB) - new Date(dateA)
-                              )
-                              .map(([date, records]) =>
-                                records.map((record, index) => (
-                                  <tr key={record.id} className="text-sm">
-                                    {index === 0 && (
-                                      <td
-                                        className="py-3 font-medium align-top"
-                                        rowSpan={records.length}
-                                      >
-                                        {new Date(date).toLocaleDateString(
-                                          "en-US",
-                                          {
-                                            weekday: "short",
-                                            month: "short",
-                                            day: "numeric",
-                                          }
-                                        )}
-                                      </td>
-                                    )}
-                                    <td className="text-gray-600 py-3">
-                                      {record.subject_name || "N/A"}
-                                    </td>
-                                    <td className="py-3">
-                                      <span
-                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${record.status === "present"
-                                          ? "bg-green-100 text-green-800"
-                                          : record.status === "absent"
-                                            ? "bg-red-100 text-red-800"
-                                            : record.status === "late"
-                                              ? "bg-orange-100 text-orange-800"
-                                              : "bg-blue-100 text-blue-800"
-                                          }`}
-                                      >
-                                        {record.status === "excused"
-                                          ? "Leave"
-                                          : record.status}
-                                      </span>
-                                    </td>
-                                  </tr>
-                                ))
-                              )}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
+
+        {/* Stats Section */}
+        <AttendanceStats stats={stats} />
+
+        {/* Calendar Section */}
+        <StudentAttendanceCalendar
+          attendanceList={attendanceList}
+          viewMonth={viewMonth}
+          viewYear={viewYear}
+          onMonthChange={setViewMonth}
+          onYearChange={setViewYear}
+        />
       </div>
     );
   }
 
-  // Admin/Teacher View
+  // --- TEACHER VIEW ---
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          Attendance Management
-        </h1>
-        <p className="text-gray-600 mt-1">Mark and manage student attendance</p>
+    <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+            Mark Attendance
+          </h1>
+          <p className="text-gray-500 mt-2">
+            Select class details to view or mark attendance.
+          </p>
+        </div>
+
+        {/* Status Indicators */}
+        <div className="flex items-center gap-3">
+          {isSubmitted ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium border border-emerald-200">
+              <Lock className="w-4 h-4" />
+              Locked
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm font-medium border border-gray-200">
+              <Unlock className="w-4 h-4" />
+              Open for Marking
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Submission Status Alert */}
-      {isSubmitted && selectedClass && selectedSection && selectedSubject && (
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <Lock className="h-5 w-5 text-blue-400" />
-            </div>
-            <div className="ml-3 flex-1">
-              <h3 className="text-sm font-medium text-blue-800">
-                Attendance Submitted
-              </h3>
-              <div className="mt-2 text-sm text-blue-700">
-                <p>
-                  This attendance was submitted on{" "}
-                  {submissionInfo?.submitted_at
-                    ? new Date(submissionInfo.submitted_at).toLocaleString()
-                    : "N/A"}
-                  {submissionInfo?.submitted_by_email &&
-                    ` by ${submissionInfo.submitted_by_email}`}
-                </p>
-                {!isAdmin && (
-                  <p className="mt-1">
-                    <Info className="inline h-4 w-4 mr-1" />
-                    Only administrators can modify submitted attendance.
-                  </p>
-                )}
-              </div>
-            </div>
-            {isAdmin && (
-              <button
-                onClick={handleUnlockAttendance}
-                disabled={submitting}
-                className="ml-3 flex-shrink-0 inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                <Unlock className="h-4 w-4 mr-1" />
-                Unlock
-              </button>
-            )}
-          </div>
+      {/* Filter / Selection Card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center gap-2 mb-4 text-gray-800 font-semibold">
+          <Filter className="w-5 h-5 text-indigo-600" />
+          Attendance Filters
         </div>
-      )}
 
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow-md p-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="form-control">
+            <label className="label text-xs font-semibold text-gray-500 uppercase">
               Date
             </label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="input"
-              max={new Date().toISOString().split("T")[0]}
+              className="input input-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-700"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="form-control">
+            <label className="label text-xs font-semibold text-gray-500 uppercase">
               Class
             </label>
             <select
@@ -1001,7 +490,7 @@ const Attendance = () => {
                 setSelectedSection("");
                 setSelectedSubject("");
               }}
-              className="input"
+              className="select select-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-700"
             >
               <option value="">Select Class</option>
               {classes.map((cls) => (
@@ -1012,8 +501,8 @@ const Attendance = () => {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="form-control">
+            <label className="label text-xs font-semibold text-gray-500 uppercase">
               Section
             </label>
             <select
@@ -1022,288 +511,161 @@ const Attendance = () => {
                 setSelectedSection(e.target.value);
                 setSelectedSubject("");
               }}
-              className="input"
               disabled={!selectedClass}
+              className="select select-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-700"
             >
               <option value="">Select Section</option>
-              {sections.map((section) => (
-                <option key={section.id} value={section.id}>
-                  {section.name}
+              {sections.map((sec) => (
+                <option key={sec.id} value={sec.id}>
+                  {sec.name}
                 </option>
               ))}
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="form-control">
+            <label className="label text-xs font-semibold text-gray-500 uppercase">
               Subject
             </label>
             <select
               value={selectedSubject}
               onChange={(e) => setSelectedSubject(e.target.value)}
-              className="input"
               disabled={!selectedSection}
+              className="select select-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-700"
             >
               <option value="">Select Subject</option>
-              {subjects.map((subject) => (
-                <option key={subject.subject_id} value={subject.subject_id}>
-                  {subject.subject_name}
+              {subjects.map((sub) => (
+                <option key={sub.id} value={sub.id}>
+                  {sub.name}
                 </option>
               ))}
             </select>
           </div>
         </div>
-
-        <div className="flex items-end gap-2 mt-4 justify-end">
-          <button
-            onClick={handleSaveAttendance}
-            disabled={
-              submitting ||
-              students.length === 0 ||
-              (isSubmitted && !isAdmin) ||
-              !selectedSubject ||
-              (userRole === "teacher" && !isWithinScheduledTime)
-            }
-            className="btn btn-secondary w-32 disabled:opacity-50"
-            title={
-              userRole === "teacher" && !isWithinScheduledTime
-                ? scheduleData
-                  ? `You can only mark attendance during scheduled time: ${scheduleData.start_time} - ${scheduleData.end_time}`
-                  : "No schedule found for this subject today"
-                : ""
-            }
-          >
-            {submitting ? "Saving..." : "Save"}
-          </button>
-          <button
-            onClick={handleSubmitAttendance}
-            disabled={
-              submitting ||
-              students.length === 0 ||
-              isSubmitted ||
-              !selectedSubject ||
-              (userRole === "teacher" && !isWithinScheduledTime)
-            }
-            className="btn btn-primary w-32 disabled:opacity-50"
-            title={
-              userRole === "teacher" && !isWithinScheduledTime
-                ? scheduleData
-                  ? `You can only mark attendance during scheduled time: ${scheduleData.start_time} - ${scheduleData.end_time}`
-                  : "No schedule found for this subject today"
-                : ""
-            }
-          >
-            {submitting
-              ? "Submitting..."
-              : isSubmitted
-                ? "Submitted"
-                : "Submit"}
-          </button>
-        </div>
       </div>
 
-      {/* Statistics */}
-      {students.length > 0 && selectedSubject && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Present</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {statusCounts.present}
-                </p>
-              </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <Check className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </div>
+      {teacherViewRenderCheck({
+        selectedSubject,
+        isWithinScheduledTime,
+        userRole,
+        isAdmin,
+      }) ? (
+        <>
+          {/* Main Attendance Table */}
+          <TeacherAttendanceTable
+            students={students}
+            attendanceData={attendanceData}
+            onAttendanceChange={handleAttendanceChange}
+            isSubmitted={isSubmitted}
+            isAdmin={isAdmin}
+          />
 
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Absent</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {statusCounts.absent}
-                </p>
-              </div>
-              <div className="bg-red-100 p-3 rounded-lg">
-                <X className="w-6 h-6 text-red-600" />
-              </div>
-            </div>
-          </div>
+          {/* Action Bar */}
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:static md:bg-transparent md:border-0 md:shadow-none md:p-0">
+            <div className="max-w-7xl mx-auto flex justify-end gap-3">
+              {isSubmitted && isAdmin && (
+                <button
+                  onClick={handleUnlockAttendance}
+                  disabled={submitting}
+                  className="btn bg-white hover:bg-gray-50 text-indigo-600 border-indigo-200 gap-2"
+                >
+                  <Unlock className="w-5 h-5" />
+                  Unlock Attendance
+                </button>
+              )}
 
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Late</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {statusCounts.late}
-                </p>
-              </div>
-              <div className="bg-orange-100 p-3 rounded-lg">
-                <Clock className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Leave</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {statusCounts.excused}
-                </p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Calendar className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Schedule Warning */}
-      {userRole === "teacher" &&
-        isMarkingForToday &&
-        !isWithinScheduledTime && (
-          <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-            <div className="flex items-start">
-              <AlertCircle className="w-5 h-5 text-yellow-400 mt-0.5 mr-3" />
-              <div>
-                <h3 className="text-sm font-medium text-yellow-800">
-                  Outside Scheduled Time
-                </h3>
-                <div className="mt-1 text-sm text-yellow-700">
-                  <p>
-                    You can only mark attendance during your scheduled class
-                    time.
-                    {scheduleData && (
-                      <span className="block mt-1 font-semibold">
-                        Scheduled: {scheduleData.start_time} -{" "}
-                        {scheduleData.end_time}
-                      </span>
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-      {/* Students List */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {!selectedClass || !selectedSection || !selectedSubject ? (
-          <div className="p-12 text-center text-gray-500">
-            <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-            <p>Please select class, section, and subject to view students</p>
-          </div>
-        ) : studentsLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="loading"></div>
-          </div>
-        ) : students.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">
-            <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-            <p>No students found in this class</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Roll No.</th>
-                  <th>Student Name</th>
-                  <th>Admission No.</th>
-                  <th className="text-center">
-                    Status
-                    {isSubmitted && (
-                      <Lock className="inline-block w-4 h-4 ml-2 text-blue-500" />
-                    )}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((student) => (
-                  <tr
-                    key={student.id}
-                    className={isSubmitted && !isAdmin ? "opacity-75" : ""}
+              {!isSubmitted ? (
+                <>
+                  <button
+                    onClick={handleSaveAttendance}
+                    disabled={submitting}
+                    className="btn btn-outline gap-2"
                   >
-                    <td className="font-medium">{student.roll_number}</td>
-                    <td>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <span className="text-blue-600 font-semibold">
-                            {student.first_name.charAt(0)}
-                          </span>
-                        </div>
-                        <span className="font-medium">
-                          {student.first_name} {student.last_name}
-                        </span>
-                      </div>
-                    </td>
-                    <td>{student.admission_number}</td>
-                    <td>
-                      <div className="flex justify-center space-x-2">
-                        <button
-                          onClick={() =>
-                            handleAttendanceChange(student.id, "present")
-                          }
-                          disabled={isSubmitted && !isAdmin}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${attendanceData[student.id] === "present"
-                            ? "bg-green-600 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
-                        >
-                          Present
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleAttendanceChange(student.id, "absent")
-                          }
-                          disabled={isSubmitted && !isAdmin}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${attendanceData[student.id] === "absent"
-                            ? "bg-red-600 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
-                        >
-                          Absent
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleAttendanceChange(student.id, "late")
-                          }
-                          disabled={isSubmitted && !isAdmin}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${attendanceData[student.id] === "late"
-                            ? "bg-orange-600 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
-                        >
-                          Late
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleAttendanceChange(student.id, "excused")
-                          }
-                          disabled={isSubmitted && !isAdmin}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${attendanceData[student.id] === "excused"
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            } disabled:cursor-not-allowed disabled:hover:bg-gray-100`}
-                        >
-                          Leave
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    Save Draft
+                  </button>
+                  <button
+                    onClick={handleSubmitAttendance}
+                    disabled={submitting}
+                    className="btn bg-indigo-600 hover:bg-indigo-700 text-white gap-2 border-0"
+                  >
+                    {submitting && <span className="loading loading-spinner" />}
+                    Submit & Lock
+                  </button>
+                </>
+              ) : (
+                <div className="flex items-center gap-2 text-emerald-600 font-medium px-4 py-2 bg-emerald-50 rounded-lg border border-emerald-100">
+                  <CheckCircle className="w-5 h-5" />
+                  Attendance Submitted on{" "}
+                  {new Date(submissionInfo?.submitted_at).toLocaleString()}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        renderEmptyState({
+          selectedClass,
+          selectedSection,
+          selectedSubject,
+          isWithinScheduledTime,
+          userRole,
+          isAdmin,
+        })
+      )}
     </div>
   );
 };
+
+// --- Helper Components for Clean Code ---
+
+function teacherViewRenderCheck({
+  selectedSubject,
+  isWithinScheduledTime,
+  userRole,
+  isAdmin,
+}) {
+  if (!selectedSubject) return false;
+  if (!isWithinScheduledTime && userRole === "teacher" && !isAdmin) return false;
+  return true;
+}
+
+function renderEmptyState({
+  selectedClass,
+  selectedSection,
+  selectedSubject,
+  isWithinScheduledTime,
+  userRole,
+  isAdmin,
+}) {
+  if (!selectedClass || !selectedSection || !selectedSubject) {
+    return (
+      <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+        <Filter className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-600">
+          Select filters to view attendance
+        </h3>
+        <p className="text-gray-400 max-w-sm mx-auto mt-2">
+          Please select a class, section, and subject from the filters above.
+        </p>
+      </div>
+    );
+  }
+
+  if (!isWithinScheduledTime && userRole === "teacher" && !isAdmin) {
+    return (
+      <div className="text-center py-20 bg-orange-50 rounded-2xl border border-orange-100">
+        <Clock className="w-12 h-12 text-orange-400 mx-auto mb-4" />
+        <h3 className="text-lg font-bold text-orange-700">
+          Outside Scheduled Time
+        </h3>
+        <p className="text-orange-600 max-w-md mx-auto mt-2">
+          You can only mark attendance during the scheduled class time.
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+}
 
 export default Attendance;
