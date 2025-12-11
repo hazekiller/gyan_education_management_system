@@ -9,21 +9,21 @@ export default function HomeNavbar() {
 
   const menuItems = [
     { name: 'Dashboard', icon: Home, link: '#' },
-    { 
-      name: 'Students', 
-      icon: Users, 
+    {
+      name: 'Students',
+      icon: Users,
       link: '#',
       dropdown: ['All Students', 'Admissions', 'Attendance', 'Performance']
     },
-    { 
-      name: 'Academics', 
-      icon: BookOpen, 
+    {
+      name: 'Academics',
+      icon: BookOpen,
       link: '#',
       dropdown: ['Classes', 'Subjects', 'Syllabus', 'Assignments']
     },
-    { 
-      name: 'Schedule', 
-      icon: Calendar, 
+    {
+      name: 'Schedule',
+      icon: Calendar,
       link: '#',
       dropdown: ['Timetable', 'Events', 'Holidays']
     },
@@ -60,7 +60,7 @@ export default function HomeNavbar() {
                       </svg>
                     )}
                   </button>
-                  
+
                   {/* Dropdown Menu */}
                   {item.dropdown && activeDropdown === item.name && (
                     <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">

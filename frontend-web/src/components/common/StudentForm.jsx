@@ -545,8 +545,8 @@ const StudentForm = ({ student = null, onSubmit, onCancel, isSubmitting }) => {
           {isSubmitting
             ? "Saving..."
             : student
-            ? "Update Student"
-            : "Add Student"}
+              ? "Update Student"
+              : "Add Student"}
         </button>
       </div>
     </form>

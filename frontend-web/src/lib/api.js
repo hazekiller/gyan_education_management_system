@@ -150,6 +150,36 @@ export const staffAPI = {
 };
 
 // ============================================
+// FRONTDESK API
+// ============================================
+export const frontdeskAPI = {
+  getAll: (params) => api.get("/frontdesk", { params }),
+  getById: (id) => api.get(`/frontdesk/${id}`),
+
+  create: (data) =>
+    api.post("/frontdesk", toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  update: (id, data) =>
+    api.put(`/frontdesk/${id}`, toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  delete: (id) => api.delete(`/frontdesk/${id}`),
+
+  // Visitor management
+  logVisitor: (data) => api.post("/frontdesk/visitors", data),
+  getVisitors: (params) => api.get("/frontdesk/visitors/logs", { params }),
+  checkoutVisitor: (id) => api.put(`/frontdesk/visitors/${id}/checkout`),
+
+  // Inquiry management
+  createInquiry: (data) => api.post("/frontdesk/inquiries", data),
+  getInquiries: (params) => api.get("/frontdesk/inquiries/list", { params }),
+  updateInquiry: (id, data) => api.put(`/frontdesk/inquiries/${id}`, data),
+};
+
+// ============================================
 // SUBJECTS API
 // ============================================
 export const subjectsAPI = {

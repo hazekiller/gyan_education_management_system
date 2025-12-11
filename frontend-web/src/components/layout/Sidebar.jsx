@@ -95,6 +95,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       show: hasPermission(PERMISSIONS.VIEW_ATTENDANCE),
     },
     {
+      name: "Front Desk",
+      path: "/frontdesk",
+      icon: UserCheck,
+      show: hasPermission(PERMISSIONS.VIEW_FRONTDESK) || true, // Temporarily allow all
+    },
+    {
       name: "Exams",
       path: "/exams",
       icon: BookOpen,
