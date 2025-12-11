@@ -130,6 +130,26 @@ export const teachersAPI = {
 };
 
 // ============================================
+// STAFF API
+// ============================================
+export const staffAPI = {
+  getAll: (params) => api.get("/staff", { params }),
+  getById: (id) => api.get(`/staff/${id}`),
+
+  create: (data) =>
+    api.post("/staff", toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  update: (id, data) =>
+    api.put(`/staff/${id}`, toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  delete: (id) => api.delete(`/staff/${id}`),
+};
+
+// ============================================
 // SUBJECTS API
 // ============================================
 export const subjectsAPI = {
@@ -155,8 +175,7 @@ export const subjectFilesAPI = {
   downloadFile: (id) => {
     const token = localStorage.getItem("token");
     return fetch(
-      `${
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+      `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"
       }/subject-files/${id}/download`,
       {
         headers: { Authorization: `Bearer ${token}` },

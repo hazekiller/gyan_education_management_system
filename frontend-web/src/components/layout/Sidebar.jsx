@@ -53,17 +53,23 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       show: hasPermission(PERMISSIONS.VIEW_CLASSES),
     },
     {
+      name: "Users",
+      path: "/users",
+      icon: Users,
+      show: true,
+    },
+    {
       name: "Subjects",
       path: "/subjects",
       icon: BookText,
       show: hasPermission(PERMISSIONS.VIEW_CLASS_SUBJECTS),
     },
-    {
+    /* {
       name: "Students",
       path: "/students",
       icon: Users,
       show: hasPermission(PERMISSIONS.VIEW_STUDENTS),
-    },
+    }, */
     {
       name: "Admissions",
       path: "/admissions",
@@ -76,12 +82,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       icon: UserCheck,
       permission: "visitors",
     },
-    {
+    /* {
       name: "Teachers",
       path: "/teachers",
       icon: UserCheck,
       show: hasPermission(PERMISSIONS.VIEW_TEACHERS),
-    },
+    }, */
     {
       name: "Attendance",
       path: "/attendance",
@@ -173,7 +179,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       show: role !== "student", // Hide from students
     },
     {
-       name: "Blogs",
+      name: "Blogs",
       path: "/blogs",
       icon: BookOpen,
       show: hasPermission(PERMISSIONS.VIEW_BLOGS),
@@ -257,7 +263,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <div
               ref={logoRef}
               className="bg-gradient-to-br from-blue-600 to-blue-400 p-2 rounded-xl shadow-lg shadow-blue-500/20 relative overflow-hidden"
-              >
+            >
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-white opacity-20"></div>
               <GraduationCap className="w-6 h-6 text-white relative z-10" />
             </div>
@@ -346,7 +352,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
       </aside>
 
-     <style jsx>{`
+      <style jsx>{`
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
