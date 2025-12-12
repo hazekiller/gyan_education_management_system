@@ -48,6 +48,8 @@ import BlogDetail from "./pages/Blogs/BlogDetail";
 import StudentReports from "./pages/StudentReports";
 import MyReports from "./pages/MyReports";
 import FrontDesk from "./pages/FrontDesk";
+import Leaves from "./pages/Leaves";
+import MyLeaves from "./pages/MyLeaves";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -120,6 +122,8 @@ function App() {
         <Route path="notifications" element={<Notifications />} />
         <Route path="admissions" element={<Admissions />} />
         <Route path="frontdesk" element={<FrontDesk />} />
+        <Route path="leaves" element={<Leaves />} />
+        <Route path="my-leaves" element={<MyLeaves />} />
         <Route path="results" element={<Results />} />
         <Route path="blogs" element={<Blog />} />
         <Route path="blogs/:id" element={<BlogDetail />} />

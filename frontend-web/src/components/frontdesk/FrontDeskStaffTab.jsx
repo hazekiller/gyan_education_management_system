@@ -1,19 +1,26 @@
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Plus, Edit, Trash2, Search, User } from "lucide-react";
 import { staffAPI } from "../../lib/api";
 import toast from "react-hot-toast";
 import StaffForm from "../staff/StaffForm";
 import Modal from "../common/Modal";
+import { selectCurrentUser, selectUserRole } from "../../store/slices/authSlice";
 
 const IMAGE_URL = import.meta.env.VITE_IMAGE_URL || "http://localhost:5001";
 
 const FrontDeskStaffTab = () => {
+    const currentUser = useSelector(selectCurrentUser);
+    const userRole = useSelector(selectUserRole);
     const [staff, setStaff] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingStaff, setEditingStaff] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Check if user is admin (can add/delete staff)
+    const isAdmin = ['super_admin', 'principal', 'vice_principal', 'admin'].includes(userRole);
 
     useEffect(() => {
         fetchStaff();
@@ -135,13 +142,15 @@ const FrontDeskStaffTab = () => {
                         className="input pl-10 w-full"
                     />
                 </div>
-                <button
-                    onClick={handleAddStaff}
-                    className="btn btn-primary flex items-center space-x-2"
-                >
-                    <Plus className="w-5 h-5" />
-                    <span>Add Front Desk Staff</span>
-                </button>
+                {isAdmin && (
+                    <button
+                        onClick={handleAddStaff}
+                        className="btn btn-primary flex items-center space-x-2"
+                    >
+                        <Plus className="w-5 h-5" />
+                        <span>Add Front Desk Staff</span>
+                    </button>
+                )}
             </div>
 
             {/* Staff Grid */}
@@ -150,12 +159,14 @@ const FrontDeskStaffTab = () => {
                     <div className="text-center">
                         <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                         <p className="text-gray-500 text-lg">No front desk staff found</p>
-                        <button
-                            onClick={handleAddStaff}
-                            className="mt-4 btn btn-primary"
-                        >
-                            Add First Staff Member
-                        </button>
+                        {isAdmin && (
+                            <button
+                                onClick={handleAddStaff}
+                                className="mt-4 btn btn-primary"
+                            >
+                                Add First Staff Member
+                            </button>
+                        )}
                     </div>
                 </div>
             ) : (
@@ -217,13 +228,15 @@ const FrontDeskStaffTab = () => {
                                     <Edit className="w-4 h-4" />
                                     <span>Edit</span>
                                 </button>
-                                <button
-                                    onClick={() => handleDeleteStaff(staffMember.id)}
-                                    className="flex-1 btn bg-red-50 text-red-600 hover:bg-red-100 flex items-center justify-center space-x-2"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    <span>Delete</span>
-                                </button>
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => handleDeleteStaff(staffMember.id)}
+                                        className="flex-1 btn bg-red-50 text-red-600 hover:bg-red-100 flex items-center justify-center space-x-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>Delete</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
