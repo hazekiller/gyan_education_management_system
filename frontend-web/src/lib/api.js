@@ -788,5 +788,25 @@ export const timetableAPI = {
   delete: (id) => api.delete(`/timetable/${id}`),
 };
 
+// ============================================
+// LEAVES API
+// ============================================
+export const leavesAPI = {
+  getAll: (params) => api.get("/leaves", { params }),
+  getMyLeaves: () => api.get("/leaves/my-leaves"),
+  getPendingCount: () => api.get("/leaves/pending-count"),
+  getById: (id) => api.get(`/leaves/${id}`),
+  create: (data) =>
+    api.post("/leaves", toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  update: (id, data) => api.put(`/leaves/${id}`, data),
+  approve: (id, remarks) =>
+    api.patch(`/leaves/${id}/approve`, { admin_remarks: remarks }),
+  decline: (id, remarks) =>
+    api.patch(`/leaves/${id}/decline`, { admin_remarks: remarks }),
+  delete: (id) => api.delete(`/leaves/${id}`),
+};
+
 // Final export
 export default api;

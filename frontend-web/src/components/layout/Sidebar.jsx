@@ -39,6 +39,21 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const navItemsRef = useRef([]);
   const profileRef = useRef(null);
 
+  // Role title mapping - same as StaffDashboard
+  const getRoleTitle = () => {
+    const roleTitles = {
+      guard: 'Security Guard',
+      cleaner: 'Maintenance Staff',
+      accountant: 'Accountant',
+      admin: 'Administrator',
+      teacher: 'Teacher',
+      student: 'Student',
+      principal: 'Principal',
+      frontdesk: 'Front Desk Staff',
+    };
+    return roleTitles[role] || role?.replace("_", " ").charAt(0).toUpperCase() + role?.slice(1);
+  };
+
   const navigationItems = [
     {
       name: "Dashboard",
@@ -56,7 +71,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Users",
       path: "/users",
       icon: Users,
-      show: true,
+      show: role !== "student", // Hide from students, show for admin roles
     },
     {
       name: "Subjects",
@@ -98,7 +113,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Front Desk",
       path: "/frontdesk",
       icon: UserCheck,
-      show: hasPermission(PERMISSIONS.VIEW_FRONTDESK) || true, // Temporarily allow all
+      show: role !== "student", // Hide from students, show for admin roles
     },
     {
       name: "Exams",
@@ -143,7 +158,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       show: hasPermission(PERMISSIONS.VIEW_ANNOUNCEMENTS),
     },
     {
-      name: "Schedule",
+      name: "Routine",
       path: "/schedule",
       icon: Megaphone,
       show: hasPermission(PERMISSIONS.VIEW_SCHEDULE),
@@ -177,6 +192,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       path: "/payroll",
       icon: DollarSign,
       show: hasPermission(PERMISSIONS.VIEW_PAYROLL),
+    },
+    {
+      name: "Leave Management",
+      path: "/leaves",
+      icon: ClipboardList,
+      show: hasPermission(PERMISSIONS.MANAGE_LEAVES) && !['admin', 'guard', 'cleaner'].includes(role),
+    },
+    {
+      name: "My Leaves",
+      path: "/my-leaves",
+      icon: ClipboardList,
+      show: ['accountant', 'guard', 'cleaner'].includes(role) && hasPermission(PERMISSIONS.SUBMIT_LEAVE),
     },
     {
       name: "Reports",
@@ -351,7 +378,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               </p>
               <p className="text-xs text-gray-500 capitalize flex items-center gap-1">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                {role?.replace("_", " ")}
+                {getRoleTitle()}
               </p>
             </div>
           </div>

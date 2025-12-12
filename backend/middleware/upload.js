@@ -29,6 +29,9 @@ const storage = multer.diskStorage({
       case 'document':
         uploadPath += 'documents/';
         break;
+      case 'supporting_document': // For leave applications
+        uploadPath += 'leaves/';
+        break;
       default:
         uploadPath += 'others/';
     }

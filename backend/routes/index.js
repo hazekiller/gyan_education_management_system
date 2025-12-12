@@ -28,6 +28,8 @@ const dailyReportsRoutes = require("./dailyReports.routes");
 const studentReportsRoutes = require("./studentReports.routes");
 const timetableRoutes = require("./timetable.routes");
 const frontdeskRoutes = require("./frontdesk.routes");
+const leavesRoutes = require("./leaves.routes");
+const filesRoutes = require("./files.routes");
 
 
 // ===== PUBLIC ROUTES =====
@@ -64,6 +66,8 @@ router.use("/blogs", require("./blog.routes"));
 router.use("/daily-reports", dailyReportsRoutes);
 router.use("/timetable", timetableRoutes);
 router.use("/frontdesk", frontdeskRoutes);
+router.use("/leaves", leavesRoutes);
+router.use("/files", filesRoutes);
 
 // ===== DEFAULT ROUTE =====
 router.get("/", (req, res) => {

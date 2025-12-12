@@ -279,12 +279,12 @@ const Schedule = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Calendar className="w-8 h-8 text-blue-600" />
-            {isAdmin ? "Teacher Schedule Management" : "My Weekly Schedule"}
+            {isAdmin ? "Teacher Schedule Management" : "My Weekly Routine"}
           </h1>
           <p className="text-gray-500 mt-1">
             {isAdmin
               ? "View and manage weekly schedules for teachers"
-              : "View your weekly class schedule"}
+              : "View your weekly class routine"}
           </p>
         </div>
 
@@ -650,10 +650,9 @@ const Schedule = () => {
                       onClick={() => setForm({ ...form, day_of_week: day })}
                       className={`
                         px-3 py-3 rounded-lg border-2 text-sm font-medium transition-all duration-200
-                        ${
-                          form.day_of_week === day
-                            ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                            : "bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                        ${form.day_of_week === day
+                          ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                          : "bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50"
                         }
                       `}
                     >

@@ -1,6 +1,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { Calendar, AlertTriangle, CheckCircle } from "lucide-react";
 import { attendanceAPI } from "../../lib/api";
 import Modal from "../common/Modal";
@@ -19,6 +20,7 @@ const SubjectAttendanceView = ({
 }) => {
   const user = useSelector((state) => state.auth.user);
   const studentId = user?.details?.id;
+  const navigate = useNavigate();
 
   // Fetch subject-specific attendance
   const { data: attendanceData, isLoading } = useQuery({
@@ -91,6 +93,12 @@ const SubjectAttendanceView = ({
   const config = warningConfig[warningLevel];
   const WarningIcon = config.icon;
 
+  // Handle navigation to Attendance page
+  const handleNavigateToAttendance = () => {
+    onClose(); // Close the modal first
+    navigate('/attendance'); // Navigate to attendance page
+  };
+
   return (
     <Modal
       isOpen={true}
@@ -119,28 +127,40 @@ const SubjectAttendanceView = ({
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white border rounded-lg p-4">
+          <div
+            onClick={handleNavigateToAttendance}
+            className="bg-white border rounded-lg p-4 cursor-pointer hover:shadow-md hover:border-indigo-300 transition-all"
+          >
             <p className="text-sm text-gray-600">Percentage</p>
             <p className={`text-3xl font-bold ${config.color}`}>
               {stats.attendance_percentage}%
             </p>
           </div>
 
-          <div className="bg-white border rounded-lg p-4">
+          <div
+            onClick={handleNavigateToAttendance}
+            className="bg-white border rounded-lg p-4 cursor-pointer hover:shadow-md hover:border-indigo-300 transition-all"
+          >
             <p className="text-sm text-gray-600">Present</p>
             <p className="text-3xl font-bold text-green-600">
               {stats.present_count}
             </p>
           </div>
 
-          <div className="bg-white border rounded-lg p-4">
+          <div
+            onClick={handleNavigateToAttendance}
+            className="bg-white border rounded-lg p-4 cursor-pointer hover:shadow-md hover:border-indigo-300 transition-all"
+          >
             <p className="text-sm text-gray-600">Absent</p>
             <p className="text-3xl font-bold text-red-600">
               {stats.absent_count}
             </p>
           </div>
 
-          <div className="bg-white border rounded-lg p-4">
+          <div
+            onClick={handleNavigateToAttendance}
+            className="bg-white border rounded-lg p-4 cursor-pointer hover:shadow-md hover:border-indigo-300 transition-all"
+          >
             <p className="text-sm text-gray-600">Total Days</p>
             <p className="text-3xl font-bold text-blue-600">
               {stats.total_days}
@@ -189,15 +209,14 @@ const SubjectAttendanceView = ({
                       </td>
                       <td>
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-                            record.status === "present"
-                              ? "bg-green-100 text-green-800"
-                              : record.status === "absent"
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${record.status === "present"
+                            ? "bg-green-100 text-green-800"
+                            : record.status === "absent"
                               ? "bg-red-100 text-red-800"
                               : record.status === "late"
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-blue-100 text-blue-800"
+                            }`}
                         >
                           {record.status === "excused"
                             ? "Leave"
