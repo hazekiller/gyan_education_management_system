@@ -166,12 +166,14 @@ const markAttendance = async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    const { date, attendance_records, subject_id } = req.body;
+    const { date, attendance_records, subject_id, class_id, section_id } = req.body;
     const marked_by = req.user.id;
     const userRole = req.user.role;
 
     if (
       !date ||
+      !class_id ||
+      !section_id ||
       !attendance_records ||
       !Array.isArray(attendance_records) ||
       attendance_records.length === 0
@@ -179,109 +181,148 @@ const markAttendance = async (req, res) => {
       await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: "Date and attendance records array are required",
+        message: "Date, class_id, section_id, and attendance records array are required",
       });
     }
 
-    if (!subject_id) {
-      await connection.rollback();
-      return res.status(400).json({
-        success: false,
-        message: "Subject ID is required for marking attendance",
-      });
-    }
-
-    const firstRecord = attendance_records[0];
-    const { class_id, section_id } = firstRecord;
-
     // ---------------------------------------------------------
-    // SCHEDULE VALIDATION
+    // SCHEDULE VALIDATION & PERMISSION CHECK
     // ---------------------------------------------------------
-    if (userRole === "teacher") {
-      // 1. Get the day of the week for the given date
-      const dayOfWeek = dayjs(date).format("dddd"); // e.g., "Monday"
 
-      // 2. Check if there is a schedule for this teacher, class, section, subject on this day
-      // Note: We are checking if the SUBJECT is scheduled for this class/section on this day.
-      // We also check if the current time is within the schedule time.
+    // CASE 1: Subject-wise Attendance (subject_id is present)
+    if (subject_id) {
+      if (userRole === "teacher") {
+        // 1. Get the day of the week for the given date
+        const dayOfWeek = dayjs(date).format("dddd"); // e.g., "Monday"
 
-      const currentTime = dayjs().format("HH:mm:00");
+        // 2. Check if there is a schedule for this teacher, class, section, subject on this day
+        // Note: We are checking if the SUBJECT is scheduled for this class/section on this day.
+        // We also check if the current time is within the schedule time.
 
-      // If marking for a past/future date, strict time validation might be tricky.
-      // Requirement: "teacher can mark the attendance only on the assigned time"
-      // This usually implies "right now". If they are marking for "today", check time.
-      // If they are marking for past dates, maybe we should allow it?
-      // But the requirement says "only on the assigned time".
-      // Let's assume strict mode: You can only mark attendance during the class time.
+        // Requirement: "teacher can mark the attendance only on the assigned time"
+        // This usually implies "right now". If they are marking for "today", check time.
 
-      const isToday = dayjs(date).isSame(dayjs(), "day");
+        const isToday = dayjs(date).isSame(dayjs(), "day");
 
-      if (isToday) {
-        const [schedule] = await connection.query(
-          `SELECT start_time, end_time FROM timetable 
-           WHERE class_id = ? AND section_id = ? AND subject_id = ? AND day_of_week = ?`,
-          [class_id, section_id, subject_id, dayOfWeek]
-        );
+        if (isToday) {
+          const [schedule] = await connection.query(
+            `SELECT start_time, end_time FROM timetable 
+             WHERE class_id = ? AND section_id = ? AND subject_id = ? AND day_of_week = ?`,
+            [class_id, section_id, subject_id, dayOfWeek]
+          );
 
-        if (schedule.length === 0) {
-          await connection.rollback();
-          return res.status(403).json({
-            success: false,
-            message: `No schedule found for this subject on ${dayOfWeek}`,
+          if (schedule.length === 0) {
+            // OPTIONAL: You might want to allow teachers to mark attendance even if not in schedule?
+            // For now, keeping strict check as per previous logic, BUT 
+            // if you want to allow "Extra Class", you might relax this.
+            // Let's keep it strict if it's subject-wise.
+            await connection.rollback();
+            return res.status(403).json({
+              success: false,
+              message: `No schedule found for this subject on ${dayOfWeek}`,
+            });
+          }
+
+          // Check if current time is within any of the scheduled slots
+          const isWithinTime = schedule.some((slot) => {
+            const start = dayjs(slot.start_time, "HH:mm:ss");
+            const end = dayjs(slot.end_time, "HH:mm:ss");
+            // Server is in UTC, add 5h 45m for Nepal Time if needed, or rely on system time.
+            // Assuming system time is correct or handled by dayjs locale if set.
+            // For safety, let's use the same logic as before.
+            const now = dayjs().add(5, "hour").add(45, "minute");
+            const nowTime = dayjs(now.format("HH:mm:ss"), "HH:mm:ss");
+
+            // Inclusive check: start <= now <= end
+            return nowTime.isBetween(start, end, null, "[]");
           });
-        }
 
-        // Check if current time is within any of the scheduled slots
-        const isWithinTime = schedule.some((slot) => {
-          const start = dayjs(slot.start_time, "HH:mm:ss");
-          const end = dayjs(slot.end_time, "HH:mm:ss");
-          // Server is in UTC, add 5h 45m for Nepal Time
-          const now = dayjs().add(5, "hour").add(45, "minute");
-          // We need to compare only times.
-          const nowTime = dayjs(now.format("HH:mm:ss"), "HH:mm:ss");
-
-          console.log("Debug Attendance Time Check:");
-          console.log("Slot Start:", start.format("HH:mm:ss"));
-          console.log("Slot End:", end.format("HH:mm:ss"));
-          console.log("Server Now:", nowTime.format("HH:mm:ss"));
-          console.log("Is Between:", nowTime.isBetween(start, end, null, "[]"));
-
-          // Inclusive check: start <= now <= end
-          return nowTime.isBetween(start, end, null, "[]");
-        });
-
-        if (!isWithinTime) {
+          if (!isWithinTime) {
+            // For strict mode
+            await connection.rollback();
+            return res.status(403).json({
+              success: false,
+              message:
+                "You can only mark attendance during the scheduled class time.",
+            });
+          }
+        } else {
+          // Past dates? 
+          // If strictness is required:
           await connection.rollback();
           return res.status(403).json({
             success: false,
             message:
-              "You can only mark attendance during the scheduled class time.",
+              "You can only mark attendance on the current day during the scheduled time.",
           });
         }
-      } else {
-        // If not today, maybe block it? Or allow admin?
-        // "teacher can mark the attendance only on the assigned time" -> implies strictness.
-        // Let's block teachers from marking past/future dates if strictness is required.
-        // But usually, teachers might forget.
-        // However, "assigned time" is strong wording.
-        // Let's block if it's not today.
-        await connection.rollback();
-        return res.status(403).json({
-          success: false,
-          message:
-            "You can only mark attendance on the current day during the scheduled time.",
-        });
+      }
+    }
+    // CASE 2: Class-wise Attendance (subject_id is NULL/Missing)
+    else {
+      if (userRole === "teacher") {
+        // Teacher MUST be the Class Teacher for this Section (or Class) to mark generic attendance
+        // Check Section Teacher first
+        const [sectionCheck] = await connection.query(
+          `SELECT class_teacher_id FROM sections WHERE id = ?`,
+          [section_id]
+        );
+
+        let isClassTeacher = false;
+
+        // Check if teacher is assigned to section
+        if (sectionCheck.length > 0 && sectionCheck[0].class_teacher_id) {
+          // Get teacher ID from user ID
+          const [teacher] = await connection.query(`SELECT id FROM teachers WHERE user_id = ?`, [req.user.id]);
+          if (teacher.length > 0 && sectionCheck[0].class_teacher_id === teacher[0].id) {
+            isClassTeacher = true;
+          }
+        }
+
+        // If not section teacher, check if class teacher (fallback, if section teacher logic allows inheritance)
+        if (!isClassTeacher) {
+          const [classCheck] = await connection.query(
+            `SELECT class_teacher_id FROM classes WHERE id = ?`,
+            [class_id]
+          );
+          if (classCheck.length > 0 && classCheck[0].class_teacher_id) {
+            const [teacher] = await connection.query(`SELECT id FROM teachers WHERE user_id = ?`, [req.user.id]);
+            if (teacher.length > 0 && classCheck[0].class_teacher_id === teacher[0].id) {
+              isClassTeacher = true;
+            }
+          }
+        }
+
+        if (!isClassTeacher) {
+          await connection.rollback();
+          return res.status(403).json({
+            success: false,
+            message: "Only the Class Teacher can mark class-wise attendance.",
+          });
+        }
       }
     }
 
     // ---------------------------------------------------------
 
     // Check if attendance is already submitted
+    let existingSubmissionQuery = `SELECT is_submitted, submitted_by FROM attendance 
+       WHERE class_id = ? AND section_id = ? AND date = ? AND is_submitted = TRUE`;
+
+    const existingParams = [class_id, section_id, date];
+
+    if (subject_id) {
+      existingSubmissionQuery += " AND subject_id = ?";
+      existingParams.push(subject_id);
+    } else {
+      existingSubmissionQuery += " AND subject_id IS NULL";
+    }
+
+    existingSubmissionQuery += " LIMIT 1";
+
     const [existingSubmission] = await connection.query(
-      `SELECT is_submitted, submitted_by FROM attendance 
-       WHERE class_id = ? AND section_id = ? AND subject_id = ? AND date = ? AND is_submitted = TRUE
-       LIMIT 1`,
-      [class_id, section_id, subject_id, date]
+      existingSubmissionQuery,
+      existingParams
     );
 
     if (existingSubmission.length > 0) {
@@ -298,17 +339,24 @@ const markAttendance = async (req, res) => {
     }
 
     // Delete existing records for this class/section/subject/date
-    await connection.query(
-      `DELETE FROM attendance WHERE class_id = ? AND section_id = ? AND subject_id = ? AND date = ?`,
-      [class_id, section_id, subject_id, date]
-    );
+    let deleteQuery = `DELETE FROM attendance WHERE class_id = ? AND section_id = ? AND date = ?`;
+    const deleteParams = [class_id, section_id, date];
+
+    if (subject_id) {
+      deleteQuery += " AND subject_id = ?";
+      deleteParams.push(subject_id);
+    } else {
+      deleteQuery += " AND subject_id IS NULL";
+    }
+
+    await connection.query(deleteQuery, deleteParams);
 
     // Insert new attendance records
     const values = attendance_records.map((record) => [
       record.student_id,
       record.class_id,
       record.section_id,
-      subject_id,
+      subject_id || null, // Ensure explicit null
       date,
       record.status || "present",
       record.remarks || null,
