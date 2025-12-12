@@ -626,11 +626,11 @@ const Attendance = () => {
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
                 disabled={!selectedSection}
-                className="select select-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-900"
+                className="select select-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-black"
               >
-                <option value="">Select Subject</option>
+                <option value="" className="text-black">Select Subject</option>
                 {subjects.map((sub) => (
-                  <option key={sub.id} value={sub.id}>
+                  <option key={sub.id} value={sub.id} className="text-black">
                     {sub.name}
                   </option>
                 ))}
