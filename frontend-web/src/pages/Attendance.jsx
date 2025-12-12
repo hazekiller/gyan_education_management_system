@@ -34,6 +34,9 @@ const Attendance = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submissionInfo, setSubmissionInfo] = useState(null);
 
+  /* ADDED: Attendance Mode State */
+  const [attendanceMode, setAttendanceMode] = useState("subject"); // 'subject' or 'class'
+
   const queryClient = useQueryClient();
   const currentUser = useSelector(selectCurrentUser);
   const userRole = useSelector(selectUserRole);
@@ -97,7 +100,8 @@ const Attendance = () => {
       selectedSubject,
     ],
     queryFn: async () => {
-      if (!selectedClass || !selectedSection || !selectedSubject) return null;
+      // Logic adjusted: Only fetch schedule if in Subject Mode AND subject is selected
+      if (!selectedClass || !selectedSection || !selectedSubject || attendanceMode === 'class') return null;
 
       const days = [
         "Sunday",
@@ -129,7 +133,8 @@ const Attendance = () => {
       !!selectedSection &&
       !!selectedSubject &&
       isMarkingForToday &&
-      userRole === "teacher",
+      userRole === "teacher" &&
+      attendanceMode === 'subject',
     refetchInterval: 60000,
   });
 
@@ -137,6 +142,11 @@ const Attendance = () => {
   const isWithinScheduledTime = useMemo(() => {
     if (isAdmin) return true;
     if (!isMarkingForToday) return false;
+
+    // If Class Mode, we assume "Daily Attendance" which spans the whole day or doesn't have a rigid timeslot check here
+    // Backend creates constraints if needed, but for frontend visual block, we can relax it or assume user knows.
+    if (attendanceMode === 'class') return true;
+
     if (!scheduleData) return false;
 
     const now = new Date();
@@ -149,7 +159,7 @@ const Attendance = () => {
     const scheduleEnd = endHour * 60 + endMin;
 
     return currentTime >= scheduleStart && currentTime <= scheduleEnd;
-  }, [scheduleData, isMarkingForToday, isAdmin]);
+  }, [scheduleData, isMarkingForToday, isAdmin, attendanceMode]);
 
   // Fetch students
   const { data: studentsData } = useQuery({
@@ -173,18 +183,20 @@ const Attendance = () => {
       selectedSection,
       selectedSubject,
       selectedDate,
+      attendanceMode // Added to key
     ],
     queryFn: () =>
       attendanceAPI.get({
         class_id: selectedClass,
         section_id: selectedSection,
-        subject_id: selectedSubject,
+        // Pass subject_id only if mode is subject
+        subject_id: attendanceMode === 'subject' ? selectedSubject : undefined,
         date: selectedDate,
       }),
     enabled:
       !!selectedClass &&
       !!selectedSection &&
-      !!selectedSubject &&
+      (attendanceMode === 'class' || !!selectedSubject) &&
       !!selectedDate &&
       userRole !== "student",
   });
@@ -197,18 +209,19 @@ const Attendance = () => {
       selectedSection,
       selectedSubject,
       selectedDate,
+      attendanceMode // Added to key
     ],
     queryFn: () =>
       attendanceAPI.checkSubmission({
         class_id: selectedClass,
         section_id: selectedSection,
-        subject_id: selectedSubject,
+        subject_id: attendanceMode === 'subject' ? selectedSubject : undefined,
         date: selectedDate,
       }),
     enabled:
       !!selectedClass &&
       !!selectedSection &&
-      !!selectedSubject &&
+      (attendanceMode === 'class' || !!selectedSubject) &&
       !!selectedDate &&
       userRole !== "student",
   });
@@ -230,7 +243,8 @@ const Attendance = () => {
         const existing = existingAttendance?.data?.find(
           (a) => a.student_id === student.id
         );
-        newAttendanceData[student.id] = existing?.status || "present";
+        // Changed default: if no existing record, use undefined (neutral) instead of 'present'
+        newAttendanceData[student.id] = existing?.status || undefined;
       });
       setAttendanceData(newAttendanceData);
     }
@@ -251,10 +265,15 @@ const Attendance = () => {
 
   const handleSaveAttendance = async () => {
     // Validation Logic
-    if (!selectedClass || !selectedSection || !selectedSubject) {
-      toast.error("Please select class, section, and subject");
+    if (!selectedClass || !selectedSection) {
+      toast.error("Please select class and section");
       return;
     }
+    if (attendanceMode === 'subject' && !selectedSubject) {
+      toast.error("Please select a subject");
+      return;
+    }
+
     if (!isWithinScheduledTime && userRole === "teacher") {
       toast.error(
         "You can only mark attendance during the scheduled class time."
@@ -268,22 +287,44 @@ const Attendance = () => {
       return;
     }
 
-    const attendanceRecords = Object.entries(attendanceData).map(
-      ([studentId, status]) => ({
+    const attendanceRecords = Object.entries(attendanceData)
+      .filter(([_, status]) => status !== undefined && status !== null) // Only send marked records? Or send all?
+      // User likely needs to mark ALL students or at least some. 
+      // If we send undefined status, API defaults to 'present' in my previous code 
+      // "record.status || 'present'". 
+      // User wants form style. If they leave it blank, does it mean present? No, user said "null then who is present then click tick".
+      // This allows explicitly marking present/absent.
+      // If I filter out undefined, they won't be saved.
+      // If I define undefined as NULL in payload, backend defaults to "present".
+      // Let's send specific status. If status is undefined, maybe we shouldn't send it?
+      // But we are doing a FULL replacement for the date/subject.
+      // So existing records are DELETED.
+      // If we don't send a student, they will have NO record.
+      // This is effectively "Not Marked".
+      // If the goal is allow partial marking, then filtering is fine.
+      // But if goal is "Full Submission", we should perhaps validate?
+      // For "Save Draft", partial is fine.
+      .map(([studentId, status]) => ({
         student_id: parseInt(studentId),
         class_id: parseInt(selectedClass),
         section_id: parseInt(selectedSection),
         date: selectedDate,
         status,
         remarks: "",
-      })
-    );
+      }));
+
+    if (attendanceRecords.length === 0) {
+      toast.error("Please mark attendance for at least one student");
+      return;
+    }
 
     setSubmitting(true);
     try {
       await attendanceAPI.mark({
         date: selectedDate,
-        subject_id: parseInt(selectedSubject),
+        class_id: parseInt(selectedClass),
+        section_id: parseInt(selectedSection),
+        subject_id: attendanceMode === 'subject' ? parseInt(selectedSubject) : undefined,
         attendance_records: attendanceRecords,
       });
       toast.success("Attendance saved successfully");
@@ -297,32 +338,58 @@ const Attendance = () => {
   };
 
   const handleSubmitAttendance = async () => {
-    if (!selectedClass || !selectedSection || !selectedSubject) {
-      toast.error("Please select class, section, and subject");
+    if (!selectedClass || !selectedSection) {
+      toast.error("Please select class and section");
       return;
     }
+    if (attendanceMode === 'subject' && !selectedSubject) {
+      toast.error("Please select a subject");
+      return;
+    }
+
     if (isSubmitted) {
       toast.error("Attendance is already submitted");
       return;
     }
 
-    const attendanceRecords = Object.entries(attendanceData).map(
-      ([studentId, status]) => ({
+    // Validate that all students have a status marked? (Optional, but good practice for "Submit")
+    // Or allow default behavior. User requested "null checks". 
+    // If they submit with nulls, backend will default to "present" (per controller logic: record.status || "present").
+    // This is DANGEROUS if UI shows "Empty".
+    // I should ensure the controller logic matches UI expectations.
+    // If UI shows "Empty", backend should default to... what?
+    // If they submit, usually it implies finalizing.
+    // Let's assume explicitly marked ones are sent. The rest will default to Absent or Present?
+    // Current controller: `record.status || "present"`.
+    // If I exclude them from array, they are not inserted.
+    // If "Class Attendance" deletes OLD records, and I only send 5 out of 10 students,
+    // only 5 will have attendance records. The other 5 will have "No Record".
+    // This might be what "null" means visually.
+
+    const attendanceRecords = Object.entries(attendanceData)
+      .filter(([_, status]) => status !== undefined && status !== null)
+      .map(([studentId, status]) => ({
         student_id: parseInt(studentId),
         class_id: parseInt(selectedClass),
         section_id: parseInt(selectedSection),
         date: selectedDate,
         status,
         remarks: "",
-      })
-    );
+      }));
+
+    if (attendanceRecords.length === 0) {
+      toast.error("Please mark attendance for at least one student");
+      return;
+    }
 
     setSubmitting(true);
     try {
       // Save first
       await attendanceAPI.mark({
         date: selectedDate,
-        subject_id: parseInt(selectedSubject),
+        class_id: parseInt(selectedClass),
+        section_id: parseInt(selectedSection),
+        subject_id: attendanceMode === 'subject' ? parseInt(selectedSubject) : undefined,
         attendance_records: attendanceRecords,
       });
 
@@ -330,7 +397,7 @@ const Attendance = () => {
       await attendanceAPI.submit({
         class_id: parseInt(selectedClass),
         section_id: parseInt(selectedSection),
-        subject_id: parseInt(selectedSubject),
+        subject_id: attendanceMode === 'subject' ? parseInt(selectedSubject) : undefined,
         date: selectedDate,
       });
 
@@ -359,7 +426,7 @@ const Attendance = () => {
       await attendanceAPI.unlock({
         class_id: parseInt(selectedClass),
         section_id: parseInt(selectedSection),
-        subject_id: parseInt(selectedSubject),
+        subject_id: attendanceMode === 'subject' ? parseInt(selectedSubject) : undefined,
         date: selectedDate,
       });
       toast.success("Attendance unlocked");
@@ -375,6 +442,7 @@ const Attendance = () => {
 
   // --- STUDENT VIEW LOGIC ---
   if (userRole === "student") {
+    // ... (Student logic unchanged) ...
     const [viewMonth, setViewMonth] = useState(new Date().getMonth());
     const [viewYear, setViewYear] = useState(new Date().getFullYear());
 
@@ -461,9 +529,35 @@ const Attendance = () => {
 
       {/* Filter / Selection Card */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-4 text-gray-800 font-semibold">
-          <Filter className="w-5 h-5 text-indigo-600" />
-          Attendance Filters
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div className="flex items-center gap-2 text-gray-800 font-semibold">
+            <Filter className="w-5 h-5 text-indigo-600" />
+            Attendance Filters
+          </div>
+          {/* Mode Switcher */}
+          <div className="flex bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setAttendanceMode("subject")}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${attendanceMode === "subject"
+                ? "bg-white text-indigo-700 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+                }`}
+            >
+              Subject Wise
+            </button>
+            <button
+              onClick={() => {
+                setAttendanceMode("class");
+                setSelectedSubject(""); // Reset subject
+              }}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${attendanceMode === "class"
+                ? "bg-white text-indigo-700 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+                }`}
+            >
+              Class Wise
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -523,29 +617,32 @@ const Attendance = () => {
             </select>
           </div>
 
-          <div className="form-control">
-            <label className="label text-xs font-semibold text-gray-500 uppercase">
-              Subject
-            </label>
-            <select
-              value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
-              disabled={!selectedSection}
-              className="select select-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-700"
-            >
-              <option value="">Select Subject</option>
-              {subjects.map((sub) => (
-                <option key={sub.id} value={sub.id}>
-                  {sub.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {attendanceMode === 'subject' && (
+            <div className="form-control">
+              <label className="label text-xs font-semibold text-gray-500 uppercase">
+                Subject
+              </label>
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                disabled={!selectedSection}
+                className="select select-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-900"
+              >
+                <option value="">Select Subject</option>
+                {subjects.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
       {teacherViewRenderCheck({
         selectedSubject,
+        attendanceMode,
         isWithinScheduledTime,
         userRole,
         isAdmin,
@@ -558,6 +655,7 @@ const Attendance = () => {
             onAttendanceChange={handleAttendanceChange}
             isSubmitted={isSubmitted}
             isAdmin={isAdmin}
+            subjectName={subjects.find(s => s.id == selectedSubject)?.name}
           />
 
           {/* Action Bar */}
@@ -607,6 +705,7 @@ const Attendance = () => {
           selectedClass,
           selectedSection,
           selectedSubject,
+          attendanceMode,
           isWithinScheduledTime,
           userRole,
           isAdmin,
@@ -614,18 +713,21 @@ const Attendance = () => {
       )}
     </div>
   );
-};
+}; // End of Component
 
 // --- Helper Components for Clean Code ---
 
 function teacherViewRenderCheck({
   selectedSubject,
+  attendanceMode,
   isWithinScheduledTime,
   userRole,
   isAdmin,
 }) {
-  if (!selectedSubject) return false;
+  if (attendanceMode === 'subject' && !selectedSubject) return false;
+  // If Class Mode, no subject needed
   if (!isWithinScheduledTime && userRole === "teacher" && !isAdmin) return false;
+
   return true;
 }
 
@@ -633,11 +735,12 @@ function renderEmptyState({
   selectedClass,
   selectedSection,
   selectedSubject,
+  attendanceMode,
   isWithinScheduledTime,
   userRole,
   isAdmin,
 }) {
-  if (!selectedClass || !selectedSection || !selectedSubject) {
+  if (!selectedClass || !selectedSection || (attendanceMode === 'subject' && !selectedSubject)) {
     return (
       <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
         <Filter className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -645,7 +748,7 @@ function renderEmptyState({
           Select filters to view attendance
         </h3>
         <p className="text-gray-400 max-w-sm mx-auto mt-2">
-          Please select a class, section, and subject from the filters above.
+          Please select a class, section, {attendanceMode === 'subject' && 'and subject'} from the filters above.
         </p>
       </div>
     );

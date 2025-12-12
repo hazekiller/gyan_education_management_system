@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, X, Clock, AlertCircle } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 /**
  * TeacherAttendanceTable Component
@@ -11,6 +11,7 @@ const TeacherAttendanceTable = ({
     onAttendanceChange,
     isSubmitted,
     isAdmin,
+    subjectName, // New prop
 }) => {
     // Quick action to mark all present
     const handleMarkAllPresent = () => {
@@ -22,20 +23,16 @@ const TeacherAttendanceTable = ({
 
     const getStatusButtonClass = (isActive, type) => {
         const baseClass =
-            "flex-1 py-2 text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1 border-r last:border-r-0 first:rounded-l-lg last:rounded-r-lg";
+            "flex-1 py-2 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 first:rounded-l-lg last:rounded-r-lg";
 
         if (!isActive)
-            return `${baseClass} bg-white text-gray-500 hover:bg-gray-50 border-gray-200`;
+            return `${baseClass} bg-white text-gray-400 hover:bg-gray-50 border border-gray-200`;
 
         switch (type) {
             case "present":
-                return `${baseClass} bg-emerald-100 text-emerald-700 border-emerald-200 shadow-inner`;
+                return `${baseClass} bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm`;
             case "absent":
-                return `${baseClass} bg-rose-100 text-rose-700 border-rose-200 shadow-inner`;
-            case "late":
-                return `${baseClass} bg-yellow-100 text-yellow-700 border-yellow-200 shadow-inner`;
-            case "excused":
-                return `${baseClass} bg-blue-100 text-blue-700 border-blue-200 shadow-inner`;
+                return `${baseClass} bg-rose-100 text-rose-700 border-rose-200 shadow-sm`;
             default:
                 return baseClass;
         }
@@ -46,7 +43,14 @@ const TeacherAttendanceTable = ({
             {/* Header Actions */}
             <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50/50">
                 <div>
-                    <h3 className="font-semibold text-gray-800">Student List</h3>
+                    <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                        Student List
+                        {subjectName && (
+                            <span className="text-sm font-normal text-gray-500 bg-gray-200 px-2 py-0.5 rounded-md">
+                                {subjectName}
+                            </span>
+                        )}
+                    </h3>
                     <p className="text-xs text-gray-500 mt-0.5">
                         Total Students: {students.length}
                     </p>
@@ -68,7 +72,7 @@ const TeacherAttendanceTable = ({
                         <tr>
                             <th className="px-6 py-4 w-16 text-center">#</th>
                             <th className="px-6 py-4">Student Name</th>
-                            <th className="px-6 py-4 w-1/2 min-w-[300px] text-center">
+                            <th className="px-6 py-4 w-1/3 min-w-[200px] text-center">
                                 Attendance Status
                             </th>
                         </tr>
@@ -82,7 +86,7 @@ const TeacherAttendanceTable = ({
                             </tr>
                         ) : (
                             students.map((student, index) => {
-                                const currentStatus = attendanceData[student.id] || "present"; // Default visual fallback
+                                const currentStatus = attendanceData[student.id]; // No default fallback
                                 const isDisabled = isSubmitted && !isAdmin;
 
                                 return (
@@ -107,54 +111,28 @@ const TeacherAttendanceTable = ({
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex rounded-lg border border-gray-200 shadow-sm max-w-md mx-auto">
+                                            <div className="flex gap-2 max-w-[200px] mx-auto">
                                                 <button
                                                     disabled={isDisabled}
                                                     onClick={() => onAttendanceChange(student.id, "present")}
-                                                    className={getStatusButtonClass(
-                                                        currentStatus === "present",
-                                                        "present"
-                                                    )}
+                                                    className={`flex-1 btn btn-sm border-0 ${currentStatus === 'present'
+                                                        ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md'
+                                                        : 'bg-gray-100 hover:bg-gray-200 text-gray-400'
+                                                        }`}
                                                     title="Present"
                                                 >
-                                                    <Check className="w-4 h-4" />
-                                                    <span className="hidden sm:inline">Present</span>
+                                                    <Check className="w-5 h-5" />
                                                 </button>
                                                 <button
                                                     disabled={isDisabled}
                                                     onClick={() => onAttendanceChange(student.id, "absent")}
-                                                    className={getStatusButtonClass(
-                                                        currentStatus === "absent",
-                                                        "absent"
-                                                    )}
+                                                    className={`flex-1 btn btn-sm border-0 ${currentStatus === 'absent'
+                                                        ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-md'
+                                                        : 'bg-gray-100 hover:bg-gray-200 text-gray-400'
+                                                        }`}
                                                     title="Absent"
                                                 >
-                                                    <X className="w-4 h-4" />
-                                                    <span className="hidden sm:inline">Absent</span>
-                                                </button>
-                                                <button
-                                                    disabled={isDisabled}
-                                                    onClick={() => onAttendanceChange(student.id, "late")}
-                                                    className={getStatusButtonClass(
-                                                        currentStatus === "late",
-                                                        "late"
-                                                    )}
-                                                    title="Late"
-                                                >
-                                                    <Clock className="w-4 h-4" />
-                                                    <span className="hidden sm:inline">Late</span>
-                                                </button>
-                                                <button
-                                                    disabled={isDisabled}
-                                                    onClick={() => onAttendanceChange(student.id, "excused")}
-                                                    className={getStatusButtonClass(
-                                                        currentStatus === "excused",
-                                                        "excused"
-                                                    )}
-                                                    title="Excused"
-                                                >
-                                                    <AlertCircle className="w-4 h-4" />
-                                                    <span className="hidden sm:inline">Excused</span>
+                                                    <X className="w-5 h-5" />
                                                 </button>
                                             </div>
                                         </td>
