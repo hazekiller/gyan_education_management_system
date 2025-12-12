@@ -45,6 +45,21 @@ const getAllClasses = async (req, res) => {
       }
     }
 
+    // Filter for teachers
+    if (userRole === "teacher") {
+      query += ` AND c.id IN (
+         SELECT DISTINCT s.class_id FROM sections s
+         JOIN teachers t ON s.class_teacher_id = t.id
+         WHERE t.user_id = ?
+         UNION
+         SELECT DISTINCT sec.class_id FROM section_subject_teachers sst
+         JOIN sections sec ON sst.section_id = sec.id
+         JOIN teachers t ON sst.teacher_id = t.id
+         WHERE t.user_id = ? AND sst.is_active = 1
+      )`;
+      params.push(userId, userId);
+    }
+
     if (status) {
       query += " AND c.is_active = ?";
       params.push(status === "active" ? 1 : 0);
