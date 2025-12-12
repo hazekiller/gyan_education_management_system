@@ -71,7 +71,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Users",
       path: "/users",
       icon: Users,
-      show: role !== "student", // Hide from students, show for admin roles
+      show: ['admin', 'super_admin'].includes(role), // Show for admin and super_admin
     },
     {
       name: "Subjects",
@@ -113,7 +113,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Front Desk",
       path: "/frontdesk",
       icon: UserCheck,
-      show: role !== "student", // Hide from students, show for admin roles
+      show: ['admin', 'super_admin'].includes(role), // Show for admin and super_admin
     },
     {
       name: "Exams",
@@ -203,7 +203,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "My Leaves",
       path: "/my-leaves",
       icon: ClipboardList,
-      show: ['accountant', 'guard', 'cleaner'].includes(role) && hasPermission(PERMISSIONS.SUBMIT_LEAVE),
+      show: (['teacher', 'student', 'accountant', 'guard', 'cleaner'].includes(role) || hasPermission(PERMISSIONS.SUBMIT_LEAVE)) && !['admin', 'super_admin'].includes(role),
     },
     {
       name: "Reports",
