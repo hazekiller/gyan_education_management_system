@@ -100,6 +100,64 @@ const getDashboardStats = async (req, res) => {
       [today]
     );
 
+    // === Fee Statistics (Current Month) ===
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    // 1. Collected This Month
+    const [collectedRes] = await pool.query(
+      `SELECT SUM(amount_paid) as total 
+       FROM fee_payments 
+       WHERE MONTH(payment_date) = ? AND YEAR(payment_date) = ? AND status = 'completed'`,
+      [currentMonth, currentYear]
+    );
+    const collectedAmount = collectedRes[0].total || 0;
+
+    // 2. Expected Revenue This Month (Simplified)
+    // - Monthly fees: Count of students in class * fee amount
+    // - Other fees (one_time, term, etc): If due_date is in this month -> Count of students * amount
+
+    // Get all active fee structures applicable for this month
+    const [feeStructures] = await pool.query(
+      `SELECT fs.id, fs.class_id, fs.amount, fs.period_type, fs.due_date 
+       FROM fee_structure fs 
+       WHERE fs.is_active = 1`
+    );
+
+    let expectedAmount = 0;
+
+    // We need student counts per class to calculate total expected
+    const [classStudentCounts] = await pool.query(
+      `SELECT class_id, COUNT(*) as count FROM students WHERE status = 'active' GROUP BY class_id`
+    );
+    const studentCountMap = {};
+    classStudentCounts.forEach(c => {
+      studentCountMap[c.class_id] = c.count;
+    });
+
+    for (const fee of feeStructures) {
+      const studentsInClass = studentCountMap[fee.class_id] || 0;
+      if (studentsInClass === 0) continue;
+
+      let isApplicable = false;
+
+      if (fee.period_type === 'monthly') {
+        isApplicable = true; // Assumes monthly fees apply every month
+      } else if (fee.due_date) {
+        const dueDate = new Date(fee.due_date);
+        if (dueDate.getMonth() + 1 === currentMonth && dueDate.getFullYear() === currentYear) {
+          isApplicable = true;
+        }
+      }
+
+      if (isApplicable) {
+        expectedAmount += parseFloat(fee.amount) * studentsInClass;
+      }
+    }
+
+    const pendingAmount = Math.max(0, expectedAmount - collectedAmount);
+
+
     res.json({
       success: true,
       data: {
@@ -112,6 +170,11 @@ const getDashboardStats = async (req, res) => {
           present: attendanceStats[0].present || 0,
           absent: attendanceStats[0].absent || 0,
         },
+        fees: {
+          collected: collectedAmount,
+          pending: pendingAmount,
+          collectionRate: expectedAmount > 0 ? Math.round((collectedAmount / expectedAmount) * 100) : 0
+        }
       },
     });
   } catch (error) {

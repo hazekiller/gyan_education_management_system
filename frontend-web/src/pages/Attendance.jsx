@@ -476,7 +476,7 @@ const Attendance = () => {
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
               My Attendance
             </h1>
-            <p className="text-gray-500 mt-2">
+            <p className="text-black mt-2">
               Track your daily attendance and performance stats.
             </p>
           </div>
@@ -503,10 +503,10 @@ const Attendance = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-3xl font-bold text-black tracking-tight">
             Mark Attendance
           </h1>
-          <p className="text-gray-500 mt-2">
+          <p className="text-black mt-2">
             Select class details to view or mark attendance.
           </p>
         </div>
@@ -514,15 +514,17 @@ const Attendance = () => {
         {/* Status Indicators */}
         <div className="flex items-center gap-3">
           {isSubmitted ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium border border-emerald-200">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium border border-blue-200">
               <Lock className="w-4 h-4" />
               Locked
             </div>
+
           ) : (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm font-medium border border-gray-200">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-black rounded-full text-sm font-medium border border-gray-200">
               <Unlock className="w-4 h-4" />
               Open for Marking
             </div>
+
           )}
         </div>
       </div>
@@ -531,7 +533,7 @@ const Attendance = () => {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div className="flex items-center gap-2 text-gray-800 font-semibold">
-            <Filter className="w-5 h-5 text-indigo-600" />
+            <Filter className="w-5 h-5 text-blue-600" />
             Attendance Filters
           </div>
           {/* Mode Switcher */}
@@ -539,8 +541,8 @@ const Attendance = () => {
             <button
               onClick={() => setAttendanceMode("subject")}
               className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${attendanceMode === "subject"
-                ? "bg-white text-indigo-700 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-blue-600 text-white shadow-sm"
+                : "text-black hover:text-black"
                 }`}
             >
               Subject Wise
@@ -551,8 +553,8 @@ const Attendance = () => {
                 setSelectedSubject(""); // Reset subject
               }}
               className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${attendanceMode === "class"
-                ? "bg-white text-indigo-700 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-blue-600 text-white shadow-sm"
+                : "text-black hover:text-black"
                 }`}
             >
               Class Wise
@@ -562,19 +564,19 @@ const Attendance = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="form-control">
-            <label className="label text-xs font-semibold text-gray-500 uppercase">
+            <label className="label text-xs font-semibold text-black uppercase">
               Date
             </label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="input input-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-700"
+              className="input input-bordered w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-black"
             />
           </div>
 
           <div className="form-control">
-            <label className="label text-xs font-semibold text-gray-500 uppercase">
+            <label className="label text-xs font-semibold text-black uppercase">
               Class
             </label>
             <select
@@ -584,11 +586,11 @@ const Attendance = () => {
                 setSelectedSection("");
                 setSelectedSubject("");
               }}
-              className="select select-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-700"
+              className="select select-bordered w-full bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-black"
             >
-              <option value="">Select Class</option>
+              <option value="" className="bg-white text-black">Select Class</option>
               {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
+                <option key={cls.id} value={cls.id} className="bg-white text-black">
                   {cls.name}
                 </option>
               ))}
@@ -596,7 +598,7 @@ const Attendance = () => {
           </div>
 
           <div className="form-control">
-            <label className="label text-xs font-semibold text-gray-500 uppercase">
+            <label className="label text-xs font-semibold text-black uppercase">
               Section
             </label>
             <select
@@ -606,11 +608,11 @@ const Attendance = () => {
                 setSelectedSubject("");
               }}
               disabled={!selectedClass}
-              className="select select-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-700"
+              className="select select-bordered w-full bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-black"
             >
-              <option value="">Select Section</option>
+              <option value="" className="bg-white text-black">Select Section</option>
               {sections.map((sec) => (
-                <option key={sec.id} value={sec.id}>
+                <option key={sec.id} value={sec.id} className="bg-white text-black">
                   {sec.name}
                 </option>
               ))}
@@ -619,18 +621,18 @@ const Attendance = () => {
 
           {attendanceMode === 'subject' && (
             <div className="form-control">
-              <label className="label text-xs font-semibold text-gray-500 uppercase">
+              <label className="label text-xs font-semibold text-black uppercase">
                 Subject
               </label>
               <select
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
                 disabled={!selectedSection}
-                className="select select-bordered w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-black"
+                className="select select-bordered w-full bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-black"
               >
-                <option value="" className="text-black">Select Subject</option>
+                <option value="" className="bg-white text-black">Select Subject</option>
                 {subjects.map((sub) => (
-                  <option key={sub.id} value={sub.id} className="text-black">
+                  <option key={sub.id} value={sub.id} className="bg-white text-black">
                     {sub.name}
                   </option>
                 ))}
@@ -665,7 +667,7 @@ const Attendance = () => {
                 <button
                   onClick={handleUnlockAttendance}
                   disabled={submitting}
-                  className="btn bg-white hover:bg-gray-50 text-indigo-600 border-indigo-200 gap-2"
+                  className="btn bg-white hover:bg-gray-50 text-blue-600 border-blue-200 gap-2"
                 >
                   <Unlock className="w-5 h-5" />
                   Unlock Attendance
@@ -676,22 +678,21 @@ const Attendance = () => {
                 <>
                   <button
                     onClick={handleSaveAttendance}
-                    disabled={submitting}
-                    className="btn btn-outline gap-2"
+                    className="btn bg-white text-blue-600 border-blue-600 hover:bg-blue-50 gap-2"
                   >
                     Save Draft
                   </button>
                   <button
                     onClick={handleSubmitAttendance}
                     disabled={submitting}
-                    className="btn bg-indigo-600 hover:bg-indigo-700 text-white gap-2 border-0"
+                    className="btn bg-blue-600 hover:bg-blue-700 text-white gap-2 border-0"
                   >
                     {submitting && <span className="loading loading-spinner" />}
                     Submit & Lock
                   </button>
                 </>
               ) : (
-                <div className="flex items-center gap-2 text-emerald-600 font-medium px-4 py-2 bg-emerald-50 rounded-lg border border-emerald-100">
+                <div className="flex items-center gap-2 text-blue-600 font-medium px-4 py-2 bg-blue-50 rounded-lg border border-blue-100">
                   <CheckCircle className="w-5 h-5" />
                   Attendance Submitted on{" "}
                   {new Date(submissionInfo?.submitted_at).toLocaleString()}
