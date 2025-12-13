@@ -398,7 +398,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
       </aside>
 
-      <style jsx>{`
+      <style>{`
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
