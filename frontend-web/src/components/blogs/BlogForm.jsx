@@ -36,7 +36,7 @@ const BlogForm = ({ blog, onSubmit, onCancel, loading }) => {
             <div>
                 <label
                     htmlFor="title"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-semibold text-gray-700 mb-1"
                 >
                     Title
                 </label>
@@ -47,7 +47,7 @@ const BlogForm = ({ blog, onSubmit, onCancel, loading }) => {
                     value={formData.title}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900 placeholder-gray-400 transition-all font-medium"
                     placeholder="Enter blog title"
                 />
             </div>
@@ -55,7 +55,7 @@ const BlogForm = ({ blog, onSubmit, onCancel, loading }) => {
             <div>
                 <label
                     htmlFor="status"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-semibold text-gray-700 mb-1"
                 >
                     Status
                 </label>
@@ -64,7 +64,7 @@ const BlogForm = ({ blog, onSubmit, onCancel, loading }) => {
                     name="status"
                     value={formData.status}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900 font-medium bg-white"
                 >
                     <option value="published">Published</option>
                     <option value="draft">Draft</option>
@@ -74,7 +74,7 @@ const BlogForm = ({ blog, onSubmit, onCancel, loading }) => {
             <div>
                 <label
                     htmlFor="content"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-semibold text-gray-700 mb-1"
                 >
                     Content
                 </label>
@@ -85,29 +85,29 @@ const BlogForm = ({ blog, onSubmit, onCancel, loading }) => {
                     onChange={handleChange}
                     required
                     rows={12}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent font-mono text-sm text-gray-800 leading-relaxed"
                     placeholder="Write your blog content here..."
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 mt-2 font-medium">
                     Supports basic text. (Rich text editor can be added later)
                 </p>
             </div>
 
-            <div className="flex justify-end space-x-4 pt-4">
+            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100 mt-2">
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
                     disabled={loading}
-                    className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center px-6 py-2.5 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-all font-medium shadow-sm hover:shadow active:transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     <Save className="w-5 h-5 mr-2" />
-                    {loading ? "Saving..." : blog ? "Update Blog" : "Publish Blog"}
+                    {loading ? "Saving..." : blog ? "Update Article" : "Publish Article"}
                 </button>
             </div>
         </form>
