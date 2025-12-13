@@ -108,7 +108,7 @@ const Leaves = () => {
                         Manage leave applications from students, teachers, and staff.
                     </p>
                     {pendingCountData?.count > 0 && (
-                        <p className="text-sm text-orange-600 font-medium mt-2">
+                        <p className="text-sm text-blue-700 font-medium mt-2">
                             {pendingCountData.count} pending application{pendingCountData.count !== 1 ? "s" : ""} awaiting review
                         </p>
                     )}
@@ -116,7 +116,7 @@ const Leaves = () => {
             </div>
 
             {/* Filters */}
-            <div className="card p-6 bg-white rounded-lg shadow-sm">
+            <div className="card p-6 bg-white rounded-xl shadow-sm border border-gray-100">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                     <div className="relative md:col-span-2">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
@@ -165,7 +165,7 @@ const Leaves = () => {
             <div>
                 {isLoading ? (
                     <div className="flex justify-center items-center py-12">
-                        <div className="loading"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
                     </div>
                 ) : leavesData?.data?.length === 0 ? (
                     <div className="text-center py-12 bg-white rounded-lg shadow-sm">
@@ -238,7 +238,7 @@ const Leaves = () => {
                         </button>
                         <button
                             onClick={handleApprove}
-                            className="btn bg-green-600 hover:bg-green-700 text-white"
+                            className="btn bg-blue-700 hover:bg-blue-800 text-white"
                         >
                             Approve
                         </button>
@@ -289,7 +289,7 @@ const Leaves = () => {
                         </button>
                         <button
                             onClick={handleDecline}
-                            className="btn bg-red-600 hover:bg-red-700 text-white"
+                            className="btn bg-gray-700 hover:bg-gray-800 text-white"
                         >
                             Decline
                         </button>

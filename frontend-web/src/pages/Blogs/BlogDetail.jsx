@@ -46,62 +46,70 @@ const BlogDetail = () => {
     if (!blog) return null;
 
     return (
-        <div className="p-6 max-w-4xl mx-auto">
-            <button
-                onClick={() => navigate("/blogs")}
-                className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors"
-            >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Back to Blogs
-            </button>
-
-            <article className="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div className="p-8">
-                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
-                        <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium">
-                            {blog.status}
-                        </span>
-                        <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {formatDate(blog.created_at)}
-                        </span>
+        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto">
+                <button
+                    onClick={() => navigate("/blogs")}
+                    className="group flex items-center text-gray-500 hover:text-gray-900 mb-8 transition-colors font-medium"
+                >
+                    <div className="p-2 rounded-full bg-white border border-gray-200 group-hover:border-gray-300 mr-3 shadow-sm transition-all">
+                        <ArrowLeft className="w-4 h-4" />
                     </div>
+                    Back to Articles
+                </button>
 
-                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                        {blog.title}
-                    </h1>
-
-                    <div className="flex items-center justify-between py-6 border-y border-gray-100 mb-8">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                <User className="w-5 h-5 text-gray-500" />
-                            </div>
-                            <div>
-                                <p className="font-medium text-gray-900">
-                                    {blog.first_name} {blog.last_name}
-                                </p>
-                                <p className="text-xs text-gray-500">Author</p>
-                            </div>
+                <article className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-8 md:p-12">
+                        <div className="flex flex-wrap items-center gap-4 text-sm mb-8">
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${blog.status === 'published'
+                                    ? 'bg-blue-50 text-blue-700'
+                                    : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                {blog.status}
+                            </span>
+                            <div className="h-1 w-1 rounded-full bg-gray-300"></div>
+                            <span className="flex items-center gap-2 text-gray-500 font-medium">
+                                <Calendar className="w-4 h-4" />
+                                {formatDate(blog.created_at)}
+                            </span>
                         </div>
 
-                        {canManageBlogs && (
-                            <Link
-                                to={`/blogs/edit/${blog.id}`}
-                                className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
-                            >
-                                <Edit className="w-4 h-4" />
-                                Edit Blog
-                            </Link>
-                        )}
-                    </div>
+                        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-8 leading-tight tracking-tight">
+                            {blog.title}
+                        </h1>
 
-                    <div className="prose prose-blue max-w-none">
-                        <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                            {blog.content}
+                        <div className="flex items-center justify-between py-8 border-y border-gray-100 mb-10">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+                                    <User className="w-6 h-6 text-gray-600" />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-gray-900 text-lg">
+                                        {blog.first_name} {blog.last_name}
+                                    </p>
+                                    <p className="text-sm text-gray-500 font-medium">Author</p>
+                                </div>
+                            </div>
+
+                            {canManageBlogs && (
+                                <Link
+                                    to={`/blogs/edit/${blog.id}`}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-50 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-all font-medium border border-gray-200 hover:border-blue-200"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                    Edit Article
+                                </Link>
+                            )}
+                        </div>
+
+                        <div className="prose prose-lg prose-blue max-w-none">
+                            <div className="whitespace-pre-wrap text-gray-700 leading-relaxed font-light">
+                                {blog.content}
+                            </div>
                         </div>
                     </div>
-                </div>
-            </article>
+                </article>
+            </div>
         </div>
     );
 };

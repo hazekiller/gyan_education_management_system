@@ -103,128 +103,138 @@ const Blog = () => {
     }
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-                        <BookOpen className="w-8 h-8 text-blue-600" />
-                        School Blog
-                    </h1>
-                    <p className="text-gray-600 mt-1">
-                        Latest updates, news, and articles from the school
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <input
-                            type="text"
-                            placeholder="Search blogs..."
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+        <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto">
+                <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+                    <div>
+                        <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3 tracking-tight">
+                            <BookOpen className="w-10 h-10 text-blue-700" />
+                            School Blog
+                        </h1>
+                        <p className="text-gray-500 mt-2 text-lg font-light">
+                            Insights, news, and updates from our community
+                        </p>
                     </div>
 
-                    {canManageBlogs && (
-                        <button
-                            onClick={handleCreate}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            <Plus className="w-5 h-5" />
-                            Create Blog
-                        </button>
-                    )}
+                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+                        <div className="relative w-full sm:w-72">
+                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <input
+                                type="text"
+                                placeholder="Search articles..."
+                                className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm text-gray-900 placeholder-gray-400 transition-all"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+
+                        {canManageBlogs && (
+                            <button
+                                onClick={handleCreate}
+                                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-all font-medium shadow-sm hover:shadow-md active:transform active:scale-95"
+                            >
+                                <Plus className="w-5 h-5" />
+                                New Post
+                            </button>
+                        )}
+                    </div>
                 </div>
-            </div>
 
-            {filteredBlogs.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-                    <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-medium text-gray-900">No blogs found</h3>
-                    <p className="text-gray-500 mt-2">
-                        {searchTerm
-                            ? "Try adjusting your search terms"
-                            : "Check back later for new updates"}
-                    </p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredBlogs.map((blog) => (
-                        <article
-                            key={blog.id}
-                            className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full"
-                        >
-                            <div className="p-6 flex-1">
-                                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                                    <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
-                                        {blog.status}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <Calendar className="w-4 h-4" />
-                                        {formatDate(blog.created_at)}
-                                    </span>
-                                </div>
-
-                                <Link to={`/blogs/${blog.id}`}>
-                                    <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors line-clamp-2">
-                                        {blog.title}
-                                    </h2>
-                                </Link>
-
-                                <p className="text-gray-600 mb-4 line-clamp-3">
-                                    {blog.content.replace(/<[^>]*>/g, "").substring(0, 150)}...
-                                </p>
-
-                                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                                            <User className="w-4 h-4 text-gray-500" />
-                                        </div>
-                                        <span>
-                                            {blog.first_name} {blog.last_name}
+                {filteredBlogs.length === 0 ? (
+                    <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100">
+                        <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <BookOpen className="w-10 h-10 text-gray-400" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">No blogs found</h3>
+                        <p className="text-gray-500 max-w-sm mx-auto">
+                            {searchTerm
+                                ? `We couldn't find any articles matching "${searchTerm}"`
+                                : "There are no blog posts available at the moment."}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {filteredBlogs.map((blog) => (
+                            <article
+                                key={blog.id}
+                                className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100 hover:border-blue-100"
+                            >
+                                <div className="p-6 flex-1 flex flex-col">
+                                    <div className="flex items-center justify-between gap-2 mb-4">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${blog.status === 'published'
+                                                ? 'bg-blue-50 text-blue-700'
+                                                : 'bg-gray-100 text-gray-600'
+                                            }`}>
+                                            {blog.status}
                                         </span>
+                                        <div className="flex items-center gap-1 text-xs font-medium text-gray-400">
+                                            <Calendar className="w-3.5 h-3.5" />
+                                            {formatDate(blog.created_at)}
+                                        </div>
                                     </div>
 
-                                    {canManageBlogs && (
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => handleEdit(blog)}
-                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                title="Edit"
-                                            >
-                                                <Edit className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(blog.id)}
-                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="Delete"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </article>
-                    ))}
-                </div>
-            )}
+                                    <Link to={`/blogs/${blog.id}`} className="block group-hover:text-blue-700 transition-colors">
+                                        <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 leading-snug">
+                                            {blog.title}
+                                        </h2>
+                                    </Link>
 
-            <Modal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                title={selectedBlog ? "Edit Blog" : "Create New Blog"}
-                size="lg"
-            >
-                <BlogForm
-                    blog={selectedBlog}
-                    onSubmit={handleFormSubmit}
-                    onCancel={() => setShowModal(false)}
-                    loading={formLoading}
-                />
-            </Modal>
+                                    <p className="text-gray-600 mb-6 line-clamp-3 text-sm leading-relaxed flex-grow">
+                                        {blog.content.replace(/<[^>]*>/g, "").substring(0, 150)}...
+                                    </p>
+
+                                    <div className="flex items-center justify-between pt-5 border-t border-gray-100 mt-auto">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+                                                <User className="w-4 h-4 text-gray-600" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-bold text-gray-900">
+                                                    {blog.first_name} {blog.last_name}
+                                                </span>
+                                                <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Author</span>
+                                            </div>
+                                        </div>
+
+                                        {canManageBlogs && (
+                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => handleEdit(blog)}
+                                                    className="p-2 text-gray-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    title="Edit"
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(blog.id)}
+                                                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                )}
+
+                <Modal
+                    isOpen={showModal}
+                    onClose={() => setShowModal(false)}
+                    title={selectedBlog ? "Edit Article" : "Create New Article"}
+                    size="lg"
+                >
+                    <BlogForm
+                        blog={selectedBlog}
+                        onSubmit={handleFormSubmit}
+                        onCancel={() => setShowModal(false)}
+                        loading={formLoading}
+                    />
+                </Modal>
+            </div>
         </div>
     );
 };

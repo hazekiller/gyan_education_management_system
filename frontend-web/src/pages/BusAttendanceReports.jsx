@@ -36,11 +36,13 @@ const BusAttendanceReports = () => {
     return (
         <div className="space-y-8">
             <div className="bg-blue-600 rounded-2xl p-8 text-white shadow-xl">
+
                 <div className="flex items-center gap-3 mb-2">
                     <ClipboardList className="w-10 h-10" />
                     <h1 className="text-4xl font-bold">Bus Attendance Reports</h1>
                 </div>
                 <p className="text-white text-lg opacity-90">
+
                     Track and manage daily bus attendance records
                 </p>
             </div>
@@ -53,6 +55,7 @@ const BusAttendanceReports = () => {
                         className={`flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'reports'
                             ? 'bg-blue-600 text-white shadow-md transform scale-105'
                             : 'text-black hover:bg-gray-100'
+
                             }`}
                     >
                         <ClipboardList className="w-4 h-4 mr-2" />
@@ -65,6 +68,7 @@ const BusAttendanceReports = () => {
                         className={`flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'my-attendance'
                             ? 'bg-blue-600 text-white shadow-md transform scale-105'
                             : 'text-black hover:bg-gray-100'
+
                             }`}
                     >
                         <Bus className="w-4 h-4 mr-2" />
@@ -180,6 +184,7 @@ const ReportsTab = () => {
             draft: 'bg-white text-black border-gray-200',
             submitted: 'bg-blue-600 text-white border-blue-600',
             verified: 'bg-white text-black border-blue-600'
+
         };
         return (
             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border-2 ${styles[status] || styles.draft}`}>
@@ -194,6 +199,7 @@ const ReportsTab = () => {
             <div className="flex justify-between items-center p-6 bg-white rounded-2xl border border-gray-200">
                 <h3 className="text-2xl font-bold text-black flex items-center gap-3">
                     <ClipboardList className="w-8 h-8 text-blue-600" />
+
                     Bus Attendance Reports
                 </h3>
                 <button
@@ -219,6 +225,7 @@ const ReportsTab = () => {
                         <label className="block text-sm font-medium text-black mb-1">Route</label>
                         <select
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+
                             value={filters.route_id}
                             onChange={(e) => setFilters({ ...filters, route_id: e.target.value, page: 1 })}
                         >
@@ -232,6 +239,7 @@ const ReportsTab = () => {
                         <label className="block text-sm font-medium text-black mb-1">Bus</label>
                         <select
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+
                             value={filters.vehicle_id}
                             onChange={(e) => setFilters({ ...filters, vehicle_id: e.target.value, page: 1 })}
                         >
@@ -246,6 +254,7 @@ const ReportsTab = () => {
                         <input
                             type="date"
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+
                             value={filters.date_from}
                             onChange={(e) => setFilters({ ...filters, date_from: e.target.value, page: 1 })}
                         />
@@ -254,7 +263,7 @@ const ReportsTab = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
                         <input
                             type="date"
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             value={filters.date_to}
                             onChange={(e) => setFilters({ ...filters, date_to: e.target.value, page: 1 })}
                         />
@@ -263,6 +272,7 @@ const ReportsTab = () => {
                         <label className="block text-sm font-medium text-black mb-1">Status</label>
                         <select
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+
                             value={filters.status}
                             onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
                         >
@@ -302,11 +312,12 @@ const ReportsTab = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-100 bg-white">
                                 {reports.map((report) => (
-                                    <tr key={report.id} className="hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 transition-all">
+                                    <tr key={report.id} className="hover:bg-gray-50 transition-all">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="w-4 h-4 text-blue-600" />
                                                 <span className="font-medium text-black">
+
                                                     {new Date(report.report_date).toLocaleDateString()}
                                                 </span>
                                             </div>
@@ -314,6 +325,7 @@ const ReportsTab = () => {
                                         <td className="px-6 py-4">
                                             <div className="font-semibold text-black">{report.route_name}</div>
                                             <div className="text-sm font-mono bg-white border border-blue-600 text-black px-3 py-1 rounded-full mt-1 inline-block">
+
                                                 {report.bus_number}
                                             </div>
                                         </td>
@@ -330,6 +342,7 @@ const ReportsTab = () => {
                                                 <div className="text-center">
                                                     <div className="text-xs text-black">Absent</div>
                                                     <div className="text-lg font-bold text-black">{report.absent_count}</div>
+
                                                 </div>
                                             </div>
                                         </td>
@@ -351,6 +364,7 @@ const ReportsTab = () => {
                                                 <button
                                                     onClick={() => handleEdit(report)}
                                                     className="p-2 text-black hover:bg-gray-100 rounded-lg transition-colors"
+
                                                     title="Edit"
                                                 >
                                                     <Edit className="w-5 h-5" />
@@ -443,6 +457,7 @@ const MyAttendanceTab = () => {
             return <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-600 text-white border-2 border-blue-600">PRESENT</span>;
         } else if (status === 'absent') {
             return <span className="px-3 py-1 rounded-full text-xs font-bold bg-white text-black border-2 border-gray-200">ABSENT</span>;
+
         }
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-white text-black border-2 border-gray-200">UNKNOWN</span>;
     };
@@ -450,7 +465,7 @@ const MyAttendanceTab = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
+            <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100">
                 <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                     <Bus className="w-8 h-8 text-blue-600" />
                     My Bus Attendance
@@ -522,8 +537,8 @@ const MyAttendanceTab = () => {
                                 </div>
 
                                 {record.my_remarks && (
-                                    <div className="p-3 bg-yellow-50 rounded-xl border border-yellow-100">
-                                        <div className="text-xs text-yellow-700 mb-1">Remarks</div>
+                                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
+                                        <div className="text-xs text-gray-700 mb-1">Remarks</div>
                                         <div className="text-sm text-gray-900">{record.my_remarks}</div>
                                     </div>
                                 )}
@@ -642,6 +657,7 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
             <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="p-6 border-b border-gray-200 bg-white">
+
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-bold text-black">
                             {viewMode ? 'View Report' : initialData ? 'Edit Report' : 'Create Report'}
@@ -665,6 +681,7 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                                 <input
                                     type="date"
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+
                                     value={formData.report_date}
                                     onChange={(e) => setFormData({ ...formData, report_date: e.target.value })}
                                     required
@@ -675,6 +692,7 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                                 <label className="block text-sm font-medium text-black mb-1">Route *</label>
                                 <select
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+
                                     value={formData.route_id}
                                     onChange={(e) => {
                                         const route = routes.find(r => r.id === parseInt(e.target.value));
@@ -703,6 +721,7 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                                 <label className="block text-sm font-medium text-black mb-1">Status</label>
                                 <select
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+
                                     value={formData.status}
                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                 >
@@ -717,6 +736,7 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                             <div>
                                 <h3 className="text-lg font-semibold text-black mb-4 flex items-center gap-2">
                                     <Users className="w-5 h-5 text-blue-600" />
+
                                     Student Attendance ({formData.attendance_data.length} students)
                                 </h3>
                                 <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -745,6 +765,7 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                                                                     className={`px-4 py-2 rounded-lg font-medium transition-all ${attendance.status === 'present'
                                                                         ? 'bg-blue-600 text-white shadow-md'
                                                                         : 'bg-white text-black border border-gray-300 hover:bg-gray-50'
+
                                                                         }`}
                                                                     disabled={viewMode}
                                                                 >
@@ -756,6 +777,7 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                                                                     className={`px-4 py-2 rounded-lg font-medium transition-all ${attendance.status === 'absent'
                                                                         ? 'bg-black text-white shadow-md'
                                                                         : 'bg-white text-black border border-gray-300 hover:bg-gray-50'
+
                                                                         }`}
                                                                     disabled={viewMode}
                                                                 >
@@ -767,6 +789,7 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                                                             <input
                                                                 type="text"
                                                                 className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+
                                                                 placeholder="Optional remarks..."
                                                                 value={attendance.remarks || ''}
                                                                 onChange={(e) => handleAttendanceChange(attendance.student_id, 'remarks', e.target.value)}
@@ -787,6 +810,7 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                             <label className="block text-sm font-medium text-black mb-1">General Remarks</label>
                             <textarea
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+
                                 rows="3"
                                 placeholder="Optional general remarks about the day..."
                                 value={formData.remarks}
