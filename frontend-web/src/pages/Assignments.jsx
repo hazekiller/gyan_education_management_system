@@ -283,12 +283,12 @@ const Assignments = () => {
         <div className="bg-white rounded-lg shadow-md p-12 text-center">
           <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500 mb-4">No assignments found</p>
-          <button
+          {/* <button
             onClick={() => setIsModalOpen(true)}
             className="btn btn-primary"
           >
             Create First Assignment
-          </button>
+          </button> */}
         </div>
       ) : (
         <div className="space-y-4">
