@@ -51,6 +51,9 @@ import FrontDesk from "./pages/FrontDesk";
 import Leaves from "./pages/Leaves";
 import MyLeaves from "./pages/MyLeaves";
 
+import Discipline from "./pages/Discipline/Discipline";
+import Marksheet from "./pages/Marksheet/Marksheet";
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -130,6 +133,8 @@ function App() {
         <Route path="reports" element={<DailyReports />} />
         <Route path="reports/:id" element={<DailyReportDetails />} />
         <Route path="bus-attendance-reports" element={<BusAttendanceReports />} />
+        <Route path="discipline" element={<Discipline />} />
+        <Route path="marksheets" element={<Marksheet />} />
       </Route>
 
       {/* 404 */}

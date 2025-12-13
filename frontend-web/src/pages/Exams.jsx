@@ -88,30 +88,30 @@ const Exams = () => {
   }, [exams]);
 
   const examTypes = [
-    { value: "all", label: "All Exams", color: "bg-gray-100 text-gray-800" },
-    { value: "term", label: "Term", color: "bg-blue-100 text-blue-800" },
+    { value: "all", label: "All Exams", color: "text-black" },
+    { value: "term", label: "Term", color: "text-black" },
     {
       value: "midterm",
       label: "Midterm",
-      color: "bg-purple-100 text-purple-800",
+      color: "text-black",
     },
-    { value: "final", label: "Final", color: "bg-red-100 text-red-800" },
+    { value: "final", label: "Final", color: "text-black" },
     {
       value: "unit_test",
       label: "Unit Test",
-      color: "bg-green-100 text-green-800",
+      color: "text-black",
     },
     {
       value: "monthly",
       label: "Monthly",
-      color: "bg-yellow-100 text-yellow-800",
+      color: "text-black",
     },
     {
       value: "quarterly",
       label: "Quarterly",
-      color: "bg-orange-100 text-orange-800",
+      color: "text-black",
     },
-    { value: "annual", label: "Annual", color: "bg-pink-100 text-pink-800" },
+    { value: "annual", label: "Annual", color: "text-black" },
   ];
 
   return (
@@ -140,22 +140,22 @@ const Exams = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium opacity-90">Total Exams</h3>
-            <BookOpen className="w-6 h-6 opacity-80" />
+            <h3 className="text-sm font-medium text-black opacity-90">Total Exams</h3>
+            <BookOpen className="w-6 h-6 text-blue-600" />
           </div>
-          <p className="text-4xl font-bold">{stats.total}</p>
-          <p className="text-xs opacity-80 mt-2">In {selectedAcademicYear}</p>
+          <p className="text-4xl font-bold text-black">{stats.total}</p>
+          <p className="text-xs text-black opacity-80 mt-2">In {selectedAcademicYear}</p>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium opacity-90">Completed</h3>
-            <FileText className="w-6 h-6 opacity-80" />
+            <h3 className="text-sm font-medium text-black opacity-90">Completed</h3>
+            <FileText className="w-6 h-6 text-blue-600" />
           </div>
-          <p className="text-4xl font-bold">{stats.completed}</p>
-          <p className="text-xs opacity-80 mt-2">
+          <p className="text-4xl font-bold text-black">{stats.completed}</p>
+          <p className="text-xs text-black opacity-80 mt-2">
             {stats.total > 0
               ? Math.round((stats.completed / stats.total) * 100)
               : 0}
@@ -163,22 +163,22 @@ const Exams = () => {
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium opacity-90">Ongoing</h3>
-            <TrendingUp className="w-6 h-6 opacity-80" />
+            <h3 className="text-sm font-medium text-black opacity-90">Ongoing</h3>
+            <TrendingUp className="w-6 h-6 text-blue-600" />
           </div>
-          <p className="text-4xl font-bold">{stats.ongoing}</p>
-          <p className="text-xs opacity-80 mt-2">Active right now</p>
+          <p className="text-4xl font-bold text-black">{stats.ongoing}</p>
+          <p className="text-xs text-black opacity-80 mt-2">Active right now</p>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium opacity-90">Upcoming</h3>
-            <Calendar className="w-6 h-6 opacity-80" />
+            <h3 className="text-sm font-medium text-black opacity-90">Upcoming</h3>
+            <Calendar className="w-6 h-6 text-blue-600" />
           </div>
-          <p className="text-4xl font-bold">{stats.upcoming}</p>
-          <p className="text-xs opacity-80 mt-2">Scheduled ahead</p>
+          <p className="text-4xl font-bold text-black">{stats.upcoming}</p>
+          <p className="text-xs text-black opacity-80 mt-2">Scheduled ahead</p>
         </div>
       </div>
 
@@ -219,8 +219,8 @@ const Exams = () => {
                   key={type.value}
                   onClick={() => setFilterType(type.value)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filterType === type.value
-                      ? `${type.color} border-2 border-current shadow-md`
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-white text-black border border-gray-200 hover:bg-gray-50"
                     }`}
                 >
                   {type.label}
@@ -244,12 +244,12 @@ const Exams = () => {
                   <AlertCircle className="w-4 h-4" />
                   <span>Active filters:</span>
                   {selectedAcademicYear !== getCurrentAcademicYear() && (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md font-medium">
+                    <span className="px-2 py-1 bg-white text-black border border-blue-600 rounded-md font-medium">
                       {selectedAcademicYear}
                     </span>
                   )}
                   {filterType !== "all" && (
-                    <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md font-medium">
+                    <span className="px-2 py-1 bg-blue-600 text-white rounded-md font-medium">
                       {examTypes.find((t) => t.value === filterType)?.label}
                     </span>
                   )}

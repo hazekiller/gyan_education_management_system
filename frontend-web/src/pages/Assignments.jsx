@@ -49,6 +49,21 @@ const Assignments = () => {
     }
   }, [location.state]);
 
+  const [initialFormValues, setInitialFormValues] = useState(null);
+
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setInitialFormValues({
+        subject_id: location.state.subject_id,
+        class_id: location.state.class_id,
+        section_id: location.state.section_id,
+      });
+      setIsModalOpen(true);
+      // Clear state to prevent reopening on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate]);
+
   // Get user profile to determine role
   const { data: profileData } = useQuery({
     queryKey: ["profile"],
@@ -229,8 +244,8 @@ const Assignments = () => {
           <button
             onClick={() => setFilter("overdue")}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === "overdue"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
           >
             Overdue
@@ -446,8 +461,12 @@ const Assignments = () => {
       >
         <AssignmentForm
           assignment={editingAssignment}
+          initialValues={initialFormValues}
           onSubmit={handleSubmit}
-          onCancel={handleModalClose}
+          onCancel={() => {
+            handleModalClose();
+            setInitialFormValues(null);
+          }}
           isSubmitting={createMutation.isPending || updateMutation.isPending}
         />
       </Modal>

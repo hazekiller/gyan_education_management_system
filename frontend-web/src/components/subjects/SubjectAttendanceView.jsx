@@ -2,7 +2,7 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Calendar, AlertTriangle, CheckCircle } from "lucide-react";
+import { Calendar, AlertTriangle, CheckCircle, Plus } from "lucide-react";
 import { attendanceAPI } from "../../lib/api";
 import Modal from "../common/Modal";
 
@@ -126,7 +126,7 @@ const SubjectAttendanceView = ({
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div
             onClick={handleNavigateToAttendance}
             className="bg-white border rounded-lg p-4 cursor-pointer hover:shadow-md hover:border-indigo-300 transition-all"
@@ -166,6 +166,21 @@ const SubjectAttendanceView = ({
               {stats.total_days}
             </p>
           </div>
+
+          {user?.role !== "student" && (
+            <div
+              onClick={handleNavigateToAttendance}
+              className="bg-purple-50 border border-purple-200 rounded-lg p-4 cursor-pointer hover:bg-purple-100 transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Plus className="w-4 h-4 text-purple-600" />
+                <p className="text-sm font-medium text-purple-800">Add</p>
+              </div>
+              <p className="text-sm font-medium text-purple-600 mt-2">
+                Attendance
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Attendance History */}

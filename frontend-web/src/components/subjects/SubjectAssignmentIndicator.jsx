@@ -1,8 +1,10 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { FileCheck, Clock, CheckCircle2 } from "lucide-react";
+import { FileCheck, Clock, CheckCircle2, Plus } from "lucide-react";
 import { assignmentsAPI } from "../../lib/api";
+import { useSelector } from "react-redux";
+import { selectUserRole } from "../../store/slices/authSlice";
 import Modal from "../common/Modal";
 
 /**
@@ -17,6 +19,7 @@ const SubjectAssignmentIndicator = ({
   onClose,
 }) => {
   const navigate = useNavigate();
+  const userRole = useSelector(selectUserRole);
 
   // Fetch assignments for this subject
   const { data: assignmentsData, isLoading } = useQuery({
@@ -68,7 +71,7 @@ const SubjectAssignmentIndicator = ({
     >
       <div className="space-y-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           <div
             onClick={() => {
               navigate("/assignments", {
@@ -127,6 +130,31 @@ const SubjectAssignmentIndicator = ({
               {assignments.length}
             </p>
           </div>
+
+          {userRole !== "student" && (
+            <div
+              onClick={() => {
+                navigate("/assignments", {
+                  state: {
+                    openCreateModal: true,
+                    subject_id: subjectId,
+                    class_id: classId,
+                    section_id: sectionId,
+                  },
+                });
+                onClose();
+              }}
+              className="bg-purple-50 border border-purple-200 rounded-lg p-4 cursor-pointer hover:bg-purple-100 transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Plus className="w-4 h-4 text-purple-600" />
+                <p className="text-sm font-medium text-purple-800">Create</p>
+              </div>
+              <p className="text-sm font-medium text-purple-600 mt-2">
+                Add New
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Active Assignments */}

@@ -33,7 +33,7 @@ const ExamForm = ({ exam = null, onSubmit, onCancel, isSubmitting }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.class_id || !formData.start_date || !formData.end_date) {
       toast.error('Please fill all required fields');
       return;
@@ -56,7 +56,7 @@ const ExamForm = ({ exam = null, onSubmit, onCancel, isSubmitting }) => {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-black mb-2">
             Exam Name *
           </label>
           <input
@@ -71,7 +71,7 @@ const ExamForm = ({ exam = null, onSubmit, onCancel, isSubmitting }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-black mb-2">
             Exam Type *
           </label>
           <select
@@ -92,7 +92,7 @@ const ExamForm = ({ exam = null, onSubmit, onCancel, isSubmitting }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-black mb-2">
             Class *
           </label>
           <select
@@ -112,7 +112,7 @@ const ExamForm = ({ exam = null, onSubmit, onCancel, isSubmitting }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-black mb-2">
             Academic Year *
           </label>
           <select
@@ -129,7 +129,7 @@ const ExamForm = ({ exam = null, onSubmit, onCancel, isSubmitting }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-black mb-2">
             Start Date *
           </label>
           <input
@@ -143,7 +143,7 @@ const ExamForm = ({ exam = null, onSubmit, onCancel, isSubmitting }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-black mb-2">
             End Date *
           </label>
           <input
@@ -157,7 +157,7 @@ const ExamForm = ({ exam = null, onSubmit, onCancel, isSubmitting }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-black mb-2">
             Total Marks *
           </label>
           <input
@@ -172,7 +172,7 @@ const ExamForm = ({ exam = null, onSubmit, onCancel, isSubmitting }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-black mb-2">
             Passing Marks *
           </label>
           <input
@@ -187,7 +187,7 @@ const ExamForm = ({ exam = null, onSubmit, onCancel, isSubmitting }) => {
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-black mb-2">
             Description
           </label>
           <textarea

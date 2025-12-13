@@ -17,8 +17,9 @@ import {
   Home,
   Bell,
   Bus,
-  Sparkles,
   UserCheck,
+  AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 import {
   selectCurrentUser,
@@ -107,7 +108,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Attendance",
       path: "/attendance",
       icon: ClipboardList,
-      show: hasPermission(PERMISSIONS.VIEW_ATTENDANCE),
+      show: false, // Hidden as per user request
     },
     {
       name: "Front Desk",
@@ -137,7 +138,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Assignments",
       path: "/assignments",
       icon: FileText,
-      show: hasPermission(PERMISSIONS.VIEW_ASSIGNMENTS),
+      show: false, // Hidden as per user request
     },
     {
       name: "Fee Management",
@@ -179,13 +180,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Hostel",
       path: "/hostel",
       icon: Home,
-      show: role !== "teacher", // Hide from teachers
+      show: !['teacher', 'frontdesk', 'guard', 'cleaner', 'accountant'].includes(role), // Hide from teachers, frontdesk and staff
     },
     {
       name: "Transport",
       path: "/transport",
       icon: Bus,
-      show: role !== "teacher", // Hide from teachers
+      show: !['teacher', 'frontdesk', 'guard', 'cleaner', 'accountant'].includes(role), // Hide from teachers, frontdesk and staff
     },
     {
       name: "Payroll",
@@ -221,7 +222,19 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Bus Attendance",
       path: "/bus-attendance-reports",
       icon: ClipboardList,
-      show: role !== "teacher", // Hide from teachers
+      show: !['teacher', 'frontdesk', 'guard', 'cleaner', 'accountant'].includes(role), // Hide from teachers, frontdesk and staff
+    },
+    {
+      name: "Discipline",
+      path: "/discipline",
+      icon: AlertTriangle,
+      show: ['admin', 'super_admin'].includes(role), // Show for admins only
+    },
+    {
+      name: "Marksheet",
+      path: "/marksheets",
+      icon: FileText,
+      show: ['admin', 'super_admin'].includes(role), // Show for admins only
     },
   ];
 

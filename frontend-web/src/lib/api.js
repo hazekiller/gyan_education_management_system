@@ -808,5 +808,34 @@ export const leavesAPI = {
   delete: (id) => api.delete(`/leaves/${id}`),
 };
 
+
+
+// ============================================
+// DISCIPLINE API
+// ============================================
+export const disciplineAPI = {
+  // Get all discipline records (admin view - shows all)
+  // For students, this is filtered server-side to show only their records
+  getAll: (params) => api.get("/discipline", { params }),
+
+  // Get single record by ID
+  getById: (id) => api.get(`/discipline/${id}`),
+
+  // NEW METHOD: Get only the logged-in student's discipline records
+  // Only accessible by students
+  // More secure and explicit endpoint
+  getMyDiscipline: (params) =>
+    api.get("/discipline/my-records/view", { params }),
+
+  // Create new discipline record (admin/teacher only)
+  create: (data) => api.post("/discipline", data),
+
+  // Update discipline record (admin only)
+  update: (id, data) => api.put(`/discipline/${id}`, data),
+
+  // Delete discipline record (admin only)
+  delete: (id) => api.delete(`/discipline/${id}`),
+};
+
 // Final export
 export default api;

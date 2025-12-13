@@ -75,9 +75,8 @@ const Admissions = () => {
     };
     return (
       <span
-        className={`px-2 py-1 text-xs rounded-full font-medium ${
-          styles[status] || "bg-gray-100 text-gray-800"
-        }`}
+        className={`px-2 py-1 text-xs rounded-full font-medium ${styles[status] || "bg-gray-100 text-gray-800"
+          }`}
       >
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
@@ -181,7 +180,8 @@ const Admissions = () => {
                   </td>
                 </tr>
               ) : (
-                admissionsData.data.map((admission) => (
+
+                admissionsData?.data?.map((admission) => (
                   <tr
                     key={admission.id}
                     className="hover:bg-blue-50 transition-colors"

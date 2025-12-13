@@ -136,8 +136,9 @@ const createExam = async (req, res) => {
       total_marks,
       passing_marks,
       description,
-      created_by,
     } = req.body;
+
+    const created_by = req.body.created_by || req.user?.id;
 
     const [result] = await pool.query(
       `INSERT INTO exams (name, exam_type, class_id, academic_year, start_date, end_date, 
