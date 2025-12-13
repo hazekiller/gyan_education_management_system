@@ -333,9 +333,11 @@ const migrate = async () => {
         passing_marks INT NOT NULL,
         description TEXT,
         is_active BOOLEAN DEFAULT true,
+        created_by INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
+        FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
         INDEX idx_class_year (class_id, academic_year),
         INDEX idx_dates (start_date, end_date)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -396,7 +398,7 @@ const migrate = async () => {
         class_id INT NOT NULL,
         section_id INT NOT NULL,
         subject_id INT NOT NULL,
-        teacher_id INT NOT NULL,
+        created_by INT NOT NULL,
         due_date DATE NOT NULL,
         total_marks INT DEFAULT 100,
         attachments JSON,
@@ -406,7 +408,7 @@ const migrate = async () => {
         FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
         FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE,
         FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
-        FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE,
+        FOREIGN KEY (created_by) REFERENCES teachers(id) ON DELETE CASCADE,
         INDEX idx_class_section (class_id, section_id),
         INDEX idx_due_date (due_date)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

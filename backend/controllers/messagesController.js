@@ -124,22 +124,24 @@ const getConversations = async (req, res) => {
 
     const [conversations] = await pool.query(
       `
-      SELECT DISTINCT
-        CASE 
-          WHEN m.sender_id = ? THEN m.receiver_id
-          ELSE m.sender_id
-        END as user_id,
-        MAX(m.created_at) as last_message_time,
-        (SELECT content FROM messages 
-         WHERE (sender_id = ? AND receiver_id = user_id) 
-            OR (sender_id = user_id AND receiver_id = ?)
-         ORDER BY created_at DESC LIMIT 1) as last_message,
-        (SELECT COUNT(*) FROM messages 
-         WHERE sender_id = user_id AND receiver_id = ? AND is_read = 0) as unread_count
-      FROM messages m
-      WHERE m.sender_id = ? OR m.receiver_id = ?
-      GROUP BY user_id
-      ORDER BY last_message_time DESC
+      SELECT 
+        t.user_id,
+        t.last_message_time,
+        m.content as last_message,
+        (SELECT COUNT(*) FROM messages m2 WHERE m2.sender_id = t.user_id AND m2.receiver_id = ? AND m2.is_read = 0) as unread_count
+      FROM (
+        SELECT 
+          CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END as user_id,
+          MAX(created_at) as last_message_time
+        FROM messages
+        WHERE sender_id = ? OR receiver_id = ?
+        GROUP BY user_id
+      ) t
+      JOIN messages m ON (
+        (m.sender_id = ? AND m.receiver_id = t.user_id) 
+        OR (m.sender_id = t.user_id AND m.receiver_id = ?)
+      ) AND m.created_at = t.last_message_time
+      ORDER BY t.last_message_time DESC
     `,
       [userId, userId, userId, userId, userId, userId]
     );

@@ -35,12 +35,12 @@ const BusAttendanceReports = () => {
 
     return (
         <div className="space-y-8">
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 text-white shadow-xl">
+            <div className="bg-blue-600 rounded-2xl p-8 text-white shadow-xl">
                 <div className="flex items-center gap-3 mb-2">
                     <ClipboardList className="w-10 h-10" />
                     <h1 className="text-4xl font-bold">Bus Attendance Reports</h1>
                 </div>
-                <p className="text-emerald-100 text-lg">
+                <p className="text-white text-lg opacity-90">
                     Track and manage daily bus attendance records
                 </p>
             </div>
@@ -51,8 +51,8 @@ const BusAttendanceReports = () => {
                     <button
                         onClick={() => setActiveTab('reports')}
                         className={`flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'reports'
-                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md transform scale-105'
-                                : 'text-gray-600 hover:bg-gray-100'
+                            ? 'bg-blue-600 text-white shadow-md transform scale-105'
+                            : 'text-black hover:bg-gray-100'
                             }`}
                     >
                         <ClipboardList className="w-4 h-4 mr-2" />
@@ -63,8 +63,8 @@ const BusAttendanceReports = () => {
                     <button
                         onClick={() => setActiveTab('my-attendance')}
                         className={`flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'my-attendance'
-                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md transform scale-105'
-                                : 'text-gray-600 hover:bg-gray-100'
+                            ? 'bg-blue-600 text-white shadow-md transform scale-105'
+                            : 'text-black hover:bg-gray-100'
                             }`}
                     >
                         <Bus className="w-4 h-4 mr-2" />
@@ -177,9 +177,9 @@ const ReportsTab = () => {
 
     const getStatusBadge = (status) => {
         const styles = {
-            draft: 'bg-gray-100 text-gray-800 border-gray-200',
-            submitted: 'bg-blue-100 text-blue-800 border-blue-200',
-            verified: 'bg-green-100 text-green-800 border-green-200'
+            draft: 'bg-white text-black border-gray-200',
+            submitted: 'bg-blue-600 text-white border-blue-600',
+            verified: 'bg-white text-black border-blue-600'
         };
         return (
             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border-2 ${styles[status] || styles.draft}`}>
@@ -191,9 +191,9 @@ const ReportsTab = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center p-6 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100">
-                <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                    <ClipboardList className="w-8 h-8 text-emerald-600" />
+            <div className="flex justify-between items-center p-6 bg-white rounded-2xl border border-gray-200">
+                <h3 className="text-2xl font-bold text-black flex items-center gap-3">
+                    <ClipboardList className="w-8 h-8 text-blue-600" />
                     Bus Attendance Reports
                 </h3>
                 <button
@@ -202,7 +202,7 @@ const ReportsTab = () => {
                         setViewMode(false);
                         setShowModal(true);
                     }}
-                    className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all font-medium"
+                    className="flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all font-medium"
                 >
                     <Plus className="w-4 h-4" /> Create Report
                 </button>
@@ -216,9 +216,9 @@ const ReportsTab = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Route</label>
+                        <label className="block text-sm font-medium text-black mb-1">Route</label>
                         <select
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                             value={filters.route_id}
                             onChange={(e) => setFilters({ ...filters, route_id: e.target.value, page: 1 })}
                         >
@@ -229,9 +229,9 @@ const ReportsTab = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Bus</label>
+                        <label className="block text-sm font-medium text-black mb-1">Bus</label>
                         <select
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                             value={filters.vehicle_id}
                             onChange={(e) => setFilters({ ...filters, vehicle_id: e.target.value, page: 1 })}
                         >
@@ -242,10 +242,10 @@ const ReportsTab = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+                        <label className="block text-sm font-medium text-black mb-1">From Date</label>
                         <input
                             type="date"
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                             value={filters.date_from}
                             onChange={(e) => setFilters({ ...filters, date_from: e.target.value, page: 1 })}
                         />
@@ -260,9 +260,9 @@ const ReportsTab = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <label className="block text-sm font-medium text-black mb-1">Status</label>
                         <select
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                             value={filters.status}
                             onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
                         >
@@ -278,7 +278,7 @@ const ReportsTab = () => {
             {/* Reports Table */}
             {isLoading ? (
                 <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 </div>
             ) : reports.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed">
@@ -291,45 +291,45 @@ const ReportsTab = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                                    <th className="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
-                                    <th className="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Route / Bus</th>
-                                    <th className="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Attendance</th>
-                                    <th className="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Created By</th>
-                                    <th className="px-6 py-5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+                                <tr className="bg-white border-b border-gray-200">
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-black uppercase tracking-wider">Date</th>
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-black uppercase tracking-wider">Route / Bus</th>
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-black uppercase tracking-wider">Attendance</th>
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-black uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-black uppercase tracking-wider">Created By</th>
+                                    <th className="px-6 py-5 text-right text-xs font-bold text-black uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 bg-gradient-to-b from-white to-slate-50">
+                            <tbody className="divide-y divide-gray-100 bg-white">
                                 {reports.map((report) => (
                                     <tr key={report.id} className="hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 transition-all">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-2">
-                                                <Calendar className="w-4 h-4 text-emerald-600" />
-                                                <span className="font-medium text-gray-900">
+                                                <Calendar className="w-4 h-4 text-blue-600" />
+                                                <span className="font-medium text-black">
                                                     {new Date(report.report_date).toLocaleDateString()}
                                                 </span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="font-semibold text-gray-900">{report.route_name}</div>
-                                            <div className="text-sm font-mono bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full mt-1 inline-block">
+                                            <div className="font-semibold text-black">{report.route_name}</div>
+                                            <div className="text-sm font-mono bg-white border border-blue-600 text-black px-3 py-1 rounded-full mt-1 inline-block">
                                                 {report.bus_number}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="text-center">
-                                                    <div className="text-xs text-gray-500">Total</div>
-                                                    <div className="text-lg font-bold text-gray-900">{report.total_students}</div>
+                                                    <div className="text-xs text-black">Total</div>
+                                                    <div className="text-lg font-bold text-black">{report.total_students}</div>
                                                 </div>
                                                 <div className="text-center">
-                                                    <div className="text-xs text-green-600">Present</div>
-                                                    <div className="text-lg font-bold text-green-600">{report.present_count}</div>
+                                                    <div className="text-xs text-black">Present</div>
+                                                    <div className="text-lg font-bold text-black">{report.present_count}</div>
                                                 </div>
                                                 <div className="text-center">
-                                                    <div className="text-xs text-red-600">Absent</div>
-                                                    <div className="text-lg font-bold text-red-600">{report.absent_count}</div>
+                                                    <div className="text-xs text-black">Absent</div>
+                                                    <div className="text-lg font-bold text-black">{report.absent_count}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -350,7 +350,7 @@ const ReportsTab = () => {
                                                 </button>
                                                 <button
                                                     onClick={() => handleEdit(report)}
-                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                                    className="p-2 text-black hover:bg-gray-100 rounded-lg transition-colors"
                                                     title="Edit"
                                                 >
                                                     <Edit className="w-5 h-5" />
@@ -358,7 +358,7 @@ const ReportsTab = () => {
                                                 {['super_admin', 'admin', 'principal'].includes(user?.role) && (
                                                     <button
                                                         onClick={() => handleDelete(report.id)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        className="p-2 text-black hover:bg-gray-100 rounded-lg transition-colors"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="w-5 h-5" />
@@ -367,7 +367,7 @@ const ReportsTab = () => {
                                                 {report.status !== 'verified' && ['super_admin', 'principal'].includes(user?.role) && (
                                                     <button
                                                         onClick={() => handleVerify(report.id)}
-                                                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                                         title="Verify"
                                                     >
                                                         <CheckCircle className="w-5 h-5" />
@@ -440,11 +440,11 @@ const MyAttendanceTab = () => {
 
     const getStatusBadge = (status) => {
         if (status === 'present') {
-            return <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border-2 border-green-200">PRESENT</span>;
+            return <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-600 text-white border-2 border-blue-600">PRESENT</span>;
         } else if (status === 'absent') {
-            return <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border-2 border-red-200">ABSENT</span>;
+            return <span className="px-3 py-1 rounded-full text-xs font-bold bg-white text-black border-2 border-gray-200">ABSENT</span>;
         }
-        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-800 border-2 border-gray-200">UNKNOWN</span>;
+        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-white text-black border-2 border-gray-200">UNKNOWN</span>;
     };
 
     return (
@@ -641,9 +641,9 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50">
+                <div className="p-6 border-b border-gray-200 bg-white">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-bold text-gray-900">
+                        <h2 className="text-2xl font-bold text-black">
                             {viewMode ? 'View Report' : initialData ? 'Edit Report' : 'Create Report'}
                         </h2>
                         <button
@@ -661,10 +661,10 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                         {/* Basic Info */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                                <label className="block text-sm font-medium text-black mb-1">Date *</label>
                                 <input
                                     type="date"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                                     value={formData.report_date}
                                     onChange={(e) => setFormData({ ...formData, report_date: e.target.value })}
                                     required
@@ -672,9 +672,9 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Route *</label>
+                                <label className="block text-sm font-medium text-black mb-1">Route *</label>
                                 <select
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                                     value={formData.route_id}
                                     onChange={(e) => {
                                         const route = routes.find(r => r.id === parseInt(e.target.value));
@@ -700,9 +700,9 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                         {/* Status */}
                         {!viewMode && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <label className="block text-sm font-medium text-black mb-1">Status</label>
                                 <select
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                                     value={formData.status}
                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                 >
@@ -715,25 +715,25 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                         {/* Student Attendance */}
                         {formData.attendance_data.length > 0 && (
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <Users className="w-5 h-5 text-emerald-600" />
+                                <h3 className="text-lg font-semibold text-black mb-4 flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-blue-600" />
                                     Student Attendance ({formData.attendance_data.length} students)
                                 </h3>
                                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                                     <div className="max-h-96 overflow-y-auto">
                                         <table className="w-full">
-                                            <thead className="bg-gray-50 sticky top-0">
+                                            <thead className="bg-white sticky top-0">
                                                 <tr>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Student</th>
-                                                    <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase">Status</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Remarks</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-bold text-black uppercase">Student</th>
+                                                    <th className="px-4 py-3 text-center text-xs font-bold text-black uppercase">Status</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-bold text-black uppercase">Remarks</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-200">
                                                 {formData.attendance_data.map((attendance) => (
                                                     <tr key={attendance.student_id} className="hover:bg-gray-50">
                                                         <td className="px-4 py-3">
-                                                            <div className="font-medium text-gray-900">
+                                                            <div className="font-medium text-black">
                                                                 {attendance.student_name}
                                                             </div>
                                                         </td>
@@ -743,8 +743,8 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                                                                     type="button"
                                                                     onClick={() => handleAttendanceChange(attendance.student_id, 'status', 'present')}
                                                                     className={`px-4 py-2 rounded-lg font-medium transition-all ${attendance.status === 'present'
-                                                                            ? 'bg-green-500 text-white shadow-md'
-                                                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                                        ? 'bg-blue-600 text-white shadow-md'
+                                                                        : 'bg-white text-black border border-gray-300 hover:bg-gray-50'
                                                                         }`}
                                                                     disabled={viewMode}
                                                                 >
@@ -754,8 +754,8 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                                                                     type="button"
                                                                     onClick={() => handleAttendanceChange(attendance.student_id, 'status', 'absent')}
                                                                     className={`px-4 py-2 rounded-lg font-medium transition-all ${attendance.status === 'absent'
-                                                                            ? 'bg-red-500 text-white shadow-md'
-                                                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                                        ? 'bg-black text-white shadow-md'
+                                                                        : 'bg-white text-black border border-gray-300 hover:bg-gray-50'
                                                                         }`}
                                                                     disabled={viewMode}
                                                                 >
@@ -766,7 +766,7 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                                                         <td className="px-4 py-3">
                                                             <input
                                                                 type="text"
-                                                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                                                                 placeholder="Optional remarks..."
                                                                 value={attendance.remarks || ''}
                                                                 onChange={(e) => handleAttendanceChange(attendance.student_id, 'remarks', e.target.value)}
@@ -784,9 +784,9 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
 
                         {/* General Remarks */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">General Remarks</label>
+                            <label className="block text-sm font-medium text-black mb-1">General Remarks</label>
                             <textarea
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                                 rows="3"
                                 placeholder="Optional general remarks about the day..."
                                 value={formData.remarks}

@@ -11,9 +11,13 @@ export const StatCard = forwardRef(({
     icon: Icon,
     gradient = "from-blue-500 to-blue-600",
     bgGradient = "from-white to-blue-50/30",
+    iconGradient,
+    textColor,
     onClick,
     className = ""
 }, ref) => {
+    const finalIconGradient = iconGradient || gradient;
+
     return (
         <div
             ref={ref}
@@ -23,9 +27,15 @@ export const StatCard = forwardRef(({
             <div className="flex items-center justify-between">
                 <div>
                     <p className="text-sm text-gray-600 mb-1 font-medium">{title}</p>
-                    <h3 className={`stat-number text-4xl font-bold bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
-                        {value}
-                    </h3>
+                    {textColor ? (
+                        <h3 className={`stat-number text-4xl font-bold ${textColor}`}>
+                            {value}
+                        </h3>
+                    ) : (
+                        <h3 className={`stat-number text-4xl font-bold bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
+                            {value}
+                        </h3>
+                    )}
                     {subtitle && (
                         <div className="flex items-center mt-3 text-xs">
                             <span className="text-gray-600 font-semibold">{subtitle}</span>
@@ -33,7 +43,7 @@ export const StatCard = forwardRef(({
                     )}
                 </div>
                 {Icon && (
-                    <div className={`w-16 h-16 bg-gradient-to-br ${gradient} rounded-2xl flex items-center justify-center shadow-xl transform hover:rotate-12 transition-transform duration-300`}>
+                    <div className={`w-16 h-16 bg-gradient-to-br ${finalIconGradient} rounded-2xl flex items-center justify-center shadow-xl transform hover:rotate-12 transition-transform duration-300`}>
                         <Icon className="w-8 h-8 text-white" />
                     </div>
                 )}

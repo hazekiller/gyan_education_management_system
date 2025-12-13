@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 
 const AssignmentForm = ({
   assignment = null,
+  initialValues = null,
   onSubmit,
   onCancel,
   isSubmitting,
@@ -17,9 +18,13 @@ const AssignmentForm = ({
   const [formData, setFormData] = useState({
     title: assignment?.title || "",
     description: assignment?.description || "",
-    class_id: assignment?.class_id || "",
-    section_id: assignment?.section_id ? [assignment.section_id] : [],
-    subject_id: assignment?.subject_id || "",
+    class_id: assignment?.class_id || initialValues?.class_id || "",
+    section_id: assignment?.section_id
+      ? [assignment.section_id]
+      : initialValues?.section_id
+        ? [initialValues.section_id]
+        : [],
+    subject_id: assignment?.subject_id || initialValues?.subject_id || "",
     due_date: assignment?.due_date?.split("T")[0] || "",
     total_marks: assignment?.total_marks || "",
     teacher_id: assignment?.teacher_id || "", // For admin to select teacher
@@ -269,8 +274,8 @@ const AssignmentForm = ({
                       const currentSections = Array.isArray(formData.section_id)
                         ? formData.section_id
                         : formData.section_id
-                        ? [formData.section_id]
-                        : [];
+                          ? [formData.section_id]
+                          : [];
 
                       if (e.target.checked) {
                         setFormData({
@@ -393,8 +398,8 @@ const AssignmentForm = ({
           {isSubmitting
             ? "Creating..."
             : assignment
-            ? "Update Assignment"
-            : "Create Assignment"}
+              ? "Update Assignment"
+              : "Create Assignment"}
         </button>
       </div>
     </form>

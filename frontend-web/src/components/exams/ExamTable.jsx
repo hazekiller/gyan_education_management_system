@@ -93,27 +93,27 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
     if (now < startDate)
       return {
         status: "upcoming",
-        color: "bg-purple-100 text-purple-800",
-        borderColor: "border-purple-200",
+        color: "bg-white text-black",
+        borderColor: "border-blue-600",
         icon: Calendar,
       };
     if (now >= startDate && now <= endDate)
       return {
         status: "ongoing",
-        color: "bg-orange-100 text-orange-800",
-        borderColor: "border-orange-200",
+        color: "bg-blue-600 text-white",
+        borderColor: "border-blue-600",
         icon: TrendingUp,
       };
     if (now > endDate)
       return {
         status: "completed",
-        color: "bg-green-100 text-green-800",
-        borderColor: "border-green-200",
+        color: "bg-white text-black",
+        borderColor: "border-gray-200",
         icon: CheckCircle,
       };
     return {
       status: "unknown",
-      color: "bg-gray-100 text-gray-800",
+      color: "bg-white text-black",
       borderColor: "border-gray-200",
       icon: Calendar,
     };
@@ -121,15 +121,15 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
 
   const getExamTypeColor = (type) => {
     const colors = {
-      term: "bg-blue-100 text-blue-800 border-blue-200",
-      midterm: "bg-purple-100 text-purple-800 border-purple-200",
-      final: "bg-red-100 text-red-800 border-red-200",
-      unit_test: "bg-green-100 text-green-800 border-green-200",
-      monthly: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      quarterly: "bg-orange-100 text-orange-800 border-orange-200",
-      annual: "bg-pink-100 text-pink-800 border-pink-200",
+      term: "bg-white text-black border-blue-200",
+      midterm: "bg-white text-black border-blue-200",
+      final: "bg-white text-black border-blue-200",
+      unit_test: "bg-white text-black border-blue-200",
+      monthly: "bg-white text-black border-blue-200",
+      quarterly: "bg-white text-black border-blue-200",
+      annual: "bg-white text-black border-blue-200",
     };
-    return colors[type] || "bg-gray-100 text-gray-800 border-gray-200";
+    return colors[type] || "bg-white text-black border-gray-200";
   };
 
   const formatDate = (dateString) => {
@@ -208,8 +208,8 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
                   key={exam.id}
                   onClick={() => handleExamClick(exam)}
                   className={`p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 ${selectedExam?.id === exam.id
-                      ? "bg-blue-50 border-l-4 border-blue-500"
-                      : "border-l-4 border-transparent"
+                    ? "bg-blue-50 border-l-4 border-blue-500"
+                    : "border-l-4 border-transparent"
                     }`}
                 >
                   <div className="flex items-center space-x-3">
@@ -223,10 +223,8 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
                         }`}>
                         {exam.name}
                       </div>
-                      <div className="flex items-center text-xs text-gray-500 mt-0.5">
-                        <span className={`w-2 h-2 rounded-full mr-1 ${status.status === 'upcoming' ? 'bg-purple-400' :
-                            status.status === 'ongoing' ? 'bg-orange-400' : 'bg-green-400'
-                          }`}></span>
+                      <div className="flex items-center text-xs text-black mt-0.5">
+                        <span className={`w-2 h-2 rounded-full mr-1 ${status.status === 'ongoing' ? 'bg-blue-600' : 'bg-black'}`}></span>
                         <span className="capitalize">{status.status}</span>
                       </div>
                     </div>
@@ -246,7 +244,7 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
           {selectedExam ? (
             <div className="relative">
               {/* Header Banner */}
-              <div className="h-32 bg-gradient-to-r from-blue-600 to-indigo-700"></div>
+              <div className="h-32 bg-blue-600"></div>
 
               <div className="px-8 pb-8">
                 <div className="relative flex items-end -mt-12 mb-6 space-x-5">
@@ -314,7 +312,7 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
                     <PermissionGuard permission={PERMISSIONS.DELETE_EXAM}>
                       <button
                         onClick={() => handleDelete(selectedExam)}
-                        className="btn btn-sm text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300 flex items-center space-x-1"
+                        className="btn btn-sm text-black hover:bg-gray-100 border border-black hover:border-black flex items-center space-x-1"
                       >
                         <Trash2 className="w-4 h-4" />
                         <span>Delete</span>
@@ -374,14 +372,14 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
                         </div>
                         <div>
                           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Pass Marks</p>
-                          <p className="text-gray-900 mt-1 text-green-600">{selectedExam.passing_marks}</p>
+                          <p className="text-gray-900 mt-1 text-black">{selectedExam.passing_marks}</p>
                         </div>
                       </div>
 
                       <div>
                         <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
                           <div
-                            className="bg-green-500 h-1.5 rounded-full"
+                            className="bg-black h-1.5 rounded-full"
                             style={{ width: `${(selectedExam.passing_marks / selectedExam.total_marks) * 100}%` }}
                           ></div>
                         </div>
@@ -439,8 +437,8 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
         <div className="space-y-4">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                <Trash2 className="w-6 h-6 text-red-600" />
+              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <Trash2 className="w-6 h-6 text-blue-600" />
               </div>
             </div>
             <div className="flex-1">
@@ -452,8 +450,8 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
                 <span className="font-semibold">{deleteExam?.name}</span>. This
                 action cannot be undone.
               </p>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
-                <p className="text-xs text-yellow-800">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 mt-3">
+                <p className="text-xs text-black">
                   ⚠️ All exam schedules, results, and related data will be
                   permanently removed.
                 </p>
@@ -464,13 +462,13 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
           <div className="flex justify-end space-x-3 pt-4 border-t">
             <button
               onClick={() => setShowDeleteModal(false)}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-black font-medium rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={confirmDelete}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
             >
               <Trash2 className="w-4 h-4" />
               <span>Delete Exam</span>

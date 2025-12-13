@@ -64,33 +64,37 @@ const ExamDetails = () => {
     if (now < startDate)
       return {
         status: "upcoming",
-        color: "purple",
-        bgColor: "bg-purple-500",
-        lightBg: "bg-purple-50",
-        textColor: "text-purple-700",
+        color: "blue",
+        bgColor: "bg-white",
+        lightBg: "bg-white",
+        textColor: "text-black",
+        borderColor: "border-blue-600",
       };
     if (now >= startDate && now <= endDate)
       return {
         status: "ongoing",
-        color: "orange",
-        bgColor: "bg-orange-500",
-        lightBg: "bg-orange-50",
-        textColor: "text-orange-700",
+        color: "blue",
+        bgColor: "bg-blue-600",
+        lightBg: "bg-white",
+        textColor: "text-black",
+        borderColor: "border-blue-600",
       };
     if (now > endDate)
       return {
         status: "completed",
-        color: "green",
-        bgColor: "bg-green-500",
-        lightBg: "bg-green-50",
-        textColor: "text-green-700",
+        color: "gray",
+        bgColor: "bg-white",
+        lightBg: "bg-white",
+        textColor: "text-black",
+        borderColor: "border-gray-200",
       };
     return {
       status: "unknown",
       color: "gray",
-      bgColor: "bg-gray-500",
-      lightBg: "bg-gray-50",
-      textColor: "text-gray-700",
+      bgColor: "bg-white",
+      lightBg: "bg-white",
+      textColor: "text-black",
+      borderColor: "border-gray-200",
     };
   };
 
@@ -98,15 +102,15 @@ const ExamDetails = () => {
 
   const getExamTypeColor = (type) => {
     const colors = {
-      term: "bg-blue-100 text-blue-800 border-blue-300",
-      midterm: "bg-purple-100 text-purple-800 border-purple-300",
-      final: "bg-red-100 text-red-800 border-red-300",
-      unit_test: "bg-green-100 text-green-800 border-green-300",
-      monthly: "bg-yellow-100 text-yellow-800 border-yellow-300",
-      quarterly: "bg-orange-100 text-orange-800 border-orange-300",
-      annual: "bg-pink-100 text-pink-800 border-pink-300",
+      term: "bg-white text-black border-blue-600",
+      midterm: "bg-white text-black border-blue-600",
+      final: "bg-white text-black border-blue-600",
+      unit_test: "bg-white text-black border-blue-600",
+      monthly: "bg-white text-black border-blue-600",
+      quarterly: "bg-white text-black border-blue-600",
+      annual: "bg-white text-black border-blue-600",
     };
-    return colors[type] || "bg-gray-100 text-gray-800 border-gray-300";
+    return colors[type] || "bg-white text-black border-gray-300";
   };
 
   const formatDate = (dateString) => {
@@ -179,7 +183,7 @@ const ExamDetails = () => {
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
         {/* Header with gradient */}
         <div
-          className={`${examStatus.bgColor} bg-gradient-to-r from-blue-600 to-blue-700 h-24 relative`}
+          className={`${examStatus.status === 'ongoing' ? 'bg-blue-600' : 'bg-blue-600'} h-24 relative`}
         >
           <div className="absolute inset-0 bg-black opacity-10"></div>
           <div className="absolute bottom-6 left-6 right-6">
@@ -204,7 +208,7 @@ const ExamDetails = () => {
               <BookOpen className="w-16 h-16 text-white" />
             </div>
             <div className="md:ml-6 flex-1">
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              <h1 className="text-4xl font-bold text-black mb-2">
                 {exam.name}
               </h1>
               <div className="flex flex-wrap items-center gap-3">
@@ -220,13 +224,12 @@ const ExamDetails = () => {
                   Academic Year: {exam.academic_year}
                 </span>
                 <span
-                  className={`flex items-center px-3 py-1.5 rounded-lg ${
-                    exam.is_active
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
+                  className={`flex items-center px-3 py-1.5 rounded-lg ${exam.is_active
+                      ? "bg-white text-black border border-blue-600"
+                      : "bg-white text-black border border-gray-200"
+                    }`}
                 >
-                  <Activity className="w-4 h-4 mr-1.5" />
+                  <Activity className="w-4 h-4 mr-1.5 text-blue-600" />
                   {exam.is_active ? "Active" : "Inactive"}
                 </span>
               </div>
@@ -246,50 +249,50 @@ const ExamDetails = () => {
 
           {/* Key Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border-2 border-blue-200">
+            <div className="bg-white rounded-xl p-5 border border-gray-200">
               <div className="flex items-center justify-between mb-2">
                 <Target className="w-8 h-8 text-blue-600" />
               </div>
-              <p className="text-sm text-blue-700 font-medium mb-1">
+              <p className="text-sm text-black font-medium mb-1">
                 Total Marks
               </p>
-              <p className="text-3xl font-bold text-blue-900">
+              <p className="text-3xl font-bold text-black">
                 {exam.total_marks}
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-5 border-2 border-green-200">
+            <div className="bg-white rounded-xl p-5 border border-gray-200">
               <div className="flex items-center justify-between mb-2">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+                <CheckCircle className="w-8 h-8 text-blue-600" />
               </div>
-              <p className="text-sm text-green-700 font-medium mb-1">
+              <p className="text-sm text-black font-medium mb-1">
                 Passing Marks
               </p>
-              <p className="text-3xl font-bold text-green-900">
+              <p className="text-3xl font-bold text-black">
                 {exam.passing_marks}
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5 border-2 border-purple-200">
+            <div className="bg-white rounded-xl p-5 border border-gray-200">
               <div className="flex items-center justify-between mb-2">
-                <Award className="w-8 h-8 text-purple-600" />
+                <Award className="w-8 h-8 text-blue-600" />
               </div>
-              <p className="text-sm text-purple-700 font-medium mb-1">
+              <p className="text-sm text-black font-medium mb-1">
                 Pass Percentage
               </p>
-              <p className="text-3xl font-bold text-purple-900">
+              <p className="text-3xl font-bold text-black">
                 {((exam.passing_marks / exam.total_marks) * 100).toFixed(1)}%
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-5 border-2 border-orange-200">
+            <div className="bg-white rounded-xl p-5 border border-gray-200">
               <div className="flex items-center justify-between mb-2">
-                <Clock className="w-8 h-8 text-orange-600" />
+                <Clock className="w-8 h-8 text-blue-600" />
               </div>
-              <p className="text-sm text-orange-700 font-medium mb-1">
+              <p className="text-sm text-black font-medium mb-1">
                 Duration
               </p>
-              <p className="text-3xl font-bold text-orange-900">
+              <p className="text-3xl font-bold text-black">
                 {calculateDuration()}
                 <span className="text-lg ml-1">
                   {calculateDuration() === 1 ? "day" : "days"}
@@ -308,15 +311,15 @@ const ExamDetails = () => {
               </h3>
 
               <div className="space-y-4">
-                <div className="flex items-start space-x-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                <div className="flex items-start space-x-4 p-4 bg-white rounded-xl border border-gray-200">
                   <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Calendar className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-blue-900 mb-1">
+                    <p className="text-sm font-medium text-black mb-1">
                       Start Date
                     </p>
-                    <p className="text-lg font-bold text-blue-700">
+                    <p className="text-lg font-bold text-black">
                       {formatDate(exam.start_date)}
                     </p>
                     <p className="text-xs text-blue-600 mt-1">
@@ -325,32 +328,32 @@ const ExamDetails = () => {
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-4 p-4 bg-green-50 rounded-xl border border-green-200">
-                  <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="flex items-start space-x-4 p-4 bg-white rounded-xl border border-gray-200">
+                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Calendar className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-green-900 mb-1">
+                    <p className="text-sm font-medium text-black mb-1">
                       End Date
                     </p>
-                    <p className="text-lg font-bold text-green-700">
+                    <p className="text-lg font-bold text-black">
                       {formatDate(exam.end_date)}
                     </p>
-                    <p className="text-xs text-green-600 mt-1">
+                    <p className="text-xs text-blue-600 mt-1">
                       {formatDateShort(exam.end_date)}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="flex items-start space-x-4 p-4 bg-white rounded-xl border border-gray-200">
+                  <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
                     <BookOpen className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 mb-1">
+                    <p className="text-sm font-medium text-black mb-1">
                       Class
                     </p>
-                    <p className="text-lg font-bold text-gray-700">
+                    <p className="text-lg font-bold text-black">
                       {exam.class_name || `Class ${exam.class_id}`}
                     </p>
                   </div>
@@ -366,43 +369,43 @@ const ExamDetails = () => {
               </h3>
 
               <div className="space-y-4">
-                <div className="flex items-start space-x-4 p-4 bg-purple-50 rounded-xl border border-purple-200">
-                  <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-6 h-6 text-white" />
+                <div className="flex items-start space-x-4 p-4 bg-white rounded-xl border border-gray-200">
+                  <div className="w-12 h-12 bg-white border border-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-purple-900 mb-1">
+                    <p className="text-sm font-medium text-black mb-1">
                       Exam Type
                     </p>
-                    <p className="text-lg font-bold text-purple-700 capitalize">
+                    <p className="text-lg font-bold text-black capitalize">
                       {exam.exam_type.replace("_", " ")}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-4 p-4 bg-orange-50 rounded-xl border border-orange-200">
-                  <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-6 h-6 text-white" />
+                <div className="flex items-start space-x-4 p-4 bg-white rounded-xl border border-gray-200">
+                  <div className="w-12 h-12 bg-white border border-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-orange-900 mb-1">
+                    <p className="text-sm font-medium text-black mb-1">
                       Created Date
                     </p>
-                    <p className="text-lg font-bold text-orange-700">
+                    <p className="text-lg font-bold text-black">
                       {formatDate(exam.created_at)}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-4 p-4 bg-indigo-50 rounded-xl border border-indigo-200">
-                  <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Activity className="w-6 h-6 text-white" />
+                <div className="flex items-start space-x-4 p-4 bg-white rounded-xl border border-gray-200">
+                  <div className="w-12 h-12 bg-white border border-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Activity className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-indigo-900 mb-1">
+                    <p className="text-sm font-medium text-black mb-1">
                       Status
                     </p>
-                    <p className="text-lg font-bold text-indigo-700">
+                    <p className="text-lg font-bold text-black">
                       {exam.is_active ? "Active" : "Inactive"}
                     </p>
                   </div>
@@ -415,46 +418,46 @@ const ExamDetails = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-600">
+            <h3 className="text-sm font-semibold text-black">
               Total Students
             </h3>
-            <Users className="w-6 h-6 text-blue-500" />
+            <Users className="w-6 h-6 text-blue-600" />
           </div>
-          <p className="text-4xl font-bold text-blue-600 mb-2">0</p>
-          <p className="text-xs text-gray-500">Enrolled in this exam</p>
+          <p className="text-4xl font-bold text-black mb-2">0</p>
+          <p className="text-xs text-black opacity-70">Enrolled in this exam</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-600">
+            <h3 className="text-sm font-semibold text-black">
               Results Entered
             </h3>
-            <CheckCircle className="w-6 h-6 text-green-500" />
+            <CheckCircle className="w-6 h-6 text-blue-600" />
           </div>
-          <p className="text-4xl font-bold text-green-600 mb-2">0</p>
-          <p className="text-xs text-gray-500">Out of 0 students</p>
+          <p className="text-4xl font-bold text-black mb-2">0</p>
+          <p className="text-xs text-black opacity-70">Out of 0 students</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-600">Pass Rate</h3>
-            <TrendingUp className="w-6 h-6 text-purple-500" />
+            <h3 className="text-sm font-semibold text-black">Pass Rate</h3>
+            <TrendingUp className="w-6 h-6 text-blue-600" />
           </div>
-          <p className="text-4xl font-bold text-purple-600 mb-2">--</p>
-          <p className="text-xs text-gray-500">Percentage of passed</p>
+          <p className="text-4xl font-bold text-black mb-2">--</p>
+          <p className="text-xs text-black opacity-70">Percentage of passed</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500 hover:shadow-xl transition-shadow">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-600">
+            <h3 className="text-sm font-semibold text-black">
               Average Score
             </h3>
-            <Award className="w-6 h-6 text-orange-500" />
+            <Award className="w-6 h-6 text-blue-600" />
           </div>
-          <p className="text-4xl font-bold text-orange-600 mb-2">--</p>
-          <p className="text-xs text-gray-500">Out of {exam.total_marks}</p>
+          <p className="text-4xl font-bold text-black mb-2">--</p>
+          <p className="text-xs text-black opacity-70">Out of {exam.total_marks}</p>
         </div>
       </div>
 

@@ -197,7 +197,7 @@ const TeacherDashboard = () => {
         ref={welcomeRef}
         title={`Welcome back, ${currentUser?.details?.first_name || 'Teacher'}!`}
         subtitle={upcomingClass ? `Next Class: ${upcomingClass.subject_name} - ${upcomingClass.class_name}${upcomingClass.section_name ? ` ${upcomingClass.section_name}` : ''}` : "No upcoming classes today"}
-        gradient="from-green-600 via-teal-600 to-cyan-600"
+        gradient="from-blue-600 to-blue-700"
         stats={upcomingClass ? [{
           icon: Clock,
           label: "Next Class",
@@ -215,8 +215,10 @@ const TeacherDashboard = () => {
             value={stats?.students || 0}
             subtitle="Under your classes"
             icon={Users}
-            gradient="from-blue-600 to-cyan-600"
-            bgGradient="from-white to-blue-50/30"
+            iconGradient="from-blue-600 to-blue-700"
+            textColor="text-gray-900"
+            bgGradient="from-white to-white"
+            className="border border-gray-200 shadow-sm"
             onClick={() => navigate("/students")}
           />
         )}
@@ -228,8 +230,10 @@ const TeacherDashboard = () => {
             value={stats?.subjects || 0}
             subtitle="Unique subjects"
             icon={BookOpen}
-            gradient="from-green-600 to-emerald-600"
-            bgGradient="from-white to-green-50/30"
+            iconGradient="from-blue-600 to-blue-700"
+            textColor="text-gray-900"
+            bgGradient="from-white to-white"
+            className="border border-gray-200 shadow-sm"
             onClick={() => navigate("/classes")}
           />
         )}
@@ -241,8 +245,10 @@ const TeacherDashboard = () => {
             value={`${attendanceRate}%`}
             subtitle="Today's average"
             icon={ClipboardCheck}
-            gradient="from-purple-600 to-pink-600"
-            bgGradient="from-white to-purple-50/30"
+            iconGradient="from-blue-600 to-blue-700"
+            textColor="text-gray-900"
+            bgGradient="from-white to-white"
+            className="border border-gray-200 shadow-sm"
             onClick={() => navigate("/attendance")}
           />
         )}
@@ -254,8 +260,10 @@ const TeacherDashboard = () => {
             value={stats?.pendingAssignments || 0}
             subtitle="Assignments to grade"
             icon={Award}
-            gradient="from-orange-600 to-red-600"
-            bgGradient="from-white to-orange-50/30"
+            iconGradient="from-gray-700 to-gray-800"
+            textColor="text-gray-900"
+            bgGradient="from-white to-white"
+            className="border border-gray-200 shadow-sm"
             onClick={() => navigate("/assignments")}
           />
         )}
@@ -297,10 +305,10 @@ const TeacherDashboard = () => {
                   <div
                     key={period.id}
                     className={`p-4 rounded-xl border-l-4 transition-all duration-300 ${isCurrent()
-                      ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-500 shadow-md"
+                      ? "bg-green-50 border-green-500 shadow-md border border-gray-100"
                       : isPast()
                         ? "bg-gray-50 border-gray-300 opacity-60"
-                        : "bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-500"
+                        : "bg-white border-blue-500 border border-gray-100 shadow-sm"
                       }`}
                   >
                     <div className="flex items-start justify-between">
@@ -408,14 +416,14 @@ const TeacherDashboard = () => {
         >
           <div className="space-y-3">
             {[
-              { class: "Grade 10-A", subject: "Mathematics", score: 85, color: "from-green-500 to-green-600" },
-              { class: "Grade 9-B", subject: "Physics", score: 78, color: "from-blue-500 to-blue-600" },
-              { class: "Grade 8-A", subject: "Science", score: 72, color: "from-orange-500 to-orange-600" },
+              { class: "Grade 10-A", subject: "Mathematics", score: 85, color: "from-blue-600 to-blue-700" },
+              { class: "Grade 9-B", subject: "Physics", score: 78, color: "from-blue-600 to-blue-700" },
+              { class: "Grade 8-A", subject: "Science", score: 72, color: "from-blue-600 to-blue-700" },
             ].map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl hover:shadow-md transition-all duration-300 border border-gray-100">
+              <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-blue-50 transition-all duration-300 border border-gray-100 hover:border-blue-200">
                 <div className="flex items-center space-x-3">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center shadow-lg`}>
-                    <Target className="w-6 h-6 text-white" />
+                  <div className={`w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm border border-gray-200`}>
+                    <Target className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{item.class}</p>
@@ -423,7 +431,7 @@ const TeacherDashboard = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`text-2xl font-bold bg-gradient-to-r ${item.color} bg-clip-text text-transparent`}>{item.score}%</p>
+                  <p className={`text-2xl font-bold text-gray-900`}>{item.score}%</p>
                   <p className="text-xs text-gray-500">Avg Score</p>
                 </div>
               </div>
@@ -443,7 +451,7 @@ const TeacherDashboard = () => {
               {stats.announcements.slice(0, 3).map((announcement) => (
                 <div
                   key={announcement.id}
-                  className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-blue-600 rounded-xl hover:shadow-md transition-all duration-300"
+                  className="p-4 bg-white border border-gray-200 border-l-4 border-l-blue-600 rounded-xl hover:shadow-md transition-all duration-300"
                 >
                   <div className="flex items-start space-x-3">
                     <Megaphone className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />

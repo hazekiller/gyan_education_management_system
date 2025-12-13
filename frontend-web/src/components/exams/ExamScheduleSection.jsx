@@ -150,7 +150,7 @@ const ExamScheduleSection = ({ examId, examData }) => {
     <div className="bg-white rounded-xl shadow-lg p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-gray-900 flex items-center">
+        <h3 className="text-xl font-bold text-black flex items-center">
           <Calendar className="w-6 h-6 mr-2 text-blue-600" />
           Exam Schedule
         </h3>
@@ -186,8 +186,8 @@ const ExamScheduleSection = ({ examId, examData }) => {
             <div key={date} className="border-l-4 border-blue-500 pl-4">
               {/* Date Header */}
               <div className="flex items-center mb-3">
-                <div className="bg-blue-100 rounded-lg px-4 py-2">
-                  <p className="text-sm font-semibold text-blue-900">
+                <div className="bg-blue-600 rounded-lg px-4 py-2">
+                  <p className="text-sm font-semibold text-white">
                     {formatDate(date)}
                   </p>
                 </div>
@@ -207,11 +207,11 @@ const ExamScheduleSection = ({ examId, examData }) => {
                           {/* Subject */}
                           <div className="flex items-center">
                             <BookOpen className="w-5 h-5 text-blue-600 mr-2" />
-                            <span className="font-semibold text-gray-900 text-lg">
+                            <span className="font-semibold text-black text-lg">
                               {schedule.subject_name}
                             </span>
                             {schedule.subject_code && (
-                              <span className="ml-2 text-sm text-gray-500">
+                              <span className="ml-2 text-sm text-black">
                                 ({schedule.subject_code})
                               </span>
                             )}
@@ -221,7 +221,7 @@ const ExamScheduleSection = ({ examId, examData }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                           {/* Time */}
                           <div className="flex items-center text-sm">
-                            <Clock className="w-4 h-4 text-gray-400 mr-2" />
+                            <Clock className="w-4 h-4 text-blue-600 mr-2" />
                             <div>
                               <p className="text-gray-600">Time</p>
                               <p className="font-medium text-gray-900">
@@ -252,7 +252,7 @@ const ExamScheduleSection = ({ examId, examData }) => {
 
                           {/* Max Marks */}
                           <div className="flex items-center text-sm">
-                            <Award className="w-4 h-4 text-gray-400 mr-2" />
+                            <Award className="w-4 h-4 text-blue-600 mr-2" />
                             <div>
                               <p className="text-gray-600">Max Marks</p>
                               <p className="font-medium text-gray-900">
@@ -263,7 +263,7 @@ const ExamScheduleSection = ({ examId, examData }) => {
 
                           {/* Passing Marks */}
                           <div className="flex items-center text-sm">
-                            <Target className="w-4 h-4 text-gray-400 mr-2" />
+                            <Target className="w-4 h-4 text-blue-600 mr-2" />
                             <div>
                               <p className="text-gray-600">Passing Marks</p>
                               <p className="font-medium text-gray-900">
@@ -294,7 +294,7 @@ const ExamScheduleSection = ({ examId, examData }) => {
                         <PermissionGuard permission={PERMISSIONS.DELETE_EXAMS}>
                           <button
                             onClick={() => setDeleteSchedule(schedule)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-black hover:bg-gray-100 rounded-lg transition-colors"
                             title="Delete Schedule"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -328,8 +328,8 @@ const ExamScheduleSection = ({ examId, examData }) => {
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <AlertCircle className="w-6 h-6 text-red-600" />
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
               <div className="flex-1">
@@ -346,13 +346,13 @@ const ExamScheduleSection = ({ examId, examData }) => {
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => setDeleteSchedule(null)}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+                    className="px-4 py-2 bg-white hover:bg-gray-50 text-black border border-gray-200 font-medium rounded-lg transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleDeleteConfirm}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
                   >
                     Delete
                   </button>

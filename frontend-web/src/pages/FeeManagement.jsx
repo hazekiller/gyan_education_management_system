@@ -10,48 +10,47 @@ const FeeManagement = () => {
 
   return (
     <div className="space-y-6">
-        {/* Page Header */}
-        <div className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
-            <div>
-                <h1 className="text-3xl font-bold text-gray-900">Fee Management</h1>
-                <p className="text-gray-600 mt-1">Manage fee structures, collections, and reports</p>
-            </div>
+      {/* Page Header */}
+      <div className="flex items-center justify-between p-6 bg-white rounded-2xl border border-gray-200 shadow-sm">
+        <div>
+          <h1 className="text-3xl font-bold text-black">Fee Management</h1>
+          <p className="text-black mt-1 opacity-70">Manage fee structures, collections, and reports</p>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 shadow-xl border border-white/50">
-            <div className="flex space-x-1">
-                {[
-                    { id: 'dashboard', label: 'Dashboard', icon: DollarSign },
-                    { id: 'collect', label: 'Collect Fee', icon: CreditCard },
-                    { id: 'structure', label: 'Fee Structure', icon: FileText },
-                    { id: 'heads', label: 'Fee Heads', icon: Settings },
-                ].map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 shadow-md ${
-                            activeTab === tab.id
-                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/50 scale-105'
-                                : 'text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-lg hover:scale-[1.02]'
-                        }`}
-                    >
-                        <tab.icon className={`w-4 h-4 mr-2 transition-transform ${activeTab === tab.id ? 'scale-110' : 'group-hover:scale-110'}`} />
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
+      {/* Tabs */}
+      <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 shadow-xl border border-white/50">
+        <div className="flex space-x-1">
+          {[
+            { id: 'dashboard', label: 'Dashboard', icon: DollarSign },
+            { id: 'collect', label: 'Collect Fee', icon: CreditCard },
+            { id: 'structure', label: 'Fee Structure', icon: FileText },
+            { id: 'heads', label: 'Fee Heads', icon: Settings },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 shadow-md ${activeTab === tab.id
+                ? 'bg-blue-600 text-white shadow-blue-500/50 scale-105'
+                : 'text-black bg-white hover:bg-gray-50 hover:text-black hover:shadow-lg hover:scale-[1.02]'
+                }`}
+            >
+              <tab.icon className={`w-4 h-4 mr-2 transition-transform ${activeTab === tab.id ? 'scale-110' : 'group-hover:scale-110'}`} />
+              {tab.label}
+            </button>
+          ))}
         </div>
+      </div>
 
-        {/* Content */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 min-h-[500px] hover:shadow-2xl transition-shadow">
-            {activeTab === 'dashboard' && <DashboardTab />}
-            {activeTab === 'collect' && <CollectFeeTab />}
-            {activeTab === 'structure' && <FeeStructureTab />}
-            {activeTab === 'heads' && <FeeHeadsTab />}
-        </div>
+      {/* Content */}
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 min-h-[500px] hover:shadow-2xl transition-shadow">
+        {activeTab === 'dashboard' && <DashboardTab />}
+        {activeTab === 'collect' && <CollectFeeTab />}
+        {activeTab === 'structure' && <FeeStructureTab />}
+        {activeTab === 'heads' && <FeeHeadsTab />}
+      </div>
     </div>
-);
+  );
 
 };
 
@@ -73,14 +72,7 @@ const DashboardTab = () => {
   const totalAmount = payments.reduce((sum, p) => sum + parseFloat(p.amount_paid), 0);
 
   const getPaymentMethodColor = (method) => {
-    const colors = {
-      cash: 'bg-green-100 text-green-800',
-      card: 'bg-blue-100 text-blue-800',
-      cheque: 'bg-purple-100 text-purple-800',
-      online: 'bg-orange-100 text-orange-800',
-      bank_transfer: 'bg-pink-100 text-pink-800'
-    };
-    return colors[method] || 'bg-gray-100 text-gray-800';
+    return 'bg-white text-black border border-gray-200';
   };
 
   const filteredPayments = payments.filter(p =>
@@ -92,17 +84,17 @@ const DashboardTab = () => {
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-green-50 p-6 rounded-lg border border-green-100">
-          <p className="text-sm text-green-600 font-medium">Total Collected</p>
-          <p className="text-3xl font-bold text-green-700 mt-2">₹{totalAmount.toLocaleString()}</p>
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-md">
+          <p className="text-sm text-black font-medium opacity-70">Total Collected</p>
+          <p className="text-3xl font-bold text-black mt-2">₹{totalAmount.toLocaleString()}</p>
         </div>
-        <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
-          <p className="text-sm text-blue-600 font-medium">Total Transactions</p>
-          <p className="text-3xl font-bold text-blue-700 mt-2">{payments.length}</p>
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-md">
+          <p className="text-sm text-black font-medium opacity-70">Total Transactions</p>
+          <p className="text-3xl font-bold text-black mt-2">{payments.length}</p>
         </div>
-        <div className="bg-purple-50 p-6 rounded-lg border border-purple-100">
-          <p className="text-sm text-purple-600 font-medium">Today's Collection</p>
-          <p className="text-3xl font-bold text-purple-700 mt-2">
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-md">
+          <p className="text-sm text-black font-medium opacity-70">Today's Collection</p>
+          <p className="text-3xl font-bold text-black mt-2">
             ₹{payments
               .filter(p => new Date(p.payment_date).toDateString() === new Date().toDateString())
               .reduce((sum, p) => sum + parseFloat(p.amount_paid), 0)
@@ -141,13 +133,13 @@ const DashboardTab = () => {
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-gray-50 border-b">
-              <th className="p-4 font-medium text-gray-600">Receipt</th>
-              <th className="p-4 font-medium text-gray-600">Student</th>
-              <th className="p-4 font-medium text-gray-600">Fee Head</th>
-              <th className="p-4 font-medium text-gray-600">Amount</th>
-              <th className="p-4 font-medium text-gray-600">Date</th>
-              <th className="p-4 font-medium text-gray-600">Method</th>
+            <tr className="bg-white border-b border-gray-200">
+              <th className="p-4 font-medium text-black">Receipt</th>
+              <th className="p-4 font-medium text-black">Student</th>
+              <th className="p-4 font-medium text-black">Fee Head</th>
+              <th className="p-4 font-medium text-black">Amount</th>
+              <th className="p-4 font-medium text-black">Date</th>
+              <th className="p-4 font-medium text-black">Method</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -160,14 +152,14 @@ const DashboardTab = () => {
                 <tr key={p.id} className="hover:bg-gray-50">
                   <td className="p-4 font-mono text-sm">{p.receipt_number || '-'}</td>
                   <td className="p-4">
-                    <div className="font-medium text-gray-900">{p.student_name}</div>
-                    <div className="text-xs text-gray-500">{p.admission_number}</div>
+                    <div className="font-medium text-black">{p.student_name}</div>
+                    <div className="text-xs text-black opacity-60">{p.admission_number}</div>
                   </td>
-                  <td className="p-4 text-gray-600">{p.fee_type}</td>
-                  <td className="p-4 font-medium text-green-600">₹{parseFloat(p.amount_paid).toLocaleString()}</td>
-                  <td className="p-4 text-gray-600">{new Date(p.payment_date).toLocaleDateString()}</td>
+                  <td className="p-4 text-black opacity-70">{p.fee_type}</td>
+                  <td className="p-4 font-medium text-black">₹{parseFloat(p.amount_paid).toLocaleString()}</td>
+                  <td className="p-4 text-black opacity-70">{new Date(p.payment_date).toLocaleDateString()}</td>
                   <td className="p-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentMethodColor(p.payment_method)}`}>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium bg-white text-black border border-gray-200`}>
                       {p.payment_method.replace('_', ' ')}
                     </span>
                   </td>
@@ -255,9 +247,9 @@ const FeeHeadsTab = () => {
             <table className="w-full text-left">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="p-3 font-medium text-gray-600">Name</th>
-                  <th className="p-3 font-medium text-gray-600">Description</th>
-                  <th className="p-3 font-medium text-gray-600">Status</th>
+                  <th className="p-3 font-medium text-black">Name</th>
+                  <th className="p-3 font-medium text-black">Description</th>
+                  <th className="p-3 font-medium text-black">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -266,7 +258,7 @@ const FeeHeadsTab = () => {
                     <td className="p-3 font-medium">{head.name}</td>
                     <td className="p-3 text-gray-600">{head.description || '-'}</td>
                     <td className="p-3">
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span>
+                      <span className="px-2 py-1 bg-white text-black border border-gray-200 rounded-full text-xs">Active</span>
                     </td>
                   </tr>
                 ))}
@@ -460,10 +452,10 @@ const FeeStructureTab = () => {
             <table className="w-full text-left">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="p-3 font-medium text-gray-600">Fee Head</th>
-                  <th className="p-3 font-medium text-gray-600">Type/Period</th>
-                  <th className="p-3 font-medium text-gray-600">Amount</th>
-                  <th className="p-3 font-medium text-gray-600">Due Date</th>
+                  <th className="p-3 font-medium text-black">Fee Head</th>
+                  <th className="p-3 font-medium text-black">Type/Period</th>
+                  <th className="p-3 font-medium text-black">Amount</th>
+                  <th className="p-3 font-medium text-black">Due Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -616,13 +608,13 @@ const StudentFeeCollection = ({ studentId }) => {
         <table className="w-full text-left">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="p-3 font-medium">Fee Head</th>
-              <th className="p-3 font-medium">Period</th>
-              <th className="p-3 font-medium text-right">Total</th>
-              <th className="p-3 font-medium text-right">Paid</th>
-              <th className="p-3 font-medium text-right">Balance</th>
-              <th className="p-3 font-medium">Status</th>
-              <th className="p-3 font-medium">Action</th>
+              <th className="p-3 font-medium text-black">Fee Head</th>
+              <th className="p-3 font-medium text-black">Period</th>
+              <th className="p-3 font-medium text-right text-black">Total</th>
+              <th className="p-3 font-medium text-right text-black">Paid</th>
+              <th className="p-3 font-medium text-right text-black">Balance</th>
+              <th className="p-3 font-medium text-black">Status</th>
+              <th className="p-3 font-medium text-black">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -631,12 +623,12 @@ const StudentFeeCollection = ({ studentId }) => {
                 <td className="p-3">{fee.fee_head_name}</td>
                 <td className="p-3 capitalize">{fee.period_type} {fee.period_value}</td>
                 <td className="p-3 text-right">₹{parseFloat(fee.amount).toLocaleString()}</td>
-                <td className="p-3 text-right text-green-600">₹{fee.paid_amount.toLocaleString()}</td>
-                <td className="p-3 text-right text-red-600 font-medium">₹{fee.balance.toLocaleString()}</td>
+                <td className="p-3 text-right text-black">₹{fee.paid_amount.toLocaleString()}</td>
+                <td className="p-3 text-right text-black font-medium">₹{fee.balance.toLocaleString()}</td>
                 <td className="p-3">
-                  <span className={`px-2 py-1 rounded-full text-xs ${fee.status === 'Paid' ? 'bg-green-100 text-green-800' :
-                    fee.status === 'Partial' ? 'bg-orange-100 text-orange-800' :
-                      'bg-red-100 text-red-800'
+                  <span className={`px-2 py-1 rounded-full text-xs ${fee.status === 'Paid' ? 'bg-white text-black border border-gray-200' :
+                    fee.status === 'Partial' ? 'bg-white text-black border border-gray-200' :
+                      'bg-white text-black border border-gray-200'
                     }`}>
                     {fee.status}
                   </span>
