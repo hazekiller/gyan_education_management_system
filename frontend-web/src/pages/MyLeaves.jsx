@@ -85,33 +85,33 @@ const MyLeaves = () => {
                     </div>
                 </div>
 
-                <div className="bg-white border border-yellow-200 rounded-lg p-5">
+                <div className="bg-white border border-blue-200 rounded-lg p-5">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-600">Pending</p>
-                            <p className="text-2xl font-bold text-yellow-600 mt-1">{stats.pending}</p>
+                            <p className="text-2xl font-bold text-blue-700 mt-1">{stats.pending}</p>
                         </div>
-                        <Calendar className="w-10 h-10 text-yellow-500 opacity-20" />
+                        <Calendar className="w-10 h-10 text-blue-500 opacity-20" />
                     </div>
                 </div>
 
-                <div className="bg-white border border-green-200 rounded-lg p-5">
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-600">Approved</p>
-                            <p className="text-2xl font-bold text-green-600 mt-1">{stats.approved}</p>
+                            <p className="text-2xl font-bold text-gray-700 mt-1">{stats.approved}</p>
                         </div>
-                        <Calendar className="w-10 h-10 text-green-500 opacity-20" />
+                        <Calendar className="w-10 h-10 text-gray-500 opacity-20" />
                     </div>
                 </div>
 
-                <div className="bg-white border border-red-200 rounded-lg p-5">
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-600">Declined</p>
-                            <p className="text-2xl font-bold text-red-600 mt-1">{stats.declined}</p>
+                            <p className="text-2xl font-bold text-gray-700 mt-1">{stats.declined}</p>
                         </div>
-                        <Calendar className="w-10 h-10 text-red-500 opacity-20" />
+                        <Calendar className="w-10 h-10 text-gray-500 opacity-20" />
                     </div>
                 </div>
             </div>
@@ -145,7 +145,7 @@ const MyLeaves = () => {
                                             setSelectedLeave(leave);
                                             setShowDeleteModal(true);
                                         }}
-                                        className="absolute top-3 right-3 p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                                        className="absolute top-3 right-3 p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
                                         title="Delete application"
                                     >
                                         <Plus className="w-4 h-4 rotate-45" />
