@@ -223,6 +223,9 @@ export const admissionsAPI = {
   create: (data) => api.post("/admissions", data),
   update: (id, data) => api.put(`/admissions/${id}`, data),
   delete: (id) => api.delete(`/admissions/${id}`),
+
+  // NEW: Convert admission to student
+  convertToStudent: (id) => api.post(`/admissions/${id}/convert-to-student`),
 };
 
 // ============================================
