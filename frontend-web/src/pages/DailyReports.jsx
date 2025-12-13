@@ -132,8 +132,8 @@ const DailyReports = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Daily Reports</h1>
-                    <p className="text-gray-600 mt-1">Track and manage teacher daily reports</p>
+                    <h1 className="text-3xl font-extrabold text-gray-900">Daily Reports</h1>
+                    <p className="text-gray-500 mt-1">Track and manage teacher daily reports</p>
                 </div>
                 {canManageReports && (
                     <button
@@ -141,7 +141,7 @@ const DailyReports = () => {
                             resetForm();
                             setIsModalOpen(true);
                         }}
-                        className="btn btn-primary flex items-center space-x-2"
+                        className="flex items-center gap-2 px-6 py-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-all font-medium shadow-sm hover:shadow-md"
                     >
                         <Plus className="w-5 h-5" />
                         <span>Create Report</span>
@@ -150,7 +150,7 @@ const DailyReports = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {canManageReports && (
                         <div>
@@ -191,15 +191,15 @@ const DailyReports = () => {
             {/* Reports List */}
             {isLoading ? (
                 <div className="flex justify-center items-center h-64">
-                    <div className="loading"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
                 </div>
             ) : reports.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-md p-12 text-center">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
                     <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500">No reports found</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-50">
@@ -234,7 +234,7 @@ const DailyReports = () => {
                                             <div className="flex justify-end space-x-2">
                                                 <button
                                                     onClick={() => navigate(`/reports/${report.id}`)}
-                                                    className="text-blue-600 hover:text-blue-900"
+                                                    className="p-2 text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                                                     title="View"
                                                 >
                                                     <Eye className="w-5 h-5" />
@@ -243,14 +243,14 @@ const DailyReports = () => {
                                                     <>
                                                         <button
                                                             onClick={() => handleEdit(report)}
-                                                            className="text-green-600 hover:text-green-900"
+                                                            className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                                                             title="Edit"
                                                         >
                                                             <Edit className="w-5 h-5" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(report.id)}
-                                                            className="text-red-600 hover:text-red-900"
+                                                            className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                                                             title="Delete"
                                                         >
                                                             <Trash2 className="w-5 h-5" />

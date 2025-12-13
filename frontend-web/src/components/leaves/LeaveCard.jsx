@@ -3,9 +3,9 @@ import { Calendar, Clock, FileText, User, Eye } from "lucide-react";
 const LeaveCard = ({ leave, onApprove, onDecline, onView, isAdmin }) => {
     const getStatusBadge = (status) => {
         const styles = {
-            pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-            approved: "bg-green-100 text-green-800 border-green-200",
-            declined: "bg-red-100 text-red-800 border-red-200",
+            pending: "bg-blue-50 text-blue-700 border-blue-200",
+            approved: "bg-gray-100 text-gray-700 border-gray-200",
+            declined: "bg-gray-100 text-gray-700 border-gray-200",
         };
 
         return (
@@ -20,10 +20,10 @@ const LeaveCard = ({ leave, onApprove, onDecline, onView, isAdmin }) => {
 
     const getLeaveTypeBadge = (type) => {
         const styles = {
-            sick: "bg-purple-100 text-purple-800",
-            casual: "bg-blue-100 text-blue-800",
-            emergency: "bg-red-100 text-red-800",
-            other: "bg-gray-100 text-gray-800",
+            sick: "bg-blue-100 text-blue-700",
+            casual: "bg-blue-100 text-blue-700",
+            emergency: "bg-blue-100 text-blue-700",
+            other: "bg-gray-100 text-gray-700",
         };
 
         return (
@@ -41,7 +41,7 @@ const LeaveCard = ({ leave, onApprove, onDecline, onView, isAdmin }) => {
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                    <div className="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center text-white font-semibold">
                         {leave.user_name?.charAt(0) || "U"}
                     </div>
                     <div>
@@ -111,13 +111,13 @@ const LeaveCard = ({ leave, onApprove, onDecline, onView, isAdmin }) => {
                             </button>
                             <button
                                 onClick={() => onApprove(leave)}
-                                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                className="flex-1 px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium rounded-lg transition-colors"
                             >
                                 Approve
                             </button>
                             <button
                                 onClick={() => onDecline(leave)}
-                                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white text-sm font-medium rounded-lg transition-colors"
                             >
                                 Decline
                             </button>
