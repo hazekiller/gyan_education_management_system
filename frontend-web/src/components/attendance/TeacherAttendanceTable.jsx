@@ -30,7 +30,7 @@ const TeacherAttendanceTable = ({
 
         switch (type) {
             case "present":
-                return `${baseClass} bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm`;
+                return `${baseClass} bg-blue-100 text-blue-700 border border-blue-200 shadow-sm`;
             case "absent":
                 return `${baseClass} bg-rose-100 text-rose-700 border-rose-200 shadow-sm`;
             default:
@@ -46,19 +46,19 @@ const TeacherAttendanceTable = ({
                     <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                         Student List
                         {subjectName && (
-                            <span className="text-sm font-normal text-gray-500 bg-gray-200 px-2 py-0.5 rounded-md">
+                            <span className="text-sm font-normal text-black bg-white border border-gray-200 px-2 py-0.5 rounded-md">
                                 {subjectName}
                             </span>
                         )}
                     </h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-black mt-0.5">
                         Total Students: {students.length}
                     </p>
                 </div>
                 {(!isSubmitted || isAdmin) && (
                     <button
                         onClick={handleMarkAllPresent}
-                        className="btn btn-sm bg-emerald-600 hover:bg-emerald-700 text-white border-0 gap-2 normal-case font-normal"
+                        className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white border-0 gap-2 normal-case font-normal"
                     >
                         <Check className="w-4 h-4" />
                         Mark All Present
@@ -68,7 +68,7 @@ const TeacherAttendanceTable = ({
 
             <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                    <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+                    <thead className="bg-gray-50 text-black text-xs uppercase font-semibold">
                         <tr>
                             <th className="px-6 py-4 w-16 text-center">#</th>
                             <th className="px-6 py-4">Student Name</th>
@@ -91,22 +91,22 @@ const TeacherAttendanceTable = ({
 
                                 return (
                                     <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-6 py-4 text-center text-gray-500 font-medium text-sm">
+                                        <td className="px-6 py-4 text-center text-black font-medium text-sm">
                                             {index + 1}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="avatar placeholder">
-                                                    <div className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">
+                                                    <div className="bg-blue-100 text-blue-600 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">
                                                         {student.first_name[0]}
                                                         {student.last_name[0]}
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-gray-800 text-sm">
+                                                    <p className="font-semibold text-black text-sm">
                                                         {student.first_name} {student.last_name}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">{student.roll_number}</p>
+                                                    <p className="text-xs text-black">{student.roll_number}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -116,7 +116,7 @@ const TeacherAttendanceTable = ({
                                                     disabled={isDisabled}
                                                     onClick={() => onAttendanceChange(student.id, "present")}
                                                     className={`flex-1 btn btn-sm border-0 ${currentStatus === 'present'
-                                                        ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md'
+                                                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
                                                         : 'bg-gray-100 hover:bg-gray-200 text-gray-400'
                                                         }`}
                                                     title="Present"

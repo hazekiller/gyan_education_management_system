@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   UserCheck,
@@ -12,48 +13,29 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
+import api from "../../lib/api"; // Import API service
 
 const AdminDashboard = () => {
-  const [stats] = useState({
-    students: 1247,
-    teachers: 86,
-    classes: 42,
-    staff: 124,
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    students: 0,
+    teachers: 0,
+    classes: 0,
+    staff: 0,
     todayAttendance: {
-      present: 1156,
-      absent: 91,
-      total: 1247
+      present: 0,
+      absent: 0,
+      total: 0
+    },
+    fees: {
+      collected: 0,
+      pending: 0,
+      collectionRate: 0
     }
   });
 
-  const [recentRegistrations] = useState([
-    {
-      id: 1,
-      type: "student",
-      first_name: "Rahul",
-      last_name: "Sharma",
-      class_name: "Class 10",
-      section_name: "A",
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000)
-    },
-    {
-      id: 2,
-      type: "teacher",
-      first_name: "Priya",
-      last_name: "Singh",
-      created_at: new Date(Date.now() - 5 * 60 * 60 * 1000)
-    },
-    {
-      id: 3,
-      type: "student",
-      first_name: "Amit",
-      last_name: "Kumar",
-      class_name: "Class 9",
-      section_name: "B",
-      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000)
-    }
-  ]);
-
+  const [recentRegistrations, setRecentRegistrations] = useState([]);
   const [upcomingEvents] = useState([
     {
       id: 1,
@@ -80,26 +62,61 @@ const AdminDashboard = () => {
   const statsCardsRef = useRef([]);
 
   useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [statsRes, registrationsRes] = await Promise.all([
+          api.get("/dashboard/stats"),
+          api.get("/dashboard/recent-registrations?limit=5")
+        ]);
+
+        if (statsRes.data.success) {
+          setStats(prev => ({
+            ...prev,
+            ...statsRes.data.data
+          }));
+        }
+
+        if (registrationsRes.data.success) {
+          setRecentRegistrations(registrationsRes.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+
     // Number counting animation
     statsCardsRef.current.forEach((card, index) => {
       if (!card) return;
       const numberElement = card.querySelector('.stat-number');
       if (numberElement) {
+        // Ensure finalValue is a number, checking both textContent and dataset
         const finalValue = parseInt(numberElement.dataset.value) || 0;
+
         let currentValue = 0;
-        const increment = finalValue / 60;
+        // Adjust counting speed based on value magnitude
+        const steps = 60;
+        const increment = finalValue / steps;
+
         const timer = setInterval(() => {
           currentValue += increment;
           if (currentValue >= finalValue) {
-            numberElement.textContent = finalValue;
+            numberElement.textContent = finalValue.toLocaleString(); // Add commas
             clearInterval(timer);
           } else {
-            numberElement.textContent = Math.ceil(currentValue);
+            numberElement.textContent = Math.ceil(currentValue).toLocaleString();
           }
         }, 16);
       }
     });
-  }, []);
+  }, [loading, stats]);
 
   const getTimeAgo = (date) => {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -115,6 +132,23 @@ const AdminDashboard = () => {
     if (interval > 1) return Math.floor(interval) + " minute" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
     return "Just now";
   };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'NTR', // Or INR/NPR depending on requirements - defaulting to existing symbol logic concept
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount).replace('NTR', '₹'); // Quick replace if currency mismatch
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className="min-h-screen bg-gray-50 p-6 space-y-6">
@@ -158,6 +192,7 @@ const AdminDashboard = () => {
         {/* Total Students */}
         <div
           ref={(el) => (statsCardsRef.current[0] = el)}
+          onClick={() => navigate('/users?tab=students')}
           className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
@@ -180,6 +215,7 @@ const AdminDashboard = () => {
         {/* Total Teachers */}
         <div
           ref={(el) => (statsCardsRef.current[1] = el)}
+          onClick={() => navigate('/users?tab=teachers')}
           className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
@@ -202,6 +238,7 @@ const AdminDashboard = () => {
         {/* Total Classes */}
         <div
           ref={(el) => (statsCardsRef.current[2] = el)}
+          onClick={() => navigate('/classes')}
           className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
@@ -223,6 +260,7 @@ const AdminDashboard = () => {
         {/* Total Staff */}
         <div
           ref={(el) => (statsCardsRef.current[3] = el)}
+          onClick={() => navigate('/users?tab=staffs')}
           className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
@@ -287,14 +325,18 @@ const AdminDashboard = () => {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-600 font-medium">Attendance Rate</span>
                 <span className="text-sm font-bold text-gray-900">
-                  {Math.round((stats.todayAttendance.present / stats.todayAttendance.total) * 100)}%
+                  {stats.todayAttendance.total > 0
+                    ? Math.round((stats.todayAttendance.present / stats.todayAttendance.total) * 100)
+                    : 0}%
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
                   className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
                   style={{
-                    width: `${(stats.todayAttendance.present / stats.todayAttendance.total) * 100}%`,
+                    width: `${stats.todayAttendance.total > 0
+                      ? (stats.todayAttendance.present / stats.todayAttendance.total) * 100
+                      : 0}%`,
                   }}
                 ></div>
               </div>
@@ -321,7 +363,7 @@ const AdminDashboard = () => {
                   <p className="text-xs text-gray-500">From students</p>
                 </div>
               </div>
-              <span className="text-lg font-bold text-gray-900">₹2,45,000</span>
+              <span className="text-lg font-bold text-gray-900">{formatCurrency(stats.fees?.collected || 0)}</span>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
@@ -334,18 +376,18 @@ const AdminDashboard = () => {
                   <p className="text-xs text-gray-500">To be collected</p>
                 </div>
               </div>
-              <span className="text-lg font-bold text-gray-900">₹85,000</span>
+              <span className="text-lg font-bold text-gray-900">{formatCurrency(stats.fees?.pending || 0)}</span>
             </div>
 
             <div className="pt-4 border-t border-gray-200">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-600 font-medium">Collection Rate</span>
-                <span className="text-sm font-bold text-gray-900">74%</span>
+                <span className="text-sm font-bold text-gray-900">{stats.fees?.collectionRate || 0}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
-                  className="bg-blue-600 h-2.5 rounded-full"
-                  style={{ width: "74%" }}
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.fees?.collectionRate || 0}%` }}
                 ></div>
               </div>
             </div>
@@ -357,22 +399,30 @@ const AdminDashboard = () => {
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button className="p-5 bg-gray-50 hover:bg-blue-50 rounded-xl transition-all border border-gray-200 hover:border-blue-600 text-center group">
+          <button
+            onClick={() => navigate('/users?tab=students')}
+            className="p-5 bg-gray-50 hover:bg-blue-50 rounded-xl transition-all border border-gray-200 hover:border-blue-600 text-center group">
             <Users className="w-8 h-8 text-blue-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
             <p className="text-sm font-semibold text-gray-900">Add Student</p>
           </button>
 
-          <button className="p-5 bg-gray-50 hover:bg-blue-50 rounded-xl transition-all border border-gray-200 hover:border-blue-600 text-center group">
+          <button
+            onClick={() => navigate('/attendance')}
+            className="p-5 bg-gray-50 hover:bg-blue-50 rounded-xl transition-all border border-gray-200 hover:border-blue-600 text-center group">
             <ClipboardCheck className="w-8 h-8 text-gray-900 mx-auto mb-3 group-hover:scale-110 transition-transform" />
             <p className="text-sm font-semibold text-gray-900">Mark Attendance</p>
           </button>
 
-          <button className="p-5 bg-gray-50 hover:bg-blue-50 rounded-xl transition-all border border-gray-200 hover:border-blue-600 text-center group">
+          <button
+            onClick={() => navigate('/exams')}
+            className="p-5 bg-gray-50 hover:bg-blue-50 rounded-xl transition-all border border-gray-200 hover:border-blue-600 text-center group">
             <BookOpen className="w-8 h-8 text-blue-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
             <p className="text-sm font-semibold text-gray-900">Create Exam</p>
           </button>
 
-          <button className="p-5 bg-gray-50 hover:bg-blue-50 rounded-xl transition-all border border-gray-200 hover:border-blue-600 text-center group">
+          <button
+            onClick={() => navigate('/events')}
+            className="p-5 bg-gray-50 hover:bg-blue-50 rounded-xl transition-all border border-gray-200 hover:border-blue-600 text-center group">
             <Calendar className="w-8 h-8 text-gray-900 mx-auto mb-3 group-hover:scale-110 transition-transform" />
             <p className="text-sm font-semibold text-gray-900">Add Event</p>
           </button>
@@ -390,34 +440,46 @@ const AdminDashboard = () => {
             </button>
           </div>
           <div className="space-y-3">
-            {recentRegistrations.map((registration) => (
-              <div
-                key={`${registration.type}-${registration.id}`}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-all cursor-pointer border border-gray-100 hover:border-blue-600"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm">
-                      {registration.first_name.charAt(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {registration.first_name} {registration.last_name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      <span className="capitalize">{registration.type}</span>
-                      {registration.class_name && (
-                        <> • {registration.class_name}{registration.section_name && `-${registration.section_name}`}</>
+            {recentRegistrations.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No recent registrations found.</p>
+            ) : (
+              recentRegistrations.map((registration) => (
+                <div
+                  key={`${registration.type}-${registration.id}`}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-all cursor-pointer border border-gray-100 hover:border-blue-600"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center overflow-hidden">
+                      {registration.profile_photo ? (
+                        <img
+                          src={`http://localhost:5000/${registration.profile_photo}`}
+                          alt={registration.first_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-white font-semibold text-sm">
+                          {registration.first_name.charAt(0)}
+                        </span>
                       )}
-                    </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {registration.first_name} {registration.last_name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        <span className="capitalize">{registration.type}</span>
+                        {registration.class_name && (
+                          <> • {registration.class_name}{registration.section_name && `-${registration.section_name}`}</>
+                        )}
+                      </p>
+                    </div>
                   </div>
+                  <span className="text-xs text-gray-500 font-medium">
+                    {getTimeAgo(registration.created_at)}
+                  </span>
                 </div>
-                <span className="text-xs text-gray-500 font-medium">
-                  {getTimeAgo(registration.created_at)}
-                </span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -452,11 +514,10 @@ const AdminDashboard = () => {
                   </p>
                 </div>
                 <span
-                  className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                    event.event_type === "holiday"
-                      ? "bg-gray-900 text-white"
-                      : "bg-blue-600 text-white"
-                  }`}
+                  className={`text-xs px-3 py-1 rounded-full font-semibold ${event.event_type === "holiday"
+                    ? "bg-gray-900 text-white"
+                    : "bg-blue-600 text-white"
+                    }`}
                 >
                   {event.event_type}
                 </span>

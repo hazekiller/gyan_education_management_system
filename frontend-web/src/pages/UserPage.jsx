@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { Search, Filter, Plus } from "lucide-react";
 import StudentTable from "../components/students/StudentTable";
 import TeacherTable from "../components/teachers/TeacherTable";
@@ -15,13 +16,22 @@ import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 const UserPage = () => {
-    const [activeTab, setActiveTab] = useState("students");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "students");
     const [filters, setFilters] = useState({
         class_id: "",
         section_id: "",
         status: "active",
         search: "",
     });
+
+    // Sync activeTab with URL search params
+    useEffect(() => {
+        const tab = searchParams.get("tab");
+        if (tab) {
+            setActiveTab(tab);
+        }
+    }, [searchParams]);
 
     const queryClient = useQueryClient();
     const [showAddStudentModal, setShowAddStudentModal] = useState(false);
@@ -139,9 +149,11 @@ const UserPage = () => {
                         <button
                             key={tab.id}
                             onClick={() => {
-                                setActiveTab(tab.id);
+                                const newTab = tab.id;
+                                setActiveTab(newTab);
+                                setSearchParams({ tab: newTab });
                                 // Reset filters on tab switch if needed
-                                if (tab.id !== activeTab) {
+                                if (newTab !== activeTab) {
                                     setFilters(prev => ({ ...prev, class_id: "", section_id: "" }));
                                 }
                             }}
