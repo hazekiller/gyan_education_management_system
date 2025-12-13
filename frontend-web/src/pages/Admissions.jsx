@@ -7,6 +7,7 @@ import {
   Edit,
   Trash2,
   FileText,
+  UserPlus,
 } from "lucide-react";
 import { admissionsAPI } from "../lib/api";
 import Modal from "../components/common/Modal";
@@ -20,6 +21,7 @@ const Admissions = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showConvertModal, setShowConvertModal] = useState(false);
   const [selectedAdmission, setSelectedAdmission] = useState(null);
   const [filters, setFilters] = useState({
     status: "",
@@ -44,11 +46,19 @@ const Admissions = () => {
 
   const handleUpdate = async (formData) => {
     try {
-      await admissionsAPI.update(selectedAdmission.id, formData);
+      const response = await admissionsAPI.update(selectedAdmission.id, formData);
       toast.success("Admission updated successfully");
+
+      // Check if status changed to 'admitted' and auto-convert
+      if (formData.status === 'admitted' && selectedAdmission.status !== 'admitted') {
+        toast.info("Converting admission to student...");
+        await handleConvertToStudent(selectedAdmission.id);
+      }
+
       setShowEditModal(false);
       setSelectedAdmission(null);
       queryClient.invalidateQueries(["admissions"]);
+      queryClient.invalidateQueries(["students"]);
     } catch (error) {
       toast.error(error.message || "Failed to update admission");
     }
@@ -63,6 +73,20 @@ const Admissions = () => {
       queryClient.invalidateQueries(["admissions"]);
     } catch (error) {
       toast.error(error.message || "Failed to delete admission");
+    }
+  };
+
+  const handleConvertToStudent = async (admissionId) => {
+    try {
+      await admissionsAPI.convertToStudent(admissionId || selectedAdmission.id);
+      toast.success("Student created successfully from admission!");
+      setShowConvertModal(false);
+      setSelectedAdmission(null);
+      queryClient.invalidateQueries(["admissions"]);
+      queryClient.invalidateQueries(["students"]);
+      queryClient.invalidateQueries(["classes"]);
+    } catch (error) {
+      toast.error(error.message || "Failed to convert admission to student");
     }
   };
 
@@ -157,7 +181,7 @@ const Admissions = () => {
                 >
                   Details
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">
+                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-40">
                   Actions
                 </th>
               </tr>
@@ -180,7 +204,6 @@ const Admissions = () => {
                   </td>
                 </tr>
               ) : (
-
                 admissionsData?.data?.map((admission) => (
                   <tr
                     key={admission.id}
@@ -235,10 +258,25 @@ const Admissions = () => {
 
                     {/* ACTIONS */}
                     <td className="px-6 py-4 whitespace-nowrap text-right align-middle text-sm font-medium">
-                      <div className="flex justify-end space-x-3">
+                      <div className="flex justify-end space-x-2">
                         <PermissionGuard
                           permission={PERMISSIONS.MANAGE_ADMISSIONS}
                         >
+                          {/* Show Convert button only for approved/admitted status */}
+                          {(admission.status === 'approved' || admission.status === 'admitted') && !admission.student_id && (
+                            <button
+                              onClick={() => {
+                                setSelectedAdmission(admission);
+                                setShowConvertModal(true);
+                              }}
+                              className="text-green-600 hover:text-green-800 transition-colors rounded p-1"
+                              title="Convert to Student"
+                              aria-label={`Convert admission ${admission.application_number} to student`}
+                            >
+                              <UserPlus className="w-5 h-5" />
+                            </button>
+                          )}
+
                           <button
                             onClick={() => {
                               setSelectedAdmission(admission);
@@ -338,6 +376,52 @@ const Admissions = () => {
               className="btn bg-red-600 hover:bg-red-700 text-white"
             >
               Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Convert to Student Modal */}
+      <Modal
+        isOpen={showConvertModal}
+        onClose={() => {
+          setShowConvertModal(false);
+          setSelectedAdmission(null);
+        }}
+        title="Convert to Student"
+      >
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              This will create a new student record with the following details:
+            </p>
+            <div className="mt-3 space-y-2 text-sm">
+              <p><strong>Name:</strong> {selectedAdmission?.first_name} {selectedAdmission?.last_name}</p>
+              <p><strong>Class:</strong> {selectedAdmission?.class_name}</p>
+              <p><strong>Parent:</strong> {selectedAdmission?.parent_name}</p>
+              <p><strong>Phone:</strong> {selectedAdmission?.parent_phone}</p>
+            </div>
+          </div>
+          <p className="text-gray-600 text-sm">
+            The student will be added to the Students page and will be able to access the system.
+            Are you sure you want to proceed?
+          </p>
+          <div className="flex justify-end space-x-4">
+            <button
+              onClick={() => {
+                setShowConvertModal(false);
+                setSelectedAdmission(null);
+              }}
+              className="btn btn-outline"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => handleConvertToStudent()}
+              className="btn bg-green-600 hover:bg-green-700 text-white flex items-center space-x-2"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Convert to Student</span>
             </button>
           </div>
         </div>
