@@ -45,11 +45,10 @@ const HostelManagement = () => {
         {isAdmin && (
           <button
             onClick={() => setActiveTab("rooms")}
-            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === "rooms"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
-            }`}
+            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "rooms"
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
+              }`}
           >
             <Building className="w-4 h-4 mr-2" />
             Rooms Management
@@ -58,11 +57,10 @@ const HostelManagement = () => {
         {isStudent && (
           <button
             onClick={() => setActiveTab("my-room")}
-            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === "my-room"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
-            }`}
+            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "my-room"
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
+              }`}
           >
             <Home className="w-4 h-4 mr-2" />
             My Room
@@ -103,7 +101,6 @@ const RoomsTab = () => {
       queryClient.invalidateQueries(["hostel-rooms"]);
       queryClient.invalidateQueries(["room-details"]);
       toast.success("Student vacated successfully");
-      setSelectedRoom(null); // Close details if open
     },
     onError: (err) =>
       toast.error(err.response?.data?.message || "Failed to vacate"),
@@ -114,6 +111,7 @@ const RoomsTab = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(["hostel-rooms"]);
       toast.success("Room deleted successfully");
+      setSelectedRoom(null);
     },
     onError: (err) =>
       toast.error(err.response?.data?.message || "Failed to delete room"),
@@ -135,129 +133,161 @@ const RoomsTab = () => {
     setEditingRoom(null);
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex space-x-4">
-          <select
-            className="border rounded-lg px-3 py-2 text-sm"
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-          >
-            <option value="all">All Hostels</option>
-            <option value="male">Boys Hostel</option>
-            <option value="female">Girls Hostel</option>
-          </select>
+  const handleRoomClick = (room) => {
+    setSelectedRoom(room);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-gray-50">
+        <div className="w-80 bg-white border-r border-gray-200 p-4">
+          <div className="animate-pulse space-y-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-20 bg-gray-200 rounded-lg"></div>
+            ))}
+          </div>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Room
-        </button>
+        <div className="flex-1 p-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
+        </div>
       </div>
+    );
+  }
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {isLoading ? (
-          <p>Loading rooms...</p>
-        ) : rooms.length === 0 ? (
-          <p className="text-gray-500 col-span-full text-center py-8">
-            No rooms found.
-          </p>
-        ) : (
-          rooms.map((room) => (
-            <div
-              key={room.id}
-              className="border rounded-xl p-5 hover:shadow-lg transition-shadow bg-gray-50 group"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="font-bold text-lg text-gray-800">
-                    Room {room.room_number}
-                  </h3>
-                  <p className="text-xs text-gray-500">{room.building_name}</p>
-                </div>
-                <span
-                  className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                    room.type === "male"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-pink-100 text-pink-700"
-                  }`}
-                >
-                  {room.type}
-                </span>
+  if (!rooms || rooms.length === 0) {
+    return (
+      <div className="flex h-screen bg-gray-50 items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+          <Bed className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500 text-lg">No rooms found</p>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="mt-4 px-6 py-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-colors"
+          >
+            Add First Room
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="flex h-screen bg-gray-50">
+        {/* Sidebar - Rooms List */}
+        <div className="w-80 bg-white border-r border-gray-300 overflow-y-auto">
+          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Hostel Rooms</h2>
+                <p className="text-sm text-gray-600 mt-1">{rooms.length} Total Rooms</p>
               </div>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="p-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
+                title="Add Room"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            </div>
 
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Capacity:</span>
-                  <span className="font-medium">{room.capacity}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Occupied:</span>
-                  <span
-                    className={`font-medium ${
-                      room.current_occupancy >= room.capacity
-                        ? "text-red-600"
-                        : "text-green-600"
-                    }`}
-                  >
-                    {room.current_occupancy} / {room.capacity}
+            <select
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+            >
+              <option value="all">All Hostels</option>
+              <option value="male">Boys Hostel</option>
+              <option value="female">Girls Hostel</option>
+            </select>
+          </div>
+
+          <div className="p-4 space-y-2">
+            {rooms.map((room) => (
+              <div
+                key={room.id}
+                onClick={() => handleRoomClick(room)}
+                className={`p-4 rounded-lg cursor-pointer transition-all duration-200 border ${selectedRoom?.id === room.id
+                  ? "bg-blue-50 border-blue-500 shadow-md"
+                  : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm"
+                  }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${selectedRoom?.id === room.id
+                      ? "bg-blue-700"
+                      : "bg-gray-100"
+                      }`}>
+                      <Bed className={`w-5 h-5 ${selectedRoom?.id === room.id
+                        ? "text-white"
+                        : "text-gray-600"
+                        }`} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900">
+                        Room {room.room_number}
+                      </div>
+                      <div className="text-xs text-gray-500">{room.building_name}</div>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${room.type === "male"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-gray-100 text-gray-700"
+                    }`}>
+                    {room.type}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full ${
-                      room.current_occupancy >= room.capacity
-                        ? "bg-red-500"
-                        : "bg-green-500"
-                    }`}
-                    style={{
-                      width: `${
-                        (room.current_occupancy / room.capacity) * 100
-                      }%`,
-                    }}
-                  ></div>
+
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600">
+                    {room.current_occupancy}/{room.capacity}
+                  </span>
+                  <div className="flex-1 mx-2 bg-gray-200 rounded-full h-1.5">
+                    <div
+                      className={`h-1.5 rounded-full ${room.current_occupancy >= room.capacity
+                        ? "bg-gray-700"
+                        : "bg-blue-700"
+                        }`}
+                      style={{
+                        width: `${(room.current_occupancy / room.capacity) * 100}%`,
+                      }}
+                    ></div>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
 
-              <div className="mt-5 flex gap-2">
-                <button
-                  onClick={() => handleEdit(room)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  title="Edit Room"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(room.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Delete Room"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setSelectedRoom(room)}
-                  className="flex-1 px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50"
-                >
-                  View Details
-                </button>
-                {room.current_occupancy < room.capacity && (
-                  <button
-                    onClick={() => {
-                      setSelectedRoom(room);
-                      setShowAllocateModal(true);
-                    }}
-                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-                  >
-                    Allocate
-                  </button>
-                )}
+        {/* Main Content - Room Details */}
+        <div className="flex-1 overflow-y-auto">
+          {selectedRoom ? (
+            <RoomDetailsPanel
+              room={selectedRoom}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onAllocate={() => setShowAllocateModal(true)}
+              onVacate={(allocationId) =>
+                vacateMutation.mutate({ allocation_id: allocationId })
+              }
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Bed className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                  Select a Room
+                </h3>
+                <p className="text-gray-500">
+                  Choose a room from the sidebar to view details
+                </p>
               </div>
             </div>
-          ))
-        )}
+          )}
+        </div>
       </div>
 
       {/* Modals */}
@@ -267,21 +297,200 @@ const RoomsTab = () => {
       {showAllocateModal && selectedRoom && (
         <AllocateRoomModal
           room={selectedRoom}
-          onClose={() => {
-            setShowAllocateModal(false);
-            setSelectedRoom(null);
-          }}
+          onClose={() => setShowAllocateModal(false)}
         />
       )}
-      {selectedRoom && !showAllocateModal && (
-        <RoomDetailsModal
-          room={selectedRoom}
-          onClose={() => setSelectedRoom(null)}
-          onVacate={(allocationId) =>
-            vacateMutation.mutate({ allocation_id: allocationId })
-          }
-        />
-      )}
+    </>
+  );
+};
+
+// Room Details Panel Component
+const RoomDetailsPanel = ({ room, onEdit, onDelete, onAllocate, onVacate }) => {
+  const { data: roomDetails, isLoading } = useQuery({
+    queryKey: ["room-details", room.id],
+    queryFn: () => hostelAPI.getRoomDetails(room.id).then((res) => res.data),
+  });
+
+  return (
+    <div className="p-8">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-700 to-blue-800 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Bed className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold">Room {room.room_number}</h1>
+                <p className="text-blue-100 mt-1">{room.building_name}</p>
+              </div>
+            </div>
+            <span className={`px-4 py-2 rounded-full text-sm font-semibold ${room.type === "male"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-700"
+              }`}>
+              {room.type} Hostel
+            </span>
+          </div>
+        </div>
+
+        {/* Details Grid */}
+        <div className="p-6 grid grid-cols-2 gap-6">
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Capacity
+            </div>
+            <div className="text-lg font-semibold text-gray-900">
+              {room.capacity} Students
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Current Occupancy
+            </div>
+            <div className="flex items-center space-x-2">
+              <Users className="w-5 h-5 text-blue-700" />
+              <span className={`text-lg font-semibold ${room.current_occupancy >= room.capacity
+                ? "text-gray-700"
+                : "text-blue-700"
+                }`}>
+                {room.current_occupancy} / {room.capacity}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Available Spots
+            </div>
+            <div className="text-lg font-semibold text-gray-900">
+              {room.capacity - room.current_occupancy}
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Building
+            </div>
+            <div className="text-lg font-semibold text-gray-900">
+              {room.building_name}
+            </div>
+          </div>
+        </div>
+
+        {/* Occupants Table */}
+        <div className="px-6 pb-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">
+            Occupants ({roomDetails?.occupants?.length || 0})
+          </h3>
+          {isLoading ? (
+            <p className="text-gray-500">Loading occupants...</p>
+          ) : (
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Admission No
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Class
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Allocated Date
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {roomDetails?.occupants?.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="p-8 text-center text-gray-500">
+                        Room is empty
+                      </td>
+                    </tr>
+                  ) : (
+                    roomDetails?.occupants?.map((occ) => (
+                      <tr key={occ.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 font-medium text-gray-900">
+                          {occ.first_name} {occ.last_name}
+                        </td>
+                        <td className="px-6 py-4 text-gray-600">
+                          {occ.admission_number}
+                        </td>
+                        <td className="px-6 py-4 text-gray-600">{occ.class_id}</td>
+                        <td className="px-6 py-4 text-gray-600">
+                          {new Date(occ.allocation_date).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  "Are you sure you want to vacate this student?"
+                                )
+                              ) {
+                                onVacate(occ.allocation_id);
+                              }
+                            }}
+                            className="px-3 py-1.5 text-gray-700 hover:bg-gray-100 rounded-lg text-sm font-medium flex items-center ml-auto transition-colors"
+                          >
+                            <UserMinus className="w-4 h-4 mr-1" />
+                            Vacate
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+              Actions
+            </h3>
+            <div className="flex items-center space-x-3">
+              {room.current_occupancy < room.capacity && (
+                <button
+                  onClick={onAllocate}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg transition-colors shadow-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Allocate Student</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => onEdit(room)}
+                className="flex items-center space-x-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg transition-colors shadow-sm"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Edit</span>
+              </button>
+
+              <button
+                onClick={() => onDelete(room.id)}
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-lg transition-colors shadow-sm"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -314,32 +523,32 @@ const MyRoomTab = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 mb-8">
+      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
               Room {allocation.room_number}
             </h2>
-            <p className="text-blue-600 font-medium">
+            <p className="text-gray-700 font-medium">
               {allocation.building_name}
             </p>
           </div>
-          <div className="bg-white px-4 py-2 rounded-lg shadow-sm">
+          <div className="bg-blue-50 px-4 py-2 rounded-lg shadow-sm border border-blue-200">
             <span className="text-sm text-gray-500 block">Allocated Date</span>
-            <span className="font-medium">
+            <span className="font-medium text-gray-900">
               {new Date(allocation.allocation_date).toLocaleDateString()}
             </span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
+          <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-500 mb-1">Room Type</p>
             <p className="font-medium capitalize">{allocation.type} Hostel</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm">
+          <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-500 mb-1">Status</p>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
               Active
             </span>
           </div>
@@ -509,8 +718,8 @@ const AddRoomModal = ({ onClose, initialData }) => {
               {mutation.isPending
                 ? "Saving..."
                 : initialData
-                ? "Update Room"
-                : "Create Room"}
+                  ? "Update Room"
+                  : "Create Room"}
             </button>
           </div>
         </form>
@@ -579,7 +788,7 @@ const AllocateRoomModal = ({ room, onClose }) => {
               ))}
             </select>
             {filteredStudents.length === 0 && (
-              <p className="text-xs text-red-500 mt-1">
+              <p className="text-xs text-gray-500 mt-1">
                 No students of matching gender found.
               </p>
             )}
@@ -606,117 +815,6 @@ const AllocateRoomModal = ({ room, onClose }) => {
   );
 };
 
-const RoomDetailsModal = ({ room, onClose, onVacate }) => {
-  const { data: roomDetails, isLoading } = useQuery({
-    queryKey: ["room-details", room.id],
-    queryFn: () => hostelAPI.getRoomDetails(room.id).then((res) => res.data),
-  });
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">
-              Room {room.room_number} Details
-            </h2>
-            <p className="text-gray-500">
-              {room.building_name} ({room.type})
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <span className="text-2xl">&times;</span>
-          </button>
-        </div>
-
-        {isLoading ? (
-          <p>Loading details...</p>
-        ) : (
-          <div>
-            <h3 className="font-bold text-lg mb-3">
-              Occupants ({roomDetails?.occupants?.length || 0}/{room.capacity})
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="p-3 text-sm font-medium text-gray-600">
-                      Name
-                    </th>
-                    <th className="p-3 text-sm font-medium text-gray-600">
-                      Admission No
-                    </th>
-                    <th className="p-3 text-sm font-medium text-gray-600">
-                      Class
-                    </th>
-                    <th className="p-3 text-sm font-medium text-gray-600">
-                      Allocated Date
-                    </th>
-                    <th className="p-3 text-sm font-medium text-gray-600 text-right">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {roomDetails?.occupants?.length === 0 ? (
-                    <tr>
-                      <td colSpan="5" className="p-4 text-center text-gray-500">
-                        Room is empty
-                      </td>
-                    </tr>
-                  ) : (
-                    roomDetails?.occupants?.map((occ) => (
-                      <tr key={occ.id}>
-                        <td className="p-3 font-medium">
-                          {occ.first_name} {occ.last_name}
-                        </td>
-                        <td className="p-3 text-gray-600">
-                          {occ.admission_number}
-                        </td>
-                        <td className="p-3 text-gray-600">{occ.class_id}</td>
-                        <td className="p-3 text-gray-600">
-                          {new Date(occ.allocation_date).toLocaleDateString()}
-                        </td>
-                        <td className="p-3 text-right">
-                          <button
-                            onClick={() => {
-                              if (
-                                confirm(
-                                  "Are you sure you want to vacate this student?"
-                                )
-                              ) {
-                                onVacate(occ.allocation_id);
-                              }
-                            }}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium flex items-center justify-end ml-auto"
-                          >
-                            <UserMinus className="w-4 h-4 mr-1" />
-                            Vacate
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default HostelManagement;
