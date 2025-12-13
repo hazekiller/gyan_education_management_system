@@ -195,56 +195,56 @@ const StudentReports = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {/* Attendance Card */}
-                                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
                                     <div className="flex items-center justify-between mb-2">
-                                        <ClipboardCheck className="w-8 h-8 text-green-600" />
-                                        <span className="text-2xl font-bold text-green-600">
+                                        <ClipboardCheck className="w-8 h-8 text-blue-700" />
+                                        <span className="text-2xl font-bold text-blue-700">
                                             {calculateAttendancePercentage()}%
                                         </span>
                                     </div>
-                                    <h3 className="text-sm font-medium text-gray-700">Attendance Rate</h3>
+                                    <h3 className="text-sm font-medium text-gray-900">Attendance Rate</h3>
                                     <p className="text-xs text-gray-600 mt-1">
                                         {report.attendance.present_days} / {report.attendance.total_days} days
                                     </p>
                                 </div>
 
                                 {/* Exam Performance Card */}
-                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+                                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6 border border-gray-200">
                                     <div className="flex items-center justify-between mb-2">
-                                        <FileText className="w-8 h-8 text-blue-600" />
-                                        <span className="text-2xl font-bold text-blue-600">
+                                        <FileText className="w-8 h-8 text-gray-700" />
+                                        <span className="text-2xl font-bold text-gray-900">
                                             {calculateExamPercentage()}%
                                         </span>
                                     </div>
-                                    <h3 className="text-sm font-medium text-gray-700">Exam Average</h3>
+                                    <h3 className="text-sm font-medium text-gray-900">Exam Average</h3>
                                     <p className="text-xs text-gray-600 mt-1">
                                         {report.exams.total_exams} exams taken
                                     </p>
                                 </div>
 
                                 {/* Assignments Card */}
-                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
+                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
                                     <div className="flex items-center justify-between mb-2">
-                                        <BookOpen className="w-8 h-8 text-purple-600" />
-                                        <span className="text-2xl font-bold text-purple-600">
+                                        <BookOpen className="w-8 h-8 text-blue-700" />
+                                        <span className="text-2xl font-bold text-blue-700">
                                             {calculateAssignmentCompletion()}%
                                         </span>
                                     </div>
-                                    <h3 className="text-sm font-medium text-gray-700">Assignments</h3>
+                                    <h3 className="text-sm font-medium text-gray-900">Assignments</h3>
                                     <p className="text-xs text-gray-600 mt-1">
                                         {report.assignments.submitted_assignments} / {report.assignments.total_assignments} submitted
                                     </p>
                                 </div>
 
                                 {/* Fee Status Card */}
-                                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-6 border border-yellow-200">
+                                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6 border border-gray-200">
                                     <div className="flex items-center justify-between mb-2">
-                                        <DollarSign className="w-8 h-8 text-yellow-600" />
-                                        <span className="text-2xl font-bold text-yellow-600">
+                                        <DollarSign className="w-8 h-8 text-gray-700" />
+                                        <span className="text-2xl font-bold text-gray-900">
                                             ₹{report.fees.balance || 0}
                                         </span>
                                     </div>
-                                    <h3 className="text-sm font-medium text-gray-700">Fee Balance</h3>
+                                    <h3 className="text-sm font-medium text-gray-900">Fee Balance</h3>
                                     <p className="text-xs text-gray-600 mt-1">
                                         Paid: ₹{report.fees.total_paid || 0}
                                     </p>
@@ -272,7 +272,7 @@ const StudentReports = () => {
                                 {report.hostel && (
                                     <div className="bg-white border border-gray-200 rounded-lg p-4">
                                         <div className="flex items-center space-x-3 mb-3">
-                                            <Home className="w-6 h-6 text-green-600" />
+                                            <Home className="w-6 h-6 text-gray-700" />
                                             <h3 className="text-lg font-semibold text-gray-900">Hostel</h3>
                                         </div>
                                         <div className="space-y-2 text-sm">
@@ -286,7 +286,7 @@ const StudentReports = () => {
                                 {/* Library Info */}
                                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                                     <div className="flex items-center space-x-3 mb-3">
-                                        <Library className="w-6 h-6 text-purple-600" />
+                                        <Library className="w-6 h-6 text-blue-700" />
                                         <h3 className="text-lg font-semibold text-gray-900">Library</h3>
                                     </div>
                                     <div className="space-y-2 text-sm">
