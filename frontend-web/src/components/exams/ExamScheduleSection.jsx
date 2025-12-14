@@ -154,13 +154,13 @@ const ExamScheduleSection = ({ examId, examData }) => {
           <Calendar className="w-6 h-6 mr-2 text-blue-600" />
           Exam Schedule
         </h3>
-        <button
+        {/* <button
           onClick={handleAddSchedule}
           className="btn btn-primary flex items-center space-x-2 shadow-md hover:shadow-lg transition-shadow"
         >
           <Plus className="w-5 h-5" />
           <span>Add Schedule</span>
-        </button>
+        </button> */}
       </div>
 
       {/* Schedule List */}
@@ -172,13 +172,13 @@ const ExamScheduleSection = ({ examId, examData }) => {
           <h4 className="text-lg font-semibold text-gray-900 mb-2">
             No Schedule Added
           </h4>
-          <p className="text-gray-500 mb-6">
+          {/* <p className="text-gray-500 mb-6">
             Create your first exam schedule to get started
           </p>
           <button onClick={handleAddSchedule} className="btn btn-primary">
             <Plus className="w-5 h-5 inline mr-2" />
             Add First Schedule
-          </button>
+          </button> */}
         </div>
       ) : (
         <div className="space-y-6">

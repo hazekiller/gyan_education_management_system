@@ -168,7 +168,7 @@ const ExamDetails = () => {
           <ArrowLeft className="w-5 h-5" />
           <span className="font-medium">Back to Exams</span>
         </button>
-        <PermissionGuard permission={PERMISSIONS.CREATE_EXAMS}>
+        <PermissionGuard permission={PERMISSIONS.EDIT_EXAMS}>
           <button
             onClick={() => navigate(`/exams/${id}/edit`)}
             className="btn btn-primary flex items-center space-x-2 shadow-lg hover:shadow-xl transition-shadow"
@@ -225,8 +225,8 @@ const ExamDetails = () => {
                 </span>
                 <span
                   className={`flex items-center px-3 py-1.5 rounded-lg ${exam.is_active
-                      ? "bg-white text-black border border-blue-600"
-                      : "bg-white text-black border border-gray-200"
+                    ? "bg-white text-black border border-blue-600"
+                    : "bg-white text-black border border-gray-200"
                     }`}
                 >
                   <Activity className="w-4 h-4 mr-1.5 text-blue-600" />
@@ -475,13 +475,15 @@ const ExamDetails = () => {
             <Calendar className="w-5 h-5" />
             <span className="font-semibold">View Schedule</span>
           </button>
-          <button
-            className="btn btn-primary flex items-center justify-center space-x-2 h-14 rounded-xl shadow-md hover:shadow-xl transition-all"
-            onClick={() => navigate(`/exams/${id}/results`)}
-          >
-            <FileText className="w-5 h-5" />
-            <span className="font-semibold">Enter Results</span>
-          </button>
+          <PermissionGuard permission={PERMISSIONS.ENTER_RESULTS}>
+            <button
+              className="btn btn-primary flex items-center justify-center space-x-2 h-14 rounded-xl shadow-md hover:shadow-xl transition-all"
+              onClick={() => navigate(`/exams/${id}/results`)}
+            >
+              <FileText className="w-5 h-5" />
+              <span className="font-semibold">Enter Results</span>
+            </button>
+          </PermissionGuard>
           <button
             className="btn btn-outline flex items-center justify-center space-x-2 h-14 rounded-xl border-2 hover:shadow-lg transition-all"
             onClick={() => navigate(`/exams/${id}/report`)}

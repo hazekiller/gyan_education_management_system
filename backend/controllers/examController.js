@@ -70,6 +70,7 @@ const getAllExams = async (req, res) => {
     query += " ORDER BY exams.start_date DESC";
 
     const [exams] = await pool.query(query, params);
+    console.log(`Found ${exams.length} exams`);
 
     res.json({
       success: true,

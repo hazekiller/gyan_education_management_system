@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
@@ -43,6 +43,13 @@ const Exams = () => {
   });
 
   const academicYears = academicYearsData?.data || [];
+
+  // Update selected academic year when data loads or if current selection is invalid
+  useEffect(() => {
+    if (academicYears.length > 0 && !academicYears.includes(selectedAcademicYear)) {
+      setSelectedAcademicYear(academicYears[0]);
+    }
+  }, [academicYears, selectedAcademicYear]);
 
   const { data: examsData, isLoading } = useQuery({
     queryKey: ["exams", selectedAcademicYear],
