@@ -148,10 +148,41 @@ exports.createRoute = async (req, res, next) => {
 
     const { route_name, vehicle_id, start_point, end_point, stops } = req.body;
 
+    // Fetch vehicle details for legacy columns
+    let vehicleData = {
+      vehicle_number: "Unassigned",
+      driver_name: "Unassigned",
+      driver_phone: "0000000000",
+    };
+
+    if (vehicle_id) {
+      const [v] = await connection.query(
+        "SELECT bus_number, driver_name, driver_phone FROM transport_vehicles WHERE id = ?",
+        [vehicle_id]
+      );
+      if (v.length > 0) {
+        vehicleData = {
+          vehicle_number: v[0].bus_number,
+          driver_name: v[0].driver_name,
+          driver_phone: v[0].driver_phone,
+        };
+      }
+    }
+
     // Create Route
     const [routeResult] = await connection.query(
-      "INSERT INTO transport_routes (route_name, vehicle_id, start_point, end_point) VALUES (?, ?, ?, ?)",
-      [route_name, vehicle_id, start_point, end_point]
+      `INSERT INTO transport_routes 
+       (route_name, vehicle_id, start_point, end_point, vehicle_number, driver_name, driver_phone) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        route_name,
+        vehicle_id || null,
+        start_point,
+        end_point,
+        vehicleData.vehicle_number,
+        vehicleData.driver_name,
+        vehicleData.driver_phone,
+      ]
     );
 
     const routeId = routeResult.insertId;
@@ -194,10 +225,43 @@ exports.updateRoute = async (req, res, next) => {
     const { id } = req.params;
     const { route_name, vehicle_id, start_point, end_point, stops } = req.body;
 
+    // Fetch vehicle details for legacy columns
+    let vehicleData = {
+      vehicle_number: "Unassigned",
+      driver_name: "Unassigned",
+      driver_phone: "0000000000",
+    };
+
+    if (vehicle_id) {
+      const [v] = await connection.query(
+        "SELECT bus_number, driver_name, driver_phone FROM transport_vehicles WHERE id = ?",
+        [vehicle_id]
+      );
+      if (v.length > 0) {
+        vehicleData = {
+          vehicle_number: v[0].bus_number,
+          driver_name: v[0].driver_name,
+          driver_phone: v[0].driver_phone,
+        };
+      }
+    }
+
     // Update Route
     await connection.query(
-      "UPDATE transport_routes SET route_name = ?, vehicle_id = ?, start_point = ?, end_point = ? WHERE id = ?",
-      [route_name, vehicle_id, start_point, end_point, id]
+      `UPDATE transport_routes 
+       SET route_name = ?, vehicle_id = ?, start_point = ?, end_point = ?,
+           vehicle_number = ?, driver_name = ?, driver_phone = ?
+       WHERE id = ?`,
+      [
+        route_name,
+        vehicle_id || null,
+        start_point,
+        end_point,
+        vehicleData.vehicle_number,
+        vehicleData.driver_name,
+        vehicleData.driver_phone,
+        id,
+      ]
     );
 
     // Update Stops (Full Replace Strategy for simplicity)

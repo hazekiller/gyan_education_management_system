@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DollarSign, Search, Filter, Plus, FileText, Users, CreditCard, Settings } from 'lucide-react';
+import { DollarSign, Search, Filter, Plus, FileText, Users, CreditCard, Settings, Edit, Trash } from 'lucide-react';
 import { feeAPI, classesAPI, studentsAPI } from '../lib/api';
 import { selectUserRole } from '../store/slices/authSlice';
 import toast from 'react-hot-toast';
@@ -189,7 +189,8 @@ const DashboardTab = () => {
 // ==========================================
 const FeeHeadsTab = () => {
   const queryClient = useQueryClient();
-  const [newHead, setNewHead] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [editingId, setEditingId] = useState(null);
 
   const { data: heads = [], isLoading } = useQuery({
     queryKey: ['fee-heads'],
@@ -200,30 +201,73 @@ const FeeHeadsTab = () => {
     mutationFn: feeAPI.createHead,
     onSuccess: () => {
       queryClient.invalidateQueries(['fee-heads']);
-      setNewHead({ name: '', description: '' });
+      setFormData({ name: '', description: '' });
       toast.success('Fee Head created successfully');
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Failed to create fee head')
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => feeAPI.updateHead(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['fee-heads']);
+      setFormData({ name: '', description: '' });
+      setEditingId(null);
+      toast.success('Fee Head updated successfully');
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update fee head')
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: feeAPI.deleteHead,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['fee-heads']);
+      toast.success('Fee Head deleted successfully');
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to delete fee head')
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!newHead.name) return;
-    createMutation.mutate(newHead);
+    if (!formData.name) return;
+
+    if (editingId) {
+      updateMutation.mutate({ id: editingId, data: formData });
+    } else {
+      createMutation.mutate(formData);
+    }
+  };
+
+  const handleEdit = (head) => {
+    setEditingId(head.id);
+    setFormData({ name: head.name, description: head.description });
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this fee head?')) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setFormData({ name: '', description: '' });
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      {/* Create Form */}
+      {/* Create/Edit Form */}
       <div className="md:col-span-1 space-y-4">
-        <h3 className="text-lg font-semibold text-gray-800">Add Fee Head</h3>
+        <h3 className="text-lg font-semibold text-gray-800">
+          {editingId ? 'Edit Fee Head' : 'Add Fee Head'}
+        </h3>
         <form onSubmit={handleSubmit} className="space-y-4 bg-gray-50 p-4 rounded-lg">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
             <input
               type="text"
-              value={newHead.name}
-              onChange={(e) => setNewHead({ ...newHead, name: e.target.value })}
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full border rounded-md px-3 py-2"
               placeholder="e.g. Tuition Fee"
               required
@@ -232,19 +276,32 @@ const FeeHeadsTab = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
-              value={newHead.description}
-              onChange={(e) => setNewHead({ ...newHead, description: e.target.value })}
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full border rounded-md px-3 py-2"
               rows="3"
             />
           </div>
-          <button
-            type="submit"
-            disabled={createMutation.isPending}
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
-          >
-            {createMutation.isPending ? 'Saving...' : 'Create Fee Head'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={createMutation.isPending || updateMutation.isPending}
+              className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              {createMutation.isPending || updateMutation.isPending
+                ? 'Saving...'
+                : editingId ? 'Update Fee Head' : 'Create Fee Head'}
+            </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -261,6 +318,7 @@ const FeeHeadsTab = () => {
                   <th className="p-3 font-medium text-black">Name</th>
                   <th className="p-3 font-medium text-black">Description</th>
                   <th className="p-3 font-medium text-black">Status</th>
+                  <th className="p-3 font-medium text-black text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -270,6 +328,24 @@ const FeeHeadsTab = () => {
                     <td className="p-3 text-gray-600">{head.description || '-'}</td>
                     <td className="p-3">
                       <span className="px-2 py-1 bg-white text-black border border-gray-200 rounded-full text-xs">Active</span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleEdit(head)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          title="Edit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(head.id)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          title="Delete"
+                        >
+                          <Trash className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

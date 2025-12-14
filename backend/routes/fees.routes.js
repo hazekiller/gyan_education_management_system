@@ -5,6 +5,8 @@ const feesController = require("../controllers/feesController");
 // Fee Heads
 router.post("/heads", feesController.createFeeHead);
 router.get("/heads", feesController.getFeeHeads);
+router.put("/heads/:id", feesController.updateFeeHead);
+router.delete("/heads/:id", feesController.deleteFeeHead);
 
 // Fee Structure
 router.post("/structure", feesController.createFeeStructure);

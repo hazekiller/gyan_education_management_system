@@ -224,14 +224,15 @@ const ReportsTab = () => {
                     <div>
                         <label className="block text-sm font-medium text-black mb-1">Route</label>
                         <select
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                             value={filters.route_id}
                             onChange={(e) => setFilters({ ...filters, route_id: e.target.value, page: 1 })}
                         >
                             <option value="">All Routes</option>
                             {routes.map(r => (
-                                <option key={r.id} value={r.id}>{r.route_name}</option>
+                                <option key={r.id} value={r.id}>
+                                    {r.route_name} {r.bus_number ? `(${r.bus_number})` : ''}
+                                </option>
                             ))}
                         </select>
                     </div>
@@ -691,8 +692,7 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                             <div>
                                 <label className="block text-sm font-medium text-black mb-1">Route *</label>
                                 <select
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                                     value={formData.route_id}
                                     onChange={(e) => {
                                         const route = routes.find(r => r.id === parseInt(e.target.value));
@@ -708,7 +708,8 @@ const ReportModal = ({ onClose, initialData, viewMode }) => {
                                     <option value="">Select Route</option>
                                     {routes.map(r => (
                                         <option key={r.id} value={r.id}>
-                                            {r.route_name} - {r.bus_number}
+                                            {r.route_name}
+                                            {r.bus_number ? ` (${r.bus_number})` : r.vehicle_number && r.vehicle_number !== 'Unassigned' ? ` (${r.vehicle_number})` : ''}
                                         </option>
                                     ))}
                                 </select>
