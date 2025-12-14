@@ -751,6 +751,7 @@ export const dailyReportsAPI = {
   create: (data) => api.post("/daily-reports", data),
   update: (id, data) => api.put(`/daily-reports/${id}`, data),
   delete: (id) => api.delete(`/daily-reports/${id}`),
+  addFeedback: (id, data) => api.put(`/daily-reports/${id}/feedback`, data),
 };
 
 //==============================================

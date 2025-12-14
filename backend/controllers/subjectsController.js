@@ -39,13 +39,12 @@ const getAllSubjects = async (req, res) => {
       FROM subjects s
       LEFT JOIN subject_prerequisites sp ON s.id = sp.subject_id
       LEFT JOIN subjects ps ON sp.prerequisite_subject_id = ps.id
-      ${
-        userRole === "student" && studentSectionId
-          ? `LEFT JOIN timetable tt ON s.id = tt.subject_id 
+      ${userRole === "student" && studentSectionId
+        ? `LEFT JOIN timetable tt ON s.id = tt.subject_id 
            AND tt.class_id = ${studentClassId} 
            AND tt.section_id = ${studentSectionId}
            AND tt.is_active = 1`
-          : `LEFT JOIN timetable tt ON s.id = tt.subject_id AND tt.is_active = 1`
+        : `LEFT JOIN timetable tt ON s.id = tt.subject_id AND tt.is_active = 1`
       }
       LEFT JOIN teachers t ON tt.teacher_id = t.id
       WHERE 1=1
@@ -81,8 +80,11 @@ const getAllSubjects = async (req, res) => {
         query += ` AND s.id IN (
           SELECT subject_id FROM class_subjects 
           WHERE teacher_id = ? AND is_active = 1
+          UNION
+          SELECT subject_id FROM section_subject_teachers
+          WHERE teacher_id = ? AND is_active = 1
         )`;
-        params.push(teachers[0].id);
+        params.push(teachers[0].id, teachers[0].id);
       } else {
         // Teacher profile not found, return empty
         return res.json({
