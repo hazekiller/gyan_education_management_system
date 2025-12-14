@@ -41,6 +41,7 @@ const migrate = async () => {
       'attendance',
       'timetable',
       'class_subjects',
+      'subject_prerequisites',
       'subjects',
       'fee_payments',
       'fee_structure',
@@ -243,6 +244,8 @@ const migrate = async () => {
         name VARCHAR(100) NOT NULL,
         code VARCHAR(20) UNIQUE NOT NULL,
         description TEXT,
+        prerequisite_type ENUM('none', 'subject_exam', 'completion') DEFAULT 'none',
+        subject_nature ENUM('compulsory', 'optional', 'elective') DEFAULT 'compulsory',
         is_active BOOLEAN DEFAULT true,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -269,6 +272,20 @@ const migrate = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
     console.log('✅ Table: class_subjects');
+
+    // 9. Subject Prerequisites table
+    await connection.query(`
+      CREATE TABLE subject_prerequisites (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        subject_id INT NOT NULL,
+        prerequisite_subject_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+        FOREIGN KEY (prerequisite_subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_prereq (subject_id, prerequisite_subject_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ Table: subject_prerequisites');
 
     // 9. Timetable table
     await connection.query(`

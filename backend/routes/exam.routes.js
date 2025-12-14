@@ -20,6 +20,8 @@ const {
   deleteResult,
 } = require("../controllers/examResultsController");
 
+
+
 // All routes require authentication
 router.use(authenticate);
 

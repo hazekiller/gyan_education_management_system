@@ -300,7 +300,7 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <PermissionGuard permission={PERMISSIONS.UPDATE_EXAM}>
+                    <PermissionGuard permission={PERMISSIONS.EDIT_EXAMS}>
                       <button
                         onClick={() => handleEdit(selectedExam)}
                         className="btn btn-sm btn-outline flex items-center space-x-1"
@@ -309,7 +309,7 @@ const ExamTable = ({ exams, isLoading, onRefetch }) => {
                         <span>Edit</span>
                       </button>
                     </PermissionGuard>
-                    <PermissionGuard permission={PERMISSIONS.DELETE_EXAM}>
+                    <PermissionGuard permission={PERMISSIONS.DELETE_EXAMS}>
                       <button
                         onClick={() => handleDelete(selectedExam)}
                         className="btn btn-sm text-black hover:bg-gray-100 border border-black hover:border-black flex items-center space-x-1"
