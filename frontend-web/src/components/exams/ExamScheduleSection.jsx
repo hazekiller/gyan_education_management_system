@@ -172,13 +172,15 @@ const ExamScheduleSection = ({ examId, examData }) => {
           <h4 className="text-lg font-semibold text-gray-900 mb-2">
             No Schedule Added
           </h4>
-          {/* <p className="text-gray-500 mb-6">
+          <p className="text-gray-500 mb-6">
             Create your first exam schedule to get started
           </p>
-          <button onClick={handleAddSchedule} className="btn btn-primary">
-            <Plus className="w-5 h-5 inline mr-2" />
-            Add First Schedule
-          </button> */}
+          <PermissionGuard permission={PERMISSIONS.EDIT_EXAMS}>
+            <button onClick={handleAddSchedule} className="btn btn-primary">
+              <Plus className="w-5 h-5 inline mr-2" />
+              Add First Schedule
+            </button>
+          </PermissionGuard>
         </div>
       ) : (
         <div className="space-y-6">

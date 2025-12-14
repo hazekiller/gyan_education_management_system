@@ -351,41 +351,49 @@ const StudentReports = () => {
                         <div className="space-y-4">
                             <h2 className="text-xl font-bold text-gray-900">Exam Results</h2>
 
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Exam</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marks</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grade</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Percentage</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {examData?.data?.map((result) => (
-                                            <tr key={result.id}>
-                                                <td className="px-6 py-4 text-sm text-gray-900">
-                                                    {result.exam_name}
-                                                    <div className="text-xs text-gray-500">{result.exam_type}</div>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-gray-900">{result.subject_name}</td>
-                                                <td className="px-6 py-4 text-sm text-gray-900">
-                                                    {result.marks_obtained} / {result.max_marks}
-                                                </td>
-                                                <td className="px-6 py-4 text-sm">
-                                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
-                                                        {result.grade || '-'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-gray-900">
-                                                    {((result.marks_obtained / result.max_marks) * 100).toFixed(1)}%
-                                                </td>
+                            {examData?.data && examData.data.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Exam</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marks</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grade</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Percentage</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {examData.data.map((result) => (
+                                                <tr key={result.id}>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">
+                                                        {result.exam_name}
+                                                        <div className="text-xs text-gray-500">{result.exam_type}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{result.subject_name}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">
+                                                        {result.marks_obtained} / {result.max_marks}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm">
+                                                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                                                            {result.grade || '-'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">
+                                                        {((result.marks_obtained / result.max_marks) * 100).toFixed(1)}%
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                                    <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                                    <h3 className="text-lg font-medium text-gray-900">No Exam Results Yet</h3>
+                                    <p className="text-gray-500 mt-1">Exam results will appear here once published.</p>
+                                </div>
+                            )}
                         </div>
                     )}
 

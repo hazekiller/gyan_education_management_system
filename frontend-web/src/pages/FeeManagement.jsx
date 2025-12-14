@@ -1,12 +1,28 @@
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DollarSign, Search, Filter, Plus, FileText, Users, CreditCard, Settings } from 'lucide-react';
 import { feeAPI, classesAPI, studentsAPI } from '../lib/api';
+import { selectUserRole } from '../store/slices/authSlice';
 import toast from 'react-hot-toast';
 
 const FeeManagement = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const queryClient = useQueryClient();
+  const userRole = useSelector(selectUserRole);
+
+  // Define all tabs
+  const allTabs = [
+    { id: 'dashboard', label: 'Dashboard', icon: DollarSign },
+    { id: 'collect', label: 'Collect Fee', icon: CreditCard },
+    { id: 'structure', label: 'Fee Structure', icon: FileText },
+    { id: 'heads', label: 'Fee Heads', icon: Settings },
+  ];
+
+  // Filter tabs based on user role - hide Fee Structure and Fee Heads for students
+  const tabs = userRole === 'student'
+    ? allTabs.filter(tab => tab.id !== 'structure' && tab.id !== 'heads')
+    : allTabs;
 
   return (
     <div className="space-y-6">
@@ -21,12 +37,7 @@ const FeeManagement = () => {
       {/* Tabs */}
       <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 shadow-xl border border-white/50">
         <div className="flex space-x-1">
-          {[
-            { id: 'dashboard', label: 'Dashboard', icon: DollarSign },
-            { id: 'collect', label: 'Collect Fee', icon: CreditCard },
-            { id: 'structure', label: 'Fee Structure', icon: FileText },
-            { id: 'heads', label: 'Fee Heads', icon: Settings },
-          ].map((tab) => (
+          {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
