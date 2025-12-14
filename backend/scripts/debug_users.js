@@ -2,13 +2,13 @@ const pool = require('../config/database');
 
 async function debugUsers() {
     try {
-        console.log('--- Debugging Users ---');
-        const [users] = await pool.query("SELECT id, email, role FROM users");
-        console.log('Users found:', users);
+        console.log('Checking users and roles...');
+        const [users] = await pool.query('SELECT id, email, role FROM users');
+        console.table(users);
+        process.exit(0);
     } catch (error) {
-        console.error('Error:', error);
-    } finally {
-        process.exit();
+        console.error('Error querying users:', error);
+        process.exit(1);
     }
 }
 

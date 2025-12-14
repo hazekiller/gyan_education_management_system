@@ -1036,11 +1036,13 @@ const AllocateTransportModal = ({ onClose, initialData }) => {
     queryKey: ["students-list"],
     queryFn: () => studentsAPI.getAll().then((res) => res.data || []),
   });
-  const { data: routes = [] } = useQuery({
+
+  const { data: routes = [], isLoading: isLoadingRoutes } = useQuery({
     queryKey: ["transport-routes"],
     queryFn: () => transportAPI.getAllRoutes().then((res) => res.data || []),
   });
 
+  // Ensure robust comparison (handle string vs number)
   const selectedRoute = routes.find((r) => r.id == formData.route_id);
 
   const mutation = useMutation({
@@ -1089,20 +1091,33 @@ const AllocateTransportModal = ({ onClose, initialData }) => {
             required
             className="w-full border rounded px-3 py-2"
             value={formData.route_id}
-            onChange={(e) =>
-              setFormData({ ...formData, route_id: e.target.value })
-            }
+            onChange={(e) => {
+              // Reset stops when route changes
+              setFormData({
+                ...formData,
+                route_id: e.target.value,
+                pickup_stop_id: "",
+                drop_stop_id: ""
+              });
+            }}
           >
-            <option value="">Select Route</option>
+            <option value="">
+              {isLoadingRoutes ? "Loading Routes..." : "Select Route"}
+            </option>
             {routes.map((r) => (
               <option key={r.id} value={r.id}>
-                {r.route_name}
+                {r.route_name} {r.bus_number ? `(${r.bus_number})` : ""}
               </option>
             ))}
           </select>
 
           {selectedRoute && (
             <>
+              <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-800 mb-2">
+                <p className="font-bold">{selectedRoute.route_name}</p>
+                <p>{selectedRoute.start_point} ➝ {selectedRoute.end_point}</p>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <select
                   required
@@ -1115,7 +1130,7 @@ const AllocateTransportModal = ({ onClose, initialData }) => {
                   <option value="">Pickup Point</option>
                   {selectedRoute.stops?.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.stop_name}
+                      {s.stop_name} ({s.pickup_time?.slice(0, 5)})
                     </option>
                   ))}
                 </select>
@@ -1130,7 +1145,7 @@ const AllocateTransportModal = ({ onClose, initialData }) => {
                   <option value="">Drop Point</option>
                   {selectedRoute.stops?.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.stop_name}
+                      {s.stop_name} ({s.drop_time?.slice(0, 5)})
                     </option>
                   ))}
                 </select>

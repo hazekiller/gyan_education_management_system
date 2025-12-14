@@ -36,6 +36,52 @@ exports.getFeeHeads = async (req, res) => {
   }
 };
 
+exports.updateFeeHead = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, status } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ message: "Fee head name is required" });
+    }
+
+    const [result] = await db.query(
+      "UPDATE fee_heads SET name = ?, description = ?, is_active = ? WHERE id = ?",
+      [name, description, status !== undefined ? status : true, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Fee head not found" });
+    }
+
+    res.status(200).json({ message: "Fee head updated successfully" });
+  } catch (error) {
+    console.error("Error updating fee head:", error);
+    res.status(500).json({ message: "Error updating fee head", error: error.message });
+  }
+};
+
+exports.deleteFeeHead = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Soft delete
+    const [result] = await db.query(
+      "UPDATE fee_heads SET is_active = false WHERE id = ?",
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Fee head not found" });
+    }
+
+    res.status(200).json({ message: "Fee head deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting fee head:", error);
+    res.status(500).json({ message: "Error deleting fee head", error: error.message });
+  }
+};
+
 // ===== Fee Structure =====
 
 exports.createFeeStructure = async (req, res) => {
@@ -190,8 +236,8 @@ exports.getStudentFeeStatus = async (req, res) => {
 
       // Verify the student is requesting their own data
       if (requestedStudentId !== actualStudentId) {
-        return res.status(403).json({ 
-          message: "Access denied. You can only view your own fee details." 
+        return res.status(403).json({
+          message: "Access denied. You can only view your own fee details."
         });
       }
 
@@ -252,8 +298,8 @@ exports.getStudentFeeStatus = async (req, res) => {
           paid >= parseFloat(fee.amount)
             ? "Paid"
             : paid > 0
-            ? "Partial"
-            : "Unpaid",
+              ? "Partial"
+              : "Unpaid",
       };
     });
 

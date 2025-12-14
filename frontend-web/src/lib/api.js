@@ -459,6 +459,8 @@ export const feeAPI = {
   // Fee Heads
   createHead: (data) => api.post("/fees/heads", data),
   getHeads: () => api.get("/fees/heads"),
+  updateHead: (id, data) => api.put(`/fees/heads/${id}`, data),
+  deleteHead: (id) => api.delete(`/fees/heads/${id}`),
 
   // Fee Structure
   createStructure: (data) => api.post("/fees/structure", data),
