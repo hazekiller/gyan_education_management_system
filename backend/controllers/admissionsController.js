@@ -1,4 +1,5 @@
 const db = require("../config/database");
+const bcrypt = require("bcryptjs");
 
 const admissionsController = {
   // Get all admissions with filters
@@ -233,6 +234,121 @@ const admissionsController = {
       res
         .status(500)
         .json({ success: false, message: "Error deleting admission" });
+    }
+  },
+
+  // Convert admission to student
+  convertToStudent: async (req, res) => {
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      const { id } = req.params;
+
+      // 1. Get admission details
+      const [admissions] = await connection.query(
+        "SELECT * FROM admissions WHERE id = ?",
+        [id]
+      );
+
+      if (admissions.length === 0) {
+        await connection.rollback();
+        return res.status(404).json({
+          success: false,
+          message: "Admission record not found",
+        });
+      }
+
+      const admission = admissions[0];
+
+      if (admission.student_id) {
+        await connection.rollback();
+        return res.status(400).json({
+          success: false,
+          message: "Admission already converted to student",
+        });
+      }
+
+      // 2. Create User Account
+      // Generate standard password: Firstname@123 or similar
+      const defaultPassword = `${admission.first_name}123`;
+      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
+      // Use parent email or generate a placeholder if needed. 
+      // Ideally student should have their own email, but using parent's or a generated one for now.
+      // If admission doesn't have student email field, we might need a workaround.
+      // Assuming email is unique, we might clash if we use parent email for multiple kids.
+      // Let's check if admission has email. The create method had parent_email.
+      // Let's generate a unique email handle if needed: firstname.lastname.appId@school.com
+      const email = `${admission.first_name.toLowerCase()}.${admission.last_name.toLowerCase()}.${admission.application_number.toLowerCase()}@gyan.edu`;
+
+      const [userResult] = await connection.query(
+        "INSERT INTO users (email, password, role, is_active) VALUES (?, ?, ?, ?)",
+        [email, hashedPassword, "student", true]
+      );
+
+      const userId = userResult.insertId;
+
+      // 3. Create Student Record
+      const [studentResult] = await connection.query(
+        `INSERT INTO students (
+          user_id, admission_number, first_name, middle_name, last_name,
+          date_of_birth, gender,
+          class_id, 
+          father_name, parent_phone, parent_email,
+          address, city, state, pincode,
+          admission_date, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'active')`,
+        [
+          userId,
+          admission.application_number, // Use app number as admission number initially
+          admission.first_name,
+          admission.middle_name,
+          admission.last_name,
+          admission.date_of_birth,
+          admission.gender,
+          admission.class_applied_for,
+          admission.parent_name, // Mapping parent_name to father_name as fallback
+          admission.parent_phone,
+          admission.parent_email,
+          admission.address,
+          admission.city,
+          admission.state,
+          admission.pincode
+        ]
+      );
+
+      const studentId = studentResult.insertId;
+
+      // 4. Update Admission Record
+      await connection.query(
+        "UPDATE admissions SET student_id = ?, status = 'admitted', admission_date = NOW() WHERE id = ?",
+        [studentId, id]
+      );
+
+      await connection.commit();
+
+      res.json({
+        success: true,
+        message: "Student created successfully",
+        data: {
+          student_id: studentId,
+          user_id: userId,
+          email: email,
+          password: defaultPassword
+        }
+      });
+
+    } catch (error) {
+      await connection.rollback();
+      console.error("Error converting admission to student:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to convert admission to student",
+        error: error.message
+      });
+    } finally {
+      connection.release();
     }
   },
 };

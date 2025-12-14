@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
@@ -17,6 +18,7 @@ import { PERMISSIONS } from "../utils/rbac";
 import toast from "react-hot-toast";
 
 const Admissions = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -49,9 +51,12 @@ const Admissions = () => {
       const response = await admissionsAPI.update(selectedAdmission.id, formData);
       toast.success("Admission updated successfully");
 
-      // Check if status changed to 'admitted' and auto-convert
-      if (formData.status === 'admitted' && selectedAdmission.status !== 'admitted') {
-        toast.info("Converting admission to student...");
+      // Check if status changed to 'approved' or 'admitted' and auto-convert
+      if ((formData.status === 'approved' || formData.status === 'admitted') &&
+        selectedAdmission.status !== 'approved' &&
+        selectedAdmission.status !== 'admitted' &&
+        !selectedAdmission.student_id) {
+        toast.loading("Converting admission to student...", { duration: 2000 });
         await handleConvertToStudent(selectedAdmission.id);
       }
 
@@ -85,6 +90,9 @@ const Admissions = () => {
       queryClient.invalidateQueries(["admissions"]);
       queryClient.invalidateQueries(["students"]);
       queryClient.invalidateQueries(["classes"]);
+
+      // Redirect to Students page
+      navigate("/users");
     } catch (error) {
       toast.error(error.message || "Failed to convert admission to student");
     }

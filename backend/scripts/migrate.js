@@ -278,7 +278,7 @@ const migrate = async () => {
         section_id INT NOT NULL,
         subject_id INT NOT NULL,
         teacher_id INT NOT NULL,
-        day_of_week ENUM('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday') NOT NULL,
+        day_of_week ENUM('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday') NOT NULL,
         start_time TIME NOT NULL,
         end_time TIME NOT NULL,
         room_number VARCHAR(50),

@@ -38,4 +38,11 @@ router.delete(
   admissionsController.delete
 );
 
+// Convert to student
+router.post(
+  "/:id/convert-to-student",
+  authenticate,
+  admissionsController.convertToStudent
+);
+
 module.exports = router;
