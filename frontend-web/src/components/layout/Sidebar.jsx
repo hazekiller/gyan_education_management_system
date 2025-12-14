@@ -28,6 +28,7 @@ import {
 import { PERMISSIONS } from "../../utils/rbac";
 import { usePermission } from "../../hooks/usePermission";
 import gsap from "gsap";
+import { FaRupeeSign } from "react-icons/fa";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const user = useSelector(selectCurrentUser);
@@ -143,7 +144,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     {
       name: "Fee Management",
       path: "/fees",
-      icon: DollarSign,
+      icon: FaRupeeSign,
       show: hasPermission(PERMISSIONS.VIEW_FEES),
     },
     {

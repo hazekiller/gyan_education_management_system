@@ -40,6 +40,7 @@ import ExamResults from "./pages/ExamResults";
 import Notifications from "./pages/Notifications";
 import Admissions from "./pages/Admissions";
 import Results from "./pages/Results";
+import ExamReport from "./pages/ExamReport";
 import DailyReports from "./pages/DailyReports";
 import DailyReportDetails from "./pages/DailyReportDetails";
 import BusAttendanceReports from "./pages/BusAttendanceReports";
@@ -107,6 +108,7 @@ function App() {
         <Route path="exams" element={<Exams />} />
         <Route path="exams/:id" element={<ExamDetails />} />
         <Route path="exams/:id/results" element={<ExamResults />} />
+        <Route path="exams/:id/report" element={<ExamReport />} />
         <Route path="assignments" element={<Assignments />} />
         <Route path="assignments/:id" element={<AssignmentDetails />} />
         <Route path="fees" element={<FeeManagement />} />
