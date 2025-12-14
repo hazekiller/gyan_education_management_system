@@ -159,9 +159,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       show: hasPermission(PERMISSIONS.VIEW_ANNOUNCEMENTS),
     },
     {
-      name: "Routine",
+      name: "Schedule",
       path: "/schedule",
-      icon: Megaphone,
+      icon: Calendar,
       show: hasPermission(PERMISSIONS.VIEW_SCHEDULE),
     },
     {
