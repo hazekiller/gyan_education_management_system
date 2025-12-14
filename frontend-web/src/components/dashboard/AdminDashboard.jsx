@@ -13,7 +13,7 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
-import api from "../../lib/api"; // Import API service
+import api, { dailyReportsAPI } from "../../lib/api"; // Import API service
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -36,6 +36,7 @@ const AdminDashboard = () => {
   });
 
   const [recentRegistrations, setRecentRegistrations] = useState([]);
+  const [recentReports, setRecentReports] = useState([]);
   const [upcomingEvents] = useState([
     {
       id: 1,
@@ -64,9 +65,10 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [statsRes, registrationsRes] = await Promise.all([
+        const [statsRes, registrationsRes, reportsRes] = await Promise.all([
           api.get("/dashboard/stats"),
-          api.get("/dashboard/recent-registrations?limit=5")
+          api.get("/dashboard/recent-registrations?limit=5"),
+          dailyReportsAPI.getAll({ limit: 5 })
         ]);
 
         if (statsRes.data.success) {
@@ -78,6 +80,10 @@ const AdminDashboard = () => {
 
         if (registrationsRes.data.success) {
           setRecentRegistrations(registrationsRes.data.data);
+        }
+
+        if (reportsRes.success) {
+          setRecentReports(reportsRes.data);
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -426,6 +432,55 @@ const AdminDashboard = () => {
             <Calendar className="w-8 h-8 text-gray-900 mx-auto mb-3 group-hover:scale-110 transition-transform" />
             <p className="text-sm font-semibold text-gray-900">Add Event</p>
           </button>
+        </div>
+      </div>
+
+      {/* Recent Daily Reports */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">Recent Daily Reports</h3>
+          <button
+            onClick={() => navigate('/reports')}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            View All
+          </button>
+        </div>
+        <div className="space-y-3">
+          {recentReports.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-4">No recent reports found.</p>
+          ) : (
+            recentReports.map((report) => (
+              <div
+                key={report.id}
+                onClick={() => navigate(`/reports/${report.id}`)}
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-all cursor-pointer border border-gray-100 hover:border-blue-600"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold shrink-0">
+                    {report.teacher_first_name?.[0]}{report.teacher_last_name?.[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {report.teacher_first_name} {report.teacher_last_name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {report.class_name && <span>{report.class_name} • </span>}
+                      {report.subject_name}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-xs text-gray-500 font-medium block">
+                    {new Date(report.report_date).toLocaleDateString()}
+                  </span>
+                  <span className="text-[10px] font-semibold text-blue-600 uppercase">
+                    {report.period_number ? `Period ${report.period_number}` : 'Report'}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

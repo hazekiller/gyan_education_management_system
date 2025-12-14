@@ -120,8 +120,11 @@ const Schedule = () => {
     const fetchSchedule = async () => {
       try {
         setLoading(true);
-        if (isAdmin && selectedTeacher) {
-          const res = await teachersAPI.getSchedule(selectedTeacher);
+        // Validate selectedTeacher is a valid non-empty value
+        const validTeacherId = selectedTeacher && selectedTeacher !== "" ? selectedTeacher : null;
+
+        if (isAdmin && validTeacherId) {
+          const res = await teachersAPI.getSchedule(validTeacherId);
           setSchedule(res.data || []);
         } else if (currentUser?.role === "student") {
           // Fetch student's schedule for today/week
@@ -132,10 +135,13 @@ const Schedule = () => {
             academic_year: new Date().getFullYear().toString(), // Optional: infer from current year
           });
           setSchedule(res.data || []);
-        } else if (selectedTeacher) {
+        } else if (validTeacherId) {
           // Fallback for teacher view if logic above doesn't catch it (though initial data fetch handles teacher selection)
-          const res = await teachersAPI.getSchedule(selectedTeacher);
+          const res = await teachersAPI.getSchedule(validTeacherId);
           setSchedule(res.data || []);
+        } else {
+          // No valid teacher selected and not a student, clear schedule
+          setSchedule([]);
         }
       } catch (error) {
         console.error("Failed to fetch schedule:", error);
@@ -145,8 +151,14 @@ const Schedule = () => {
       }
     };
 
-    if (selectedTeacher || currentUser?.role === "student") {
+    // Only fetch if we have a valid teacher ID or user is a student
+    const validTeacherId = selectedTeacher && selectedTeacher !== "" ? selectedTeacher : null;
+    if (validTeacherId || currentUser?.role === "student") {
       fetchSchedule();
+    } else if (isAdmin) {
+      // Admin with no teacher selected, just stop loading
+      setLoading(false);
+      setSchedule([]);
     }
   }, [selectedTeacher, currentUser, isAdmin]);
 

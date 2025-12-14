@@ -5,8 +5,43 @@ const pool = require("../config/database");
 // ---------------------
 const createReport = async (req, res) => {
     try {
-        const { teacher_id, report_date, content, remarks } = req.body;
-        const created_by = req.user.id; // Assuming authMiddleware adds user to req
+        let {
+            teacher_id,
+            report_date,
+            content,
+            remarks,
+            // Enhanced fields
+            class_id,
+            subject_id,
+            period_number,
+            topics_covered,
+            teaching_method,
+            homework_assigned,
+            students_present,
+            students_absent,
+            student_engagement,
+            challenges_faced,
+            achievements,
+            resources_used,
+            next_class_plan
+        } = req.body;
+        const created_by = req.user.id;
+        const userRole = req.user.role;
+
+        // If teacher is creating their own report, auto-set teacher_id
+        if (userRole === 'teacher') {
+            const [teacherData] = await pool.query(
+                'SELECT id FROM teachers WHERE user_id = ?',
+                [req.user.id]
+            );
+            if (teacherData.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Teacher profile not found",
+                });
+            }
+            teacher_id = teacherData[0].id;
+        }
 
         if (!teacher_id || !report_date || !content) {
             return res.status(400).json({
@@ -16,9 +51,20 @@ const createReport = async (req, res) => {
         }
 
         const [result] = await pool.query(
-            `INSERT INTO daily_reports (teacher_id, created_by, report_date, content, remarks) 
-       VALUES (?, ?, ?, ?, ?)`,
-            [teacher_id, created_by, report_date, content, remarks]
+            `INSERT INTO daily_reports (
+                teacher_id, created_by, report_date, content, remarks,
+                class_id, subject_id, period_number, topics_covered, teaching_method,
+                homework_assigned, students_present, students_absent, student_engagement,
+                challenges_faced, achievements, resources_used, next_class_plan
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                teacher_id, created_by, report_date, content, remarks,
+                class_id || null, subject_id || null, period_number || null,
+                topics_covered || null, teaching_method || null,
+                homework_assigned || null, students_present || null, students_absent || null,
+                student_engagement || null, challenges_faced || null, achievements || null,
+                resources_used || null, next_class_plan || null
+            ]
         );
 
         res.status(201).json({
@@ -64,10 +110,14 @@ const getReports = async (req, res) => {
         query = `
       SELECT dr.*, 
         t.first_name as teacher_first_name, t.last_name as teacher_last_name, t.employee_id,
-        u.email as creator_email
+        u.email as creator_email,
+        c.name as class_name,
+        s.name as subject_name, s.code as subject_code
       FROM daily_reports dr
       LEFT JOIN teachers t ON dr.teacher_id = t.id
       LEFT JOIN users u ON dr.created_by = u.id
+      LEFT JOIN classes c ON dr.class_id = c.id
+      LEFT JOIN subjects s ON dr.subject_id = s.id
       WHERE 1=1
     `;
 
@@ -96,7 +146,7 @@ const getReports = async (req, res) => {
 
         // Count total for pagination
         const [countResult] = await pool.query(
-            query.replace("SELECT dr.*, \n        t.first_name as teacher_first_name, t.last_name as teacher_last_name, t.employee_id,\n        u.email as creator_email", "SELECT COUNT(*) as total"),
+            "SELECT COUNT(*) as total " + query.substring(query.indexOf("FROM")),
             params
         );
         const total = countResult[0].total;
@@ -133,10 +183,14 @@ const getReportById = async (req, res) => {
         const [reports] = await pool.query(
             `SELECT dr.*, 
         t.first_name as teacher_first_name, t.last_name as teacher_last_name,
-        u.email as creator_email
+        u.email as creator_email,
+        c.name as class_name,
+        s.name as subject_name, s.subject_code
        FROM daily_reports dr
        LEFT JOIN teachers t ON dr.teacher_id = t.id
        LEFT JOIN users u ON dr.created_by = u.id
+       LEFT JOIN classes c ON dr.class_id = c.id
+       LEFT JOIN subjects s ON dr.subject_id = s.id
        WHERE dr.id = ?`,
             [id]
         );
@@ -162,13 +216,30 @@ const getReportById = async (req, res) => {
 const updateReport = async (req, res) => {
     try {
         const { id } = req.params;
-        const { report_date, content, remarks } = req.body;
+        const {
+            report_date, content, remarks,
+            class_id, subject_id, period_number, topics_covered, teaching_method,
+            homework_assigned, students_present, students_absent, student_engagement,
+            challenges_faced, achievements, resources_used, next_class_plan
+        } = req.body;
 
         const [result] = await pool.query(
             `UPDATE daily_reports 
-       SET report_date = ?, content = ?, remarks = ?, updated_at = NOW() 
+       SET report_date = ?, content = ?, remarks = ?, 
+           class_id = ?, subject_id = ?, period_number = ?,
+           topics_covered = ?, teaching_method = ?, homework_assigned = ?,
+           students_present = ?, students_absent = ?, student_engagement = ?,
+           challenges_faced = ?, achievements = ?, resources_used = ?,
+           next_class_plan = ?, updated_at = NOW() 
        WHERE id = ?`,
-            [report_date, content, remarks, id]
+            [
+                report_date, content, remarks,
+                class_id || null, subject_id || null, period_number || null,
+                topics_covered || null, teaching_method || null, homework_assigned || null,
+                students_present || null, students_absent || null, student_engagement || null,
+                challenges_faced || null, achievements || null, resources_used || null,
+                next_class_plan || null, id
+            ]
         );
 
         if (result.affectedRows === 0) {
@@ -209,10 +280,39 @@ const deleteReport = async (req, res) => {
     }
 };
 
+// ---------------------
+// ADD FEEDBACK
+// ---------------------
+const addFeedback = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { feedback } = req.body;
+
+        const [result] = await pool.query(
+            "UPDATE daily_reports SET feedback = ?, updated_at = NOW() WHERE id = ?",
+            [feedback, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Report not found" });
+        }
+
+        res.json({ success: true, message: "Feedback added successfully" });
+    } catch (error) {
+        console.error("Add feedback error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to add feedback",
+            error: error.message,
+        });
+    }
+};
+
 module.exports = {
     createReport,
     getReports,
     getReportById,
     updateReport,
     deleteReport,
+    addFeedback,
 };
