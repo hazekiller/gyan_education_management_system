@@ -39,18 +39,21 @@ const getAllExams = async (req, res) => {
         });
       }
     } else if (userRole === "teacher") {
-      // Teachers: See exams for classes they teach
+      // Teachers: See exams for classes they teach OR exams they created
       const [teachers] = await pool.query(
         "SELECT id FROM teachers WHERE user_id = ?",
         [userId]
       );
 
       if (teachers.length > 0) {
-        query += ` AND exams.class_id IN (
-          SELECT DISTINCT class_id FROM class_subjects 
-          WHERE teacher_id = ? AND is_active = 1
+        query += ` AND (
+          exams.class_id IN (
+            SELECT DISTINCT class_id FROM class_subjects 
+            WHERE teacher_id = ? AND is_active = 1
+          )
+          OR exams.created_by = ?
         )`;
-        params.push(teachers[0].id);
+        params.push(teachers[0].id, userId);
       } else {
         // Teacher profile not found, return empty
         return res.json({
