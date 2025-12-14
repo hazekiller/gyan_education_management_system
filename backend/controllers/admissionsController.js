@@ -274,13 +274,9 @@ const admissionsController = {
       const defaultPassword = `${admission.first_name}123`;
       const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-      // Use parent email or generate a placeholder if needed. 
-      // Ideally student should have their own email, but using parent's or a generated one for now.
-      // If admission doesn't have student email field, we might need a workaround.
-      // Assuming email is unique, we might clash if we use parent email for multiple kids.
-      // Let's check if admission has email. The create method had parent_email.
-      // Let's generate a unique email handle if needed: firstname.lastname.appId@school.com
-      const email = `${admission.first_name.toLowerCase()}.${admission.last_name.toLowerCase()}.${admission.application_number.toLowerCase()}@gyan.edu`;
+      // Generate student email in format: firstname.lastname@gyan.edu
+      // Using a clean format without application number for better readability
+      const email = `${admission.first_name.toLowerCase()}.${admission.last_name.toLowerCase()}@gyan.edu`;
 
       const [userResult] = await connection.query(
         "INSERT INTO users (email, password, role, is_active) VALUES (?, ?, ?, ?)",
