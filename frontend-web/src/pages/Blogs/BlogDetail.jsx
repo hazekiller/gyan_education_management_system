@@ -62,8 +62,8 @@ const BlogDetail = () => {
                     <div className="p-8 md:p-12">
                         <div className="flex flex-wrap items-center gap-4 text-sm mb-8">
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${blog.status === 'published'
-                                    ? 'bg-blue-50 text-blue-700'
-                                    : 'bg-gray-100 text-gray-600'
+                                ? 'bg-blue-50 text-blue-700'
+                                : 'bg-gray-100 text-gray-600'
                                 }`}>
                                 {blog.status}
                             </span>
@@ -73,6 +73,16 @@ const BlogDetail = () => {
                                 {formatDate(blog.created_at)}
                             </span>
                         </div>
+
+                        {blog.image_url && (
+                            <div className="mb-10 w-full rounded-xl overflow-hidden shadow-sm">
+                                <img
+                                    src={`${(import.meta.env.VITE_API_URL || "http://localhost:5001/api").replace('/api', '')}${blog.image_url.startsWith('/') ? '' : '/'}${blog.image_url}`}
+                                    alt={blog.title}
+                                    className="w-full h-auto object-cover max-h-[500px]"
+                                />
+                            </div>
+                        )}
 
                         <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-8 leading-tight tracking-tight">
                             {blog.title}

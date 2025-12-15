@@ -31,10 +31,20 @@ const frontdeskRoutes = require("./frontdesk.routes");
 const leavesRoutes = require("./leaves.routes");
 const filesRoutes = require("./files.routes");
 const disciplineRoutes = require("./discipline.routes");
+// const galleryRoutes = require("./gallery.routes");
+
+
+
+// // Import all route modules
+// const authRoutes = require('./auth.routes');
+const blogRoutes = require('./blog.routes');
+// const galleryRoutes = require('./gallery.routes');
 
 
 // ===== PUBLIC ROUTES =====
 router.use("/auth", authRoutes);
+router.use("/blogs", blogRoutes);
+// router.use("/gallery", galleryRoutes);
 
 // ===== PROTECTED ROUTES (Require Login) =====
 router.use(authenticate);
@@ -63,7 +73,7 @@ router.use("/transport", require("./transport.routes"));
 router.use("/payroll", require("./payroll.routes"));
 router.use("/notifications", require("./notifications.routes"));
 router.use("/results", require("./results.routes"));
-router.use("/blogs", require("./blog.routes"));
+// router.use("/gallery", require("./gallery.routes"));
 router.use("/daily-reports", dailyReportsRoutes);
 router.use("/timetable", timetableRoutes);
 router.use("/frontdesk", frontdeskRoutes);
@@ -71,6 +81,7 @@ router.use("/leaves", leavesRoutes);
 router.use("/files", filesRoutes);
 router.use("/discipline", disciplineRoutes);
 router.use("/marksheets", require("./marksheets.routes"));
+
 
 // ===== DEFAULT ROUTE =====
 router.get("/", (req, res) => {

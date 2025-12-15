@@ -760,8 +760,14 @@ export const dailyReportsAPI = {
 export const blogAPI = {
   getAllBlogs: () => api.get("/blogs"),
   getBlogById: (id) => api.get(`/blogs/${id}`),
-  createBlog: (data) => api.post("/blogs", data),
-  updateBlog: (id, data) => api.put(`/blogs/${id}`, data),
+  createBlog: (data) =>
+    api.post("/blogs", toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  updateBlog: (id, data) =>
+    api.put(`/blogs/${id}`, toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
   deleteBlog: (id) => api.delete(`/blogs/${id}`),
 };
 

@@ -41,7 +41,10 @@ const Blog = () => {
             }
         } catch (error) {
             console.error("Error fetching blogs:", error);
-            toast.error("Failed to fetch blogs");
+            const errorMessage = error.response?.status === 404
+                ? "Blog service not available"
+                : "Failed to fetch blogs";
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -93,6 +96,14 @@ const Blog = () => {
     const filteredBlogs = blogs.filter((blog) =>
         blog.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5001/api").replace('/api', '');
+
+    const getImageUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http')) return path;
+        return `${API_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+    };
 
     if (loading) {
         return (
@@ -159,11 +170,22 @@ const Blog = () => {
                                 key={blog.id}
                                 className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100 hover:border-blue-100"
                             >
+                                {blog.image_url && (
+                                    <div className="h-48 w-full overflow-hidden relative">
+                                        <img
+                                            src={getImageUrl(blog.image_url)}
+                                            alt={blog.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    </div>
+                                )}
+
                                 <div className="p-6 flex-1 flex flex-col">
                                     <div className="flex items-center justify-between gap-2 mb-4">
                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${blog.status === 'published'
-                                                ? 'bg-blue-50 text-blue-700'
-                                                : 'bg-gray-100 text-gray-600'
+                                            ? 'bg-blue-50 text-blue-700'
+                                            : 'bg-gray-100 text-gray-600'
                                             }`}>
                                             {blog.status}
                                         </span>
@@ -180,7 +202,7 @@ const Blog = () => {
                                     </Link>
 
                                     <p className="text-gray-600 mb-6 line-clamp-3 text-sm leading-relaxed flex-grow">
-                                        {blog.content.replace(/<[^>]*>/g, "").substring(0, 150)}...
+                                        {blog.content ? blog.content.replace(/<[^>]*>/g, "").substring(0, 150) : ""}...
                                     </p>
 
                                     <div className="flex items-center justify-between pt-5 border-t border-gray-100 mt-auto">
@@ -197,7 +219,7 @@ const Blog = () => {
                                         </div>
 
                                         {canManageBlogs && (
-                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                                 <button
                                                     onClick={() => handleEdit(blog)}
                                                     className="p-2 text-gray-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
