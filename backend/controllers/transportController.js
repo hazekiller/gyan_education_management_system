@@ -264,27 +264,64 @@ exports.updateRoute = async (req, res, next) => {
       ]
     );
 
-    // Update Stops (Full Replace Strategy for simplicity)
+    // Update Stops (Upsert Strategy to preserve IDs and allocations)
     if (stops) {
-      await connection.query("DELETE FROM transport_stops WHERE route_id = ?", [
-        id,
-      ]);
+      // 1. Get existing stop IDs for this route
+      const [existingStops] = await connection.query(
+        "SELECT id FROM transport_stops WHERE route_id = ?",
+        [id]
+      );
+      const existingIds = existingStops.map((s) => s.id);
 
+      // 2. Identify stops to delete (exist in DB but not in incoming list)
+      const incomingIds = stops
+        .filter((s) => s.id) // Only consider ones that have an ID
+        .map((s) => s.id);
+
+      const toDelete = existingIds.filter((eid) => !incomingIds.includes(eid));
+
+      if (toDelete.length > 0) {
+        await connection.query(
+          "DELETE FROM transport_stops WHERE id IN (?)",
+          [toDelete]
+        );
+      }
+
+      // 3. Upsert (Update existing, Insert new)
       if (stops.length > 0) {
         for (let i = 0; i < stops.length; i++) {
           const stop = stops[i];
-          await connection.query(
-            `INSERT INTO transport_stops (route_id, stop_name, pickup_time, drop_time, fare, sequence_order) 
-                         VALUES (?, ?, ?, ?, ?, ?)`,
-            [
-              id,
-              stop.stop_name,
-              stop.pickup_time,
-              stop.drop_time,
-              stop.fare || 0,
-              i + 1,
-            ]
-          );
+
+          if (stop.id && existingIds.includes(stop.id)) {
+            // Update existing
+            await connection.query(
+              `UPDATE transport_stops 
+               SET stop_name = ?, pickup_time = ?, drop_time = ?, fare = ?, sequence_order = ?
+               WHERE id = ?`,
+              [
+                stop.stop_name,
+                stop.pickup_time,
+                stop.drop_time,
+                stop.fare || 0,
+                i + 1,
+                stop.id,
+              ]
+            );
+          } else {
+            // Insert new
+            await connection.query(
+              `INSERT INTO transport_stops (route_id, stop_name, pickup_time, drop_time, fare, sequence_order) 
+               VALUES (?, ?, ?, ?, ?, ?)`,
+              [
+                id,
+                stop.stop_name,
+                stop.pickup_time,
+                stop.drop_time,
+                stop.fare || 0,
+                i + 1,
+              ]
+            );
+          }
         }
       }
     }

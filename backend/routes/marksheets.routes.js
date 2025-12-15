@@ -12,6 +12,9 @@ router
     .post(marksheetController.createMarksheet)
     .get(marksheetController.getAllMarksheets);
 
+// PDF generation route (must be before /:id to avoid conflicts)
+router.post("/:id/generate-pdf", marksheetController.generateMarksheetPDF);
+
 router
     .route("/:id")
     .get(marksheetController.getMarksheetById)
