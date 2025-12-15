@@ -18,6 +18,7 @@ const Marksheet = () => {
     const [marksheets, setMarksheets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentMarksheet, setCurrentMarksheet] = useState(null);
     const [editorMode, setEditorMode] = useState(false);
@@ -56,6 +57,7 @@ const Marksheet = () => {
             title: "",
             template_type: "exam",
             description: "",
+            template_design: "schoolMarksheet",
         });
         setIsEditing(false);
         setCurrentMarksheet(null);
@@ -70,6 +72,7 @@ const Marksheet = () => {
                 title: marksheet.isSample ? `${marksheet.title} (Copy)` : marksheet.title,
                 template_type: marksheet.template_type,
                 description: marksheet.description,
+                template_design: marksheet.template_design || "schoolMarksheet",
             });
         } else {
             resetForm();
@@ -150,6 +153,412 @@ const Marksheet = () => {
         setEditorMode(true);
     };
 
+    const getSampleData = () => {
+        return {
+            school_name: "Gyan International School",
+            school_address: "Kathmandu, Nepal",
+            school_phone: "+977-1-4567890",
+            school_email: "info@gyan.edu.np",
+            college_name: "Gyan College of Management",
+            college_affiliation: "Affiliated to Tribhuvan University",
+            college_address: "Kathmandu, Nepal",
+            college_logo: "🎓",
+            student_name: "Sample Student",
+            roll_number: "2024-001",
+            registration_number: "REG-2024-001",
+            class: "Class 10",
+            section: "A",
+            admission_number: "ADM-2024-001",
+            exam_name: "Final Term Examination",
+            academic_year: "2024-2025",
+            program_name: "Bachelor of Business Administration",
+            semester: "First Semester",
+            session: "Regular",
+            marks_table: `
+                <tr style="background: white;">
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">1</td>
+                    <td style="border: 1px solid #333; padding: 10px;">Mathematics</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">100</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">85</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">A+</td>
+                </tr>
+                <tr style="background: #f9fafb;">
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">2</td>
+                    <td style="border: 1px solid #333; padding: 10px;">Science</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">100</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">92</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">A+</td>
+                </tr>
+                <tr style="background: white;">
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">3</td>
+                    <td style="border: 1px solid #333; padding: 10px;">English</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">100</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">88</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">A+</td>
+                </tr>
+                <tr style="background: #f9fafb;">
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">4</td>
+                    <td style="border: 1px solid #333; padding: 10px;">Social Studies</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">100</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">90</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">A+</td>
+                </tr>
+                <tr style="background: white;">
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">5</td>
+                    <td style="border: 1px solid #333; padding: 10px;">Nepali</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">100</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">87</td>
+                    <td style="border: 1px solid #333; padding: 10px; text-align: center;">A+</td>
+                </tr>
+            `,
+            total_max_marks: "500",
+            total_marks: "442",
+            total_credits: "24",
+            percentage: "88.4",
+            grade: "A+",
+            sgpa: "8.8",
+            cgpa: "8.8",
+            result_status: "PASS",
+            teacher_remarks: "Excellent performance! Keep up the good work.",
+            issue_date: new Date().toLocaleDateString(),
+            transcript_id: "TRN-2024-001"
+        };
+    };
+
+    const getTemplateContentByDesign = (templateDesign) => {
+        // Import template designs from backend templates
+        const templates = {
+            schoolMarksheet: `
+    <div style="font-family: 'Times New Roman', serif; padding: 40px; max-width: 210mm; margin: 0 auto; background: white;">
+      <!-- Header -->
+      <div style="text-align: center; border-bottom: 3px double #333; padding-bottom: 20px; margin-bottom: 30px;">
+        <h1 style="margin: 0; color: #1a365d; font-size: 32px; text-transform: uppercase; letter-spacing: 2px;">
+          {{school_name}}
+        </h1>
+        <p style="margin: 5px 0; color: #666; font-size: 14px;">{{school_address}}</p>
+        <p style="margin: 5px 0; color: #666; font-size: 14px;">Phone: {{school_phone}} | Email: {{school_email}}</p>
+        <h2 style="margin: 20px 0 10px; color: #2d3748; font-size: 24px; text-transform: uppercase;">
+          Academic Progress Report
+        </h2>
+        <p style="margin: 0; color: #666; font-size: 14px;">Academic Year: {{academic_year}}</p>
+      </div>
+
+      <!-- Student Information -->
+      <div style="margin-bottom: 30px; background: #f7fafc; padding: 20px; border-radius: 8px; border-left: 4px solid #3182ce;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; width: 25%;"><strong>Student Name:</strong></td>
+            <td style="padding: 8px 0; width: 25%;">{{student_name}}</td>
+            <td style="padding: 8px 0; width: 25%;"><strong>Roll Number:</strong></td>
+            <td style="padding: 8px 0; width: 25%;">{{roll_number}}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Class:</strong></td>
+            <td style="padding: 8px 0;">{{class}}</td>
+            <td style="padding: 8px 0;"><strong>Section:</strong></td>
+            <td style="padding: 8px 0;">{{section}}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Admission No:</strong></td>
+            <td style="padding: 8px 0;">{{admission_number}}</td>
+            <td style="padding: 8px 0;"><strong>Examination:</strong></td>
+            <td style="padding: 8px 0;">{{exam_name}}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Marks Table -->
+      <div style="margin-bottom: 30px;">
+        <h3 style="color: #2d3748; margin-bottom: 15px; font-size: 18px; border-bottom: 2px solid #3182ce; padding-bottom: 8px;">
+          Academic Performance
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; border: 2px solid #333;">
+          <thead>
+            <tr style="background: #3182ce; color: white;">
+              <th style="border: 1px solid #333; padding: 12px; text-align: left;">S.No</th>
+              <th style="border: 1px solid #333; padding: 12px; text-align: left;">Subject</th>
+              <th style="border: 1px solid #333; padding: 12px; text-align: center;">Max Marks</th>
+              <th style="border: 1px solid #333; padding: 12px; text-align: center;">Marks Obtained</th>
+              <th style="border: 1px solid #333; padding: 12px; text-align: center;">Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{marks_table}}
+          </tbody>
+          <tfoot>
+            <tr style="background: #edf2f7; font-weight: bold;">
+              <td colspan="2" style="border: 1px solid #333; padding: 12px; text-align: right;">Total:</td>
+              <td style="border: 1px solid #333; padding: 12px; text-align: center;">{{total_max_marks}}</td>
+              <td style="border: 1px solid #333; padding: 12px; text-align: center;">{{total_marks}}</td>
+              <td style="border: 1px solid #333; padding: 12px; text-align: center;">-</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Result Summary -->
+      <div style="margin-bottom: 30px; display: flex; gap: 20px;">
+        <div style="flex: 1; background: #f7fafc; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e0;">
+          <p style="margin: 0 0 10px; color: #666; font-size: 14px;">Percentage</p>
+          <p style="margin: 0; font-size: 28px; font-weight: bold; color: #3182ce;">{{percentage}}%</p>
+        </div>
+        <div style="flex: 1; background: #f7fafc; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e0;">
+          <p style="margin: 0 0 10px; color: #666; font-size: 14px;">Overall Grade</p>
+          <p style="margin: 0; font-size: 28px; font-weight: bold; color: #2d3748;">{{grade}}</p>
+        </div>
+        <div style="flex: 1; background: #f7fafc; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e0;">
+          <p style="margin: 0 0 10px; color: #666; font-size: 14px;">Result</p>
+          <p style="margin: 0; font-size: 28px; font-weight: bold; color: #38a169;">{{result_status}}</p>
+        </div>
+      </div>
+
+      <!-- Signatures -->
+      <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+        <div style="text-align: center; flex: 1;">
+          <div style="border-top: 2px solid #333; padding-top: 8px; margin-top: 60px; display: inline-block; min-width: 150px;">
+            <strong>Class Teacher</strong>
+          </div>
+        </div>
+        <div style="text-align: center; flex: 1;">
+          <div style="border-top: 2px solid #333; padding-top: 8px; margin-top: 60px; display: inline-block; min-width: 150px;">
+            <strong>Principal</strong>
+          </div>
+        </div>
+        <div style="text-align: center; flex: 1;">
+          <div style="border-top: 2px solid #333; padding-top: 8px; margin-top: 60px; display: inline-block; min-width: 150px;">
+            <strong>Parent/Guardian</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+            collegeTranscript: `
+    <div style="font-family: 'Times New Roman', serif; padding: 40px; max-width: 210mm; margin: 0 auto; background: white;">
+      <!-- Header with Logo Space -->
+      <div style="text-align: center; border: 3px solid #1a365d; padding: 30px; margin-bottom: 30px; background: linear-gradient(to bottom, #f7fafc, white);">
+        <div style="width: 80px; height: 80px; margin: 0 auto 15px; border: 2px solid #1a365d; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: white;">
+          <span style="font-size: 36px; color: #1a365d; font-weight: bold;">{{college_logo}}</span>
+        </div>
+        <h1 style="margin: 0; color: #1a365d; font-size: 28px; text-transform: uppercase; letter-spacing: 3px; font-weight: bold;">
+          {{college_name}}
+        </h1>
+        <p style="margin: 8px 0 0; color: #4a5568; font-size: 13px; font-style: italic;">{{college_affiliation}}</p>
+        <p style="margin: 5px 0; color: #666; font-size: 12px;">{{college_address}}</p>
+        <div style="margin-top: 20px; padding: 10px; background: #1a365d; color: white; display: inline-block; border-radius: 4px;">
+          <h2 style="margin: 0; font-size: 20px; letter-spacing: 2px;">ACADEMIC TRANSCRIPT</h2>
+        </div>
+      </div>
+
+      <!-- Student Information -->
+      <div style="margin-bottom: 25px; border: 2px solid #cbd5e0; border-radius: 8px; overflow: hidden;">
+        <div style="background: #2d3748; color: white; padding: 10px 20px;">
+          <h3 style="margin: 0; font-size: 16px; letter-spacing: 1px;">STUDENT INFORMATION</h3>
+        </div>
+        <div style="padding: 20px; background: #f7fafc;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; width: 25%; font-weight: bold;">Name:</td>
+              <td style="padding: 8px 0; width: 25%;">{{student_name}}</td>
+              <td style="padding: 8px 0; width: 25%; font-weight: bold;">Registration No:</td>
+              <td style="padding: 8px 0; width: 25%;">{{registration_number}}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold;">Program:</td>
+              <td style="padding: 8px 0;">{{program_name}}</td>
+              <td style="padding: 8px 0; font-weight: bold;">Semester:</td>
+              <td style="padding: 8px 0;">{{semester}}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Semester Results -->
+      <div style="margin-bottom: 25px;">
+        <div style="background: #2d3748; color: white; padding: 10px 20px; border-radius: 4px 4px 0 0;">
+          <h3 style="margin: 0; font-size: 16px; letter-spacing: 1px;">SEMESTER PERFORMANCE</h3>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; border: 2px solid #2d3748;">
+          <thead>
+            <tr style="background: #4a5568; color: white;">
+              <th style="border: 1px solid #2d3748; padding: 12px; text-align: left; font-size: 13px;">S.No</th>
+              <th style="border: 1px solid #2d3748; padding: 12px; text-align: left; font-size: 13px;">Course Title</th>
+              <th style="border: 1px solid #2d3748; padding: 12px; text-align: center; font-size: 13px;">Credits</th>
+              <th style="border: 1px solid #2d3748; padding: 12px; text-align: center; font-size: 13px;">Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{marks_table}}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Semester Summary -->
+      <div style="margin-bottom: 25px; background: #edf2f7; padding: 20px; border-radius: 8px; border: 2px solid #cbd5e0;">
+        <div style="display: flex; gap: 30px; justify-content: space-around;">
+          <div style="text-align: center;">
+            <p style="margin: 0 0 5px; color: #666; font-size: 13px; font-weight: bold;">SGPA</p>
+            <p style="margin: 0; font-size: 24px; font-weight: bold; color: #3182ce;">{{sgpa}}</p>
+          </div>
+          <div style="text-align: center;">
+            <p style="margin: 0 0 5px; color: #666; font-size: 13px; font-weight: bold;">CGPA</p>
+            <p style="margin: 0; font-size: 24px; font-weight: bold; color: #3182ce;">{{cgpa}}</p>
+          </div>
+          <div style="text-align: center;">
+            <p style="margin: 0 0 5px; color: #666; font-size: 13px; font-weight: bold;">Percentage</p>
+            <p style="margin: 0; font-size: 24px; font-weight: bold; color: #2d3748;">{{percentage}}%</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signatures -->
+      <div style="margin-top: 60px; display: flex; justify-content: space-between; padding: 0 30px;">
+        <div style="text-align: center;">
+          <div style="border-top: 2px solid #2d3748; padding-top: 8px; margin-top: 50px; min-width: 180px;">
+            <strong style="font-size: 13px;">Controller of Examinations</strong>
+          </div>
+        </div>
+        <div style="text-align: center;">
+          <div style="border-top: 2px solid #2d3748; padding-top: 8px; margin-top: 50px; min-width: 180px;">
+            <strong style="font-size: 13px;">Principal/Dean</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+            termAssessment: `
+    <div style="font-family: Arial, sans-serif; padding: 30px; max-width: 210mm; margin: 0 auto; background: white;">
+      <!-- Header -->
+      <div style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px; margin-bottom: 25px;">
+        <h1 style="margin: 0 0 10px; font-size: 26px; text-transform: uppercase; letter-spacing: 2px;">
+          {{school_name}}
+        </h1>
+        <p style="margin: 0; font-size: 13px; opacity: 0.9;">{{school_address}}</p>
+        <div style="margin-top: 15px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 6px; display: inline-block;">
+          <h2 style="margin: 0; font-size: 18px; letter-spacing: 1px;">TERM ASSESSMENT REPORT</h2>
+        </div>
+      </div>
+
+      <!-- Student Info Card -->
+      <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 25px; border-left: 5px solid #667eea;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div>
+            <p style="margin: 0 0 5px; color: #666; font-size: 12px; font-weight: bold;">STUDENT NAME</p>
+            <p style="margin: 0; font-size: 16px; color: #2d3748;">{{student_name}}</p>
+          </div>
+          <div>
+            <p style="margin: 0 0 5px; color: #666; font-size: 12px; font-weight: bold;">ROLL NUMBER</p>
+            <p style="margin: 0; font-size: 16px; color: #2d3748;">{{roll_number}}</p>
+          </div>
+          <div>
+            <p style="margin: 0 0 5px; color: #666; font-size: 12px; font-weight: bold;">CLASS & SECTION</p>
+            <p style="margin: 0; font-size: 16px; color: #2d3748;">{{class}} - {{section}}</p>
+          </div>
+          <div>
+            <p style="margin: 0 0 5px; color: #666; font-size: 12px; font-weight: bold;">TERM</p>
+            <p style="margin: 0; font-size: 16px; color: #2d3748;">{{exam_name}}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Marks Table -->
+      <div style="margin-bottom: 25px;">
+        <h3 style="color: #2d3748; margin-bottom: 12px; font-size: 16px; padding-bottom: 8px; border-bottom: 3px solid #667eea;">
+          📊 Subject-wise Performance
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+          <thead>
+            <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+              <th style="padding: 14px; text-align: left; font-size: 13px;">S.No</th>
+              <th style="padding: 14px; text-align: left; font-size: 13px;">Subject</th>
+              <th style="padding: 14px; text-align: center; font-size: 13px;">Max Marks</th>
+              <th style="padding: 14px; text-align: center; font-size: 13px;">Obtained</th>
+              <th style="padding: 14px; text-align: center; font-size: 13px;">Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{marks_table}}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Performance Summary -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 4px 12px rgba(102,126,234,0.3);">
+          <p style="margin: 0 0 8px; font-size: 12px; opacity: 0.9;">Total Marks</p>
+          <p style="margin: 0; font-size: 28px; font-weight: bold;">{{total_marks}}</p>
+        </div>
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 4px 12px rgba(245,87,108,0.3);">
+          <p style="margin: 0 0 8px; font-size: 12px; opacity: 0.9;">Percentage</p>
+          <p style="margin: 0; font-size: 28px; font-weight: bold;">{{percentage}}%</p>
+        </div>
+        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 4px 12px rgba(79,172,254,0.3);">
+          <p style="margin: 0 0 8px; font-size: 12px; opacity: 0.9;">Grade</p>
+          <p style="margin: 0; font-size: 28px; font-weight: bold;">{{grade}}</p>
+        </div>
+      </div>
+
+      <!-- Signatures -->
+      <div style="margin-top: 50px; display: flex; justify-content: space-between; padding: 0 20px;">
+        <div style="text-align: center;">
+          <div style="border-top: 2px solid #2d3748; padding-top: 8px; margin-top: 50px; min-width: 150px;">
+            <strong>Class Teacher</strong>
+          </div>
+        </div>
+        <div style="text-align: center;">
+          <div style="border-top: 2px solid #2d3748; padding-top: 8px; margin-top: 50px; min-width: 150px;">
+            <strong>Parent's Signature</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+        };
+
+        return templates[templateDesign] || templates.schoolMarksheet;
+    };
+
+    const replacePlaceholders = (template, data) => {
+        let result = template;
+        Object.keys(data).forEach(key => {
+            const placeholder = new RegExp(`{{${key}}}`, 'g');
+            result = result.replace(placeholder, data[key]);
+        });
+        return result;
+    };
+
+    const handlePreview = () => {
+        if (selectedTemplate) {
+            setShowPreviewModal(true);
+        }
+    };
+
+    const handleGeneratePDF = async () => {
+        if (!selectedTemplate) return;
+
+        try {
+            const sampleData = getSampleData();
+            const response = await api.post(`/marksheets/${selectedTemplate.id}/generate-pdf`, sampleData, {
+                responseType: 'blob'
+            });
+
+            // Create a blob URL and trigger download
+            const blob = new Blob([response], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `marksheet_${selectedTemplate.title}_${Date.now()}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            toast.success("PDF generated successfully!");
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            toast.error("Failed to generate PDF");
+        }
+    };
+
     // Filter logic
     const filteredMarksheets = marksheets.filter((m) =>
         m.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -173,6 +582,7 @@ const Marksheet = () => {
                 title: "Standard School Marksheet",
                 template_type: "exam",
                 description: "A comprehensive marksheet format suitable for primary and secondary schools including grade tables and remarks.",
+                template_design: "schoolMarksheet",
                 updated_at: new Date().toISOString(),
                 isSample: true
             },
@@ -181,6 +591,7 @@ const Marksheet = () => {
                 title: "College Transcript Template",
                 template_type: "semester",
                 description: "Professional semester-wise transcript layout for colleges and universities with GPA calculation fields.",
+                template_design: "collegeTranscript",
                 updated_at: new Date().toISOString(),
                 isSample: true
             },
@@ -189,6 +600,7 @@ const Marksheet = () => {
                 title: "Term Assessment Report",
                 template_type: "test",
                 description: "Simple and clean layout for periodic term assessments and unit tests.",
+                template_design: "termAssessment",
                 updated_at: new Date().toISOString(),
                 isSample: true
             },
@@ -197,6 +609,7 @@ const Marksheet = () => {
                 title: "Kindergarten Progress Report",
                 template_type: "preschool",
                 description: "Colorful and visual progress report designed specifically for kindergarten and preschool students.",
+                template_design: "schoolMarksheet",
                 updated_at: new Date().toISOString(),
                 isSample: true
             },
@@ -205,6 +618,7 @@ const Marksheet = () => {
                 title: "CBSE Format Report Card",
                 template_type: "board",
                 description: "Standardized marksheet format following CBSE board guidelines and grading systems.",
+                template_design: "schoolMarksheet",
                 updated_at: new Date().toISOString(),
                 isSample: true
             },
@@ -213,6 +627,7 @@ const Marksheet = () => {
                 title: "Skills & Activity Report",
                 template_type: "activity",
                 description: "Report card focused on co-curricular activities, skills, and behavioral assessment.",
+                template_design: "termAssessment",
                 updated_at: new Date().toISOString(),
                 isSample: true
             }
@@ -332,6 +747,20 @@ const Marksheet = () => {
                                 </div>
 
                                 <div className="flex gap-3">
+                                    {/* Preview and PDF buttons available for all templates */}
+                                    <button
+                                        onClick={handlePreview}
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium shadow-sm"
+                                    >
+                                        <FaFileAlt /> Preview
+                                    </button>
+                                    <button
+                                        onClick={handleGeneratePDF}
+                                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium shadow-sm"
+                                    >
+                                        <FaFileAlt /> Generate PDF
+                                    </button>
+
                                     {selectedTemplate.isSample ? (
                                         <button
                                             onClick={() => handleOpenModal(selectedTemplate)}
@@ -450,6 +879,25 @@ const Marksheet = () => {
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                    Choose Template Design
+                                </label>
+                                <select
+                                    name="template_design"
+                                    value={formData.template_design}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-black bg-white"
+                                >
+                                    <option value="schoolMarksheet">Standard School Marksheet</option>
+                                    <option value="collegeTranscript">College Transcript</option>
+                                    <option value="termAssessment">Term Assessment Report</option>
+                                </select>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Select the layout design for your marksheet
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
                                     Description
                                 </label>
                                 <textarea
@@ -478,6 +926,56 @@ const Marksheet = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Preview Modal */}
+            {showPreviewModal && selectedTemplate && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+                    <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden transform transition-all my-8">
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex justify-between items-center text-white sticky top-0 z-10">
+                            <h2 className="text-xl font-bold">
+                                Preview: {selectedTemplate.title}
+                            </h2>
+                            <button
+                                onClick={() => setShowPreviewModal(false)}
+                                className="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+                            >
+                                <FaTimes size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-8 bg-gray-50 max-h-[80vh] overflow-y-auto">
+                            <div
+                                className="bg-white shadow-lg rounded-lg overflow-hidden"
+                                dangerouslySetInnerHTML={{
+                                    __html: selectedTemplate.content
+                                        ? replacePlaceholders(selectedTemplate.content, getSampleData())
+                                        : selectedTemplate.template_design
+                                            ? replacePlaceholders(getTemplateContentByDesign(selectedTemplate.template_design), getSampleData())
+                                            : '<div class="p-8 text-center text-gray-500">No template content available. Please design the layout first.</div>'
+                                }}
+                            />
+                        </div>
+
+                        <div className="px-6 py-4 bg-gray-100 border-t border-gray-200 flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowPreviewModal(false)}
+                                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                            >
+                                Close
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowPreviewModal(false);
+                                    handleGeneratePDF();
+                                }}
+                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-sm"
+                            >
+                                Generate PDF
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

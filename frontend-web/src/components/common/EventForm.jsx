@@ -24,7 +24,7 @@ const EventForm = ({ event = null, onSubmit, onCancel, isSubmitting }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!formData.title || !formData.event_date) {
       toast.error('Please fill all required fields');
       return;
@@ -40,9 +40,14 @@ const EventForm = ({ event = null, onSubmit, onCancel, isSubmitting }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
+        <h4 className="text-sm font-bold text-blue-800 mb-1">Event Details</h4>
+        <p className="text-xs text-blue-600">Provide the details for the new school event.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Event Title *
           </label>
           <input
@@ -50,35 +55,35 @@ const EventForm = ({ event = null, onSubmit, onCancel, isSubmitting }) => {
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className="input"
+            className="input w-full bg-gray-50 focus:bg-white transition-colors py-2.5"
             placeholder="e.g., Annual Sports Day"
             required
           />
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Description
           </label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
-            className="input"
+            className="input w-full bg-gray-50 focus:bg-white transition-colors py-2.5 min-h-[100px]"
             rows="3"
             placeholder="Enter event description..."
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Event Type *
           </label>
           <select
             name="event_type"
             value={formData.event_type}
             onChange={handleChange}
-            className="input"
+            className="input w-full bg-gray-50 focus:bg-white transition-colors py-2.5"
             required
           >
             <option value="academic">Academic</option>
@@ -93,7 +98,7 @@ const EventForm = ({ event = null, onSubmit, onCancel, isSubmitting }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Event Date *
           </label>
           <input
@@ -101,13 +106,13 @@ const EventForm = ({ event = null, onSubmit, onCancel, isSubmitting }) => {
             name="event_date"
             value={formData.event_date}
             onChange={handleChange}
-            className="input"
+            className="input w-full bg-gray-50 focus:bg-white transition-colors py-2.5"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Start Time
           </label>
           <input
@@ -115,12 +120,12 @@ const EventForm = ({ event = null, onSubmit, onCancel, isSubmitting }) => {
             name="start_time"
             value={formData.start_time}
             onChange={handleChange}
-            className="input"
+            className="input w-full bg-gray-50 focus:bg-white transition-colors py-2.5"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             End Time
           </label>
           <input
@@ -128,12 +133,12 @@ const EventForm = ({ event = null, onSubmit, onCancel, isSubmitting }) => {
             name="end_time"
             value={formData.end_time}
             onChange={handleChange}
-            className="input"
+            className="input w-full bg-gray-50 focus:bg-white transition-colors py-2.5"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Location
           </label>
           <input
@@ -141,20 +146,20 @@ const EventForm = ({ event = null, onSubmit, onCancel, isSubmitting }) => {
             name="location"
             value={formData.location}
             onChange={handleChange}
-            className="input"
+            className="input w-full bg-gray-50 focus:bg-white transition-colors py-2.5"
             placeholder="e.g., School Auditorium"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Target Audience *
           </label>
           <select
             name="target_audience"
             value={formData.target_audience}
             onChange={handleChange}
-            className="input"
+            className="input w-full bg-gray-50 focus:bg-white transition-colors py-2.5"
             required
           >
             <option value="all">All</option>
@@ -166,37 +171,37 @@ const EventForm = ({ event = null, onSubmit, onCancel, isSubmitting }) => {
         </div>
 
         <div className="md:col-span-2">
-          <label className="flex items-center space-x-2">
+          <label className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-white hover:border-gray-300 transition-all">
             <input
               type="checkbox"
               name="is_holiday"
               checked={formData.is_holiday}
               onChange={handleChange}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <span className="text-sm font-medium text-gray-700">
-              Mark as Holiday
+              Mark this event as a Holiday
             </span>
           </label>
         </div>
       </div>
 
       {/* Form Actions */}
-      <div className="flex justify-end space-x-4 pt-4 border-t">
+      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">
         <button
           type="button"
           onClick={onCancel}
-          className="btn btn-outline"
+          className="px-6 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 font-medium transition-colors"
           disabled={isSubmitting}
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="btn btn-primary"
+          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-lg shadow-blue-200 transition-all hover:scale-105 active:scale-95 disabled:opacity-70"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Creating...' : event ? 'Update Event' : 'Create Event'}
+          {isSubmitting ? 'Saving...' : event ? 'Update Event' : 'Create Event'}
         </button>
       </div>
     </form>
