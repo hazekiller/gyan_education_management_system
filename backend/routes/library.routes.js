@@ -20,9 +20,11 @@ router.get('/my-books', libraryController.getMyBooks);
 // I will assume a generic 'manage_library' or just rely on role checks if permissions aren't granular.
 // Let's use a placeholder middleware or just role check for now if authorization middleware is strict.
 
+const upload = require('../middleware/upload');
+
 // Books Management
-router.post('/books', libraryController.addBook); // Add permission check later
-router.put('/books/:id', libraryController.updateBook);
+router.post('/books', upload.single('book_pdf'), libraryController.addBook); // Add permission check later
+router.put('/books/:id', upload.single('book_pdf'), libraryController.updateBook);
 router.delete('/books/:id', libraryController.deleteBook);
 
 // Transactions

@@ -32,6 +32,9 @@ const storage = multer.diskStorage({
       case 'supporting_document': // For leave applications
         uploadPath += 'leaves/';
         break;
+      case 'book_pdf':
+        uploadPath += 'library/';
+        break;
       default:
         uploadPath += 'others/';
     }

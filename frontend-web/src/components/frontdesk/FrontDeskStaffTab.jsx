@@ -7,7 +7,7 @@ import StaffForm from "../staff/StaffForm";
 import Modal from "../common/Modal";
 import { selectCurrentUser, selectUserRole } from "../../store/slices/authSlice";
 
-const IMAGE_URL = import.meta.env.VITE_IMAGE_URL || "http://localhost:5001";
+const IMAGE_URL = import.meta.env.VITE_IMAGE_URL || "http://localhost:5002";
 
 const FrontDeskStaffTab = () => {
     const currentUser = useSelector(selectCurrentUser);

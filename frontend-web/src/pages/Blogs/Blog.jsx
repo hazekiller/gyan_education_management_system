@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
 import {
-    Edit,
-    Trash2,
     Plus,
-    Calendar,
-    User,
     Search,
     BookOpen,
+    Calendar,
+    Clock,
+    BookMarked,
+    Megaphone
 } from "lucide-react";
-import { blogAPI } from "../../lib/api";
-import { selectUserRole } from "../../store/slices/authSlice";
+import { blogAPI, teachersAPI, studentsAPI, timetableAPI } from "../../lib/api";
+import { selectUserRole, selectCurrentUser } from "../../store/slices/authSlice";
 import { PERMISSIONS, hasPermission } from "../../utils/rbac";
-import { formatDate } from "../../utils/dateUtils";
 import { toast } from "react-hot-toast";
 import Modal from "../../components/common/Modal";
 import BlogForm from "../../components/blogs/BlogForm";
+import SocialBlogCard from "../../components/blogs/SocialBlogCard";
+import { SectionCard, EmptyState } from "../../components/common/EnhancedComponents";
 
 const Blog = () => {
+    const navigate = useNavigate();
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -26,12 +28,20 @@ const Blog = () => {
     const [selectedBlog, setSelectedBlog] = useState(null);
     const [formLoading, setFormLoading] = useState(false);
 
+    // Schedule Data
+    const [schedule, setSchedule] = useState([]);
+    const [loadingSchedule, setLoadingSchedule] = useState(false);
+
     const role = useSelector(selectUserRole);
+    const currentUser = useSelector(selectCurrentUser);
     const canManageBlogs = hasPermission(role, PERMISSIONS.MANAGE_BLOGS);
 
     useEffect(() => {
         fetchBlogs();
-    }, []);
+        if (role === 'teacher' || role === 'student') {
+            fetchSchedule();
+        }
+    }, [role]);
 
     const fetchBlogs = async () => {
         try {
@@ -50,15 +60,77 @@ const Blog = () => {
         }
     };
 
+    const fetchSchedule = async () => {
+        setLoadingSchedule(true);
+        try {
+            if (role === 'teacher') {
+                const teachersRes = await teachersAPI.getAll();
+                const teacherRecord = teachersRes.data?.find(
+                    (t) => t.user_id === currentUser.id
+                );
+
+                if (teacherRecord) {
+                    const scheduleRes = await teachersAPI.getSchedule(teacherRecord.id);
+                    setSchedule(scheduleRes.data || []);
+                }
+            } else if (role === 'student') {
+                // Fetch student details to get class_id
+                const studentsRes = await studentsAPI.getAll({ user_id: currentUser.id });
+                // Assuming the API returns a list and we match the user_id or it returns the single student if filtered
+                // Let's iterate to find the student
+                const studentRecord = studentsRes.data?.find(s => s.user_id === currentUser.id);
+
+                if (studentRecord) {
+                    const days = [
+                        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+                    ];
+                    const today = days[new Date().getDay()];
+
+                    const scheduleRes = await timetableAPI.get({
+                        class_id: studentRecord.class_id,
+                        section_id: studentRecord.section_id,
+                        day_of_week: today
+                    });
+                    setSchedule(scheduleRes.data || []);
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching schedule:", error);
+        } finally {
+            setLoadingSchedule(false);
+        }
+    };
+
+    const getTodaySchedule = () => {
+        // Teacher API returns 'day_of_week' (e.g. 'monday'), Timetable API returns it too.
+        // We already filtered by day for students in the API call above.
+        // But for teachers we fetched ALL.
+        if (role === 'teacher') {
+            const days = [
+                "sunday",
+                "monday",
+                "tuesday",
+                "wednesday",
+                "thursday",
+                "friday",
+                "saturday",
+            ];
+            const today = days[new Date().getDay()];
+            return schedule.filter((s) => s.day_of_week?.toLowerCase() === today);
+        }
+        return schedule; // For students we already fetched today's schedule
+    };
+
     const handleDelete = async (id) => {
-        if (window.confirm("Are you sure you want to delete this blog?")) {
+        if (window.confirm("Are you sure you want to delete this post?")) {
             try {
                 await blogAPI.deleteBlog(id);
-                toast.success("Blog deleted successfully");
-                fetchBlogs();
+                toast.success("Post deleted successfully");
+                setBlogs(blogs.filter(b => b.id !== id));
             } catch (error) {
                 console.error("Error deleting blog:", error);
-                toast.error("Failed to delete blog");
+                toast.error("Failed to delete post");
+                fetchBlogs();
             }
         }
     };
@@ -78,175 +150,203 @@ const Blog = () => {
         try {
             if (selectedBlog) {
                 await blogAPI.updateBlog(selectedBlog.id, formData);
-                toast.success("Blog updated successfully");
+                toast.success("Post updated successfully");
             } else {
                 await blogAPI.createBlog(formData);
-                toast.success("Blog created successfully");
+                toast.success("Post created successfully");
             }
             setShowModal(false);
             fetchBlogs();
         } catch (error) {
             console.error("Error saving blog:", error);
-            toast.error(error.response?.data?.message || "Failed to save blog");
+            toast.error(error.response?.data?.message || "Failed to save post");
         } finally {
             setFormLoading(false);
         }
     };
 
     const filteredBlogs = blogs.filter((blog) =>
-        blog.title.toLowerCase().includes(searchTerm.toLowerCase())
+        blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        blog.content?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5001/api").replace('/api', '');
-
-    const getImageUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith('http')) return path;
-        return `${API_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
-    };
+    const todaySchedule = getTodaySchedule();
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-screen">
+            <div className="flex items-center justify-center h-screen bg-gray-100">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-                    <div>
-                        <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3 tracking-tight">
-                            <BookOpen className="w-10 h-10 text-blue-700" />
-                            School Blog
-                        </h1>
-                        <p className="text-gray-500 mt-2 text-lg font-light">
-                            Insights, news, and updates from our community
-                        </p>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-                        <div className="relative w-full sm:w-72">
-                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                            <input
-                                type="text"
-                                placeholder="Search articles..."
-                                className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm text-gray-900 placeholder-gray-400 transition-all"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-
-                        {canManageBlogs && (
-                            <button
-                                onClick={handleCreate}
-                                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-all font-medium shadow-sm hover:shadow-md active:transform active:scale-95"
-                            >
-                                <Plus className="w-5 h-5" />
-                                New Post
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                {filteredBlogs.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100">
-                        <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <BookOpen className="w-10 h-10 text-gray-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">No blogs found</h3>
-                        <p className="text-gray-500 max-w-sm mx-auto">
-                            {searchTerm
-                                ? `We couldn't find any articles matching "${searchTerm}"`
-                                : "There are no blog posts available at the moment."}
-                        </p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {filteredBlogs.map((blog) => (
-                            <article
-                                key={blog.id}
-                                className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100 hover:border-blue-100"
-                            >
-                                {blog.image_url && (
-                                    <div className="h-48 w-full overflow-hidden relative">
-                                        <img
-                                            src={getImageUrl(blog.image_url)}
-                                            alt={blog.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="min-h-screen bg-gray-100 py-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Main Feed Column */}
+                    <div className="lg:col-span-3 space-y-6">
+                        {/* Header Section */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 transition-shadow hover:shadow-md">
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-blue-600 p-2 rounded-lg">
+                                        <BookOpen className="w-6 h-6 text-white" />
                                     </div>
+                                    <div>
+                                        <h1 className="text-xl font-bold text-gray-900 leading-none">School Feed</h1>
+                                        <p className="text-xs text-gray-500 mt-1">Community updates & news</p>
+                                    </div>
+                                </div>
+
+                                {canManageBlogs && (
+                                    <button
+                                        onClick={handleCreate}
+                                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm hover:shadow"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Create Post</span>
+                                    </button>
                                 )}
+                            </div>
 
-                                <div className="p-6 flex-1 flex flex-col">
-                                    <div className="flex items-center justify-between gap-2 mb-4">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${blog.status === 'published'
-                                            ? 'bg-blue-50 text-blue-700'
-                                            : 'bg-gray-100 text-gray-600'
-                                            }`}>
-                                            {blog.status}
-                                        </span>
-                                        <div className="flex items-center gap-1 text-xs font-medium text-gray-400">
-                                            <Calendar className="w-3.5 h-3.5" />
-                                            {formatDate(blog.created_at)}
-                                        </div>
+                            <div className="mt-4 relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <input
+                                    type="text"
+                                    placeholder="Search posts..."
+                                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Top Center Schedule Widget */}
+                        {(role === 'teacher' || role === 'student') && (
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                        <Calendar className="w-5 h-5 text-blue-600" />
+                                        Today's Schedule
+                                    </h3>
+                                    <Link to="/schedule" className="text-xs text-blue-600 hover:underline font-medium">View Full</Link>
+                                </div>
+
+                                {loadingSchedule ? (
+                                    <div className="flex justify-center py-4">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                                     </div>
-
-                                    <Link to={`/blogs/${blog.id}`} className="block group-hover:text-blue-700 transition-colors">
-                                        <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 leading-snug">
-                                            {blog.title}
-                                        </h2>
-                                    </Link>
-
-                                    <p className="text-gray-600 mb-6 line-clamp-3 text-sm leading-relaxed flex-grow">
-                                        {blog.content ? blog.content.replace(/<[^>]*>/g, "").substring(0, 150) : ""}...
-                                    </p>
-
-                                    <div className="flex items-center justify-between pt-5 border-t border-gray-100 mt-auto">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-                                                <User className="w-4 h-4 text-gray-600" />
+                                ) : todaySchedule.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {todaySchedule.slice(0, 3).map((period) => (
+                                            <div
+                                                key={period.id}
+                                                className="p-3 rounded-lg border-l-4 border bg-blue-50 border-blue-500 border-gray-100"
+                                            >
+                                                <div className="flex items-start justify-between">
+                                                    <div>
+                                                        <h4 className="font-bold text-gray-900 text-sm truncate">
+                                                            {period.subject_name || "Subject"}
+                                                        </h4>
+                                                        <p className="text-xs text-gray-600 mb-1">
+                                                            {period.class_name} {period.section_name && `- ${period.section_name}`}
+                                                        </p>
+                                                        <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                                                            <span className="flex items-center gap-1">
+                                                                <Clock className="w-3 h-3" />
+                                                                {period.start_time}
+                                                            </span>
+                                                            {period.room_number && (
+                                                                <span className="flex items-center gap-1">
+                                                                    <BookMarked className="w-3 h-3" />
+                                                                    {period.room_number}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-xs font-bold text-gray-900">
-                                                    {blog.first_name} {blog.last_name}
-                                                </span>
-                                                <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Author</span>
-                                            </div>
-                                        </div>
-
-                                        {canManageBlogs && (
-                                            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={() => handleEdit(blog)}
-                                                    className="p-2 text-gray-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    title="Edit"
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(blog.id)}
-                                                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                        ))}
+                                        {todaySchedule.length > 3 && (
+                                            <div className="flex items-center justify-center p-3 rounded-lg bg-gray-50 border border-gray-100 text-gray-500 text-xs font-medium cursor-pointer hover:bg-gray-100" onClick={() => navigate('/schedule')}>
+                                                +{todaySchedule.length - 3} more
                                             </div>
                                         )}
                                     </div>
+                                ) : (
+                                    <div className="text-center py-4 bg-gray-50 rounded-lg">
+                                        <p className="text-sm text-gray-500">No classes scheduled for today.</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Feed Content */}
+                        {filteredBlogs.length === 0 ? (
+                            <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
+                                <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <BookOpen className="w-8 h-8 text-gray-400" />
                                 </div>
-                            </article>
-                        ))}
+                                <h3 className="text-lg font-semibold text-gray-900">No posts found</h3>
+                                <p className="text-gray-500 text-sm mt-1">
+                                    {searchTerm
+                                        ? `No matches for "${searchTerm}"`
+                                        : "Check back later for updates from the school community."}
+                                </p>
+                            </div>
+                        ) : (
+                            filteredBlogs.map((blog) => (
+                                <SocialBlogCard
+                                    key={blog.id}
+                                    blog={blog}
+                                    currentUser={currentUser}
+                                    onDelete={handleDelete}
+                                    onEdit={handleEdit}
+                                />
+                            ))
+                        )}
                     </div>
-                )}
+
+                    {/* Right Sidebar Column */}
+                    <div className="hidden lg:block lg:col-span-1 space-y-6">
+                        {/* Recent Notices Widget */}
+                        <SectionCard
+                            title="Notices"
+                            icon={Megaphone}
+                            className="bg-white shadow-sm border border-gray-200"
+                        >
+                            <div className="space-y-3">
+                                <div className="p-3 bg-white border border-gray-100 border-l-4 border-l-red-500 rounded-lg shadow-sm">
+                                    <p className="text-xs font-bold text-red-600 mb-1">Fee Deadline</p>
+                                    <p className="text-xs text-gray-600">Please clear pending dues by Friday.</p>
+                                </div>
+                                <div className="p-3 bg-white border border-gray-100 border-l-4 border-l-blue-500 rounded-lg shadow-sm">
+                                    <p className="text-xs font-bold text-blue-600 mb-1">Exam Schedule</p>
+                                    <p className="text-xs text-gray-600">Mid-term dates released. Check dashboard.</p>
+                                </div>
+                            </div>
+                        </SectionCard>
+
+                        {/* School Info Widget */}
+                        <div className="text-center text-xs text-gray-400 mt-4">
+                            <p className="font-medium">© 2025 Gyan School</p>
+                            <p>School Management System</p>
+                            <div className="flex justify-center gap-3 mt-2">
+                                <span className="hover:text-blue-500 cursor-pointer">Privacy</span>
+                                <span>•</span>
+                                <span className="hover:text-blue-500 cursor-pointer">Terms</span>
+                                <span>•</span>
+                                <span className="hover:text-blue-500 cursor-pointer">Help</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <Modal
                     isOpen={showModal}
                     onClose={() => setShowModal(false)}
-                    title={selectedBlog ? "Edit Article" : "Create New Article"}
+                    title={selectedBlog ? "Edit Post" : "Create Post"}
                     size="lg"
                 >
                     <BlogForm
