@@ -3,7 +3,7 @@
 import axios from "axios";
 
 // BASE URL (global)
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5002/api";
 
 // Axios instance
 const api = axios.create({
@@ -625,8 +625,14 @@ export const announcementsAPI = {
 export const libraryAPI = {
   getAllBooks: (params) => api.get("/library/books", { params }),
   getBookById: (id) => api.get(`/library/books/${id}`),
-  addBook: (data) => api.post("/library/books", data),
-  updateBook: (id, data) => api.put(`/library/books/${id}`, data),
+  addBook: (data) =>
+    api.post("/library/books", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  updateBook: (id, data) =>
+    api.put(`/library/books/${id}`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
   deleteBook: (id) => api.delete(`/library/books/${id}`),
 
   issueBook: (data) => api.post("/library/issue", data),
@@ -730,6 +736,8 @@ export const resultsAPI = {
   },
 };
 
+
+
 // ============================================
 // PAYROLL API
 // ============================================
@@ -769,6 +777,11 @@ export const blogAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   deleteBlog: (id) => api.delete(`/blogs/${id}`),
+  toggleLike: (id) => api.post(`/blogs/${id}/like`),
+  getLikeStatus: (id) => api.get(`/blogs/${id}/like-status`),
+  getComments: (id) => api.get(`/blogs/${id}/comments`),
+  addComment: (id, content) => api.post(`/blogs/${id}/comments`, { content }),
+  deleteComment: (id, commentId) => api.delete(`/blogs/${id}/comments/${commentId}`),
 };
 
 // ============================================

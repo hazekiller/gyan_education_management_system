@@ -10,6 +10,12 @@ import {
   XCircle,
   History,
   BookOpen,
+  Edit,
+  Trash2,
+  Eye,
+  FileText,
+  Upload,
+  Download,
 } from "lucide-react";
 import { libraryAPI, studentsAPI, teachersAPI } from "../lib/api";
 import toast from "react-hot-toast";
@@ -37,20 +43,19 @@ const LibraryManagement = () => {
           { id: "books", label: "Books Inventory", icon: Book },
           ...(isAdmin
             ? [
-                { id: "issue", label: "Issue/Return", icon: CheckCircle },
-                { id: "transactions", label: "History", icon: History },
-              ]
+              { id: "issue", label: "Issue/Return", icon: CheckCircle },
+              { id: "transactions", label: "History", icon: History },
+            ]
             : []),
           { id: "my-books", label: "My Books", icon: BookOpen },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-              activeTab === tab.id
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
-            }`}
+            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.id
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
+              }`}
           >
             <tab.icon className="w-4 h-4 mr-2" />
             {tab.label}
@@ -71,9 +76,14 @@ const LibraryManagement = () => {
 // ==========================================
 // BOOKS INVENTORY TAB
 // ==========================================
+// ==========================================
+// BOOKS INVENTORY TAB
+// ==========================================
 const BooksInventoryTab = ({ isAdmin }) => {
   const [search, setSearch] = useState("");
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedBook, setSelectedBook] = useState(null); // For viewing details
+  const [editingBook, setEditingBook] = useState(null); // For editing
   const queryClient = useQueryClient();
 
   const { data: books = [], isLoading } = useQuery({
@@ -92,6 +102,21 @@ const BooksInventoryTab = ({ isAdmin }) => {
       toast.error(err.response?.data?.message || "Failed to delete"),
   });
 
+  const handleEdit = (book) => {
+    setEditingBook(book);
+    setShowModal(true);
+  };
+
+  const handleAdd = () => {
+    setEditingBook(null);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingBook(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -107,7 +132,7 @@ const BooksInventoryTab = ({ isAdmin }) => {
         </div>
         {isAdmin && (
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={handleAdd}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -127,11 +152,9 @@ const BooksInventoryTab = ({ isAdmin }) => {
               <th className="p-3 font-medium text-gray-600 text-center">
                 Copies (Avail/Total)
               </th>
-              {isAdmin && (
-                <th className="p-3 font-medium text-gray-600 text-right">
-                  Actions
-                </th>
-              )}
+              <th className="p-3 font-medium text-gray-600 text-right">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -158,30 +181,69 @@ const BooksInventoryTab = ({ isAdmin }) => {
                   </td>
                   <td className="p-3 text-center">
                     <span
-                      className={`font-bold ${
-                        book.available_copies > 0
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
+                      className={`font-bold ${book.available_copies > 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                        }`}
                     >
                       {book.available_copies}
                     </span>
                     <span className="text-gray-400 mx-1">/</span>
                     <span>{book.total_copies}</span>
                   </td>
-                  {isAdmin && (
-                    <td className="p-3 text-right">
+                  <td className="p-3 text-right">
+                    <div className="flex justify-end items-center gap-2">
+                      {book.pdf_url && (
+                        <>
+                          <a
+                            href={`${import.meta.env.VITE_IMAGE_URL || 'http://localhost:5002'}/${book.pdf_url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors"
+                            title="Read Book"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </a>
+                          <a
+                            href={`${import.meta.env.VITE_IMAGE_URL || 'http://localhost:5002'}/${book.pdf_url}`}
+                            download
+                            className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                            title="Download PDF"
+                          >
+                            <Download className="w-4 h-4" />
+                          </a>
+                        </>
+                      )}
                       <button
-                        onClick={() => {
-                          if (confirm("Delete this book?"))
-                            deleteMutation.mutate(book.id);
-                        }}
-                        className="text-red-600 hover:text-red-800 text-sm"
+                        onClick={() => setSelectedBook(book)}
+                        className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                        title="View Details"
                       >
-                        Delete
+                        <Eye className="w-4 h-4" />
                       </button>
-                    </td>
-                  )}
+                      {isAdmin && (
+                        <>
+                          <button
+                            onClick={() => handleEdit(book)}
+                            className="p-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm("Delete this book?"))
+                                deleteMutation.mutate(book.id);
+                            }}
+                            className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))
             )}
@@ -189,43 +251,144 @@ const BooksInventoryTab = ({ isAdmin }) => {
         </table>
       </div>
 
-      {showAddModal && <AddBookModal onClose={() => setShowAddModal(false)} />}
+      {showModal && (
+        <BookModal
+          onClose={closeModal}
+          bookToEdit={editingBook}
+        />
+      )}
+
+      {selectedBook && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-xl font-bold">{selectedBook.book_title}</h2>
+              <button
+                onClick={() => setSelectedBook(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-500 block">Author</span>
+                  <span className="font-medium">{selectedBook.author}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block">Category</span>
+                  <span className="font-medium">{selectedBook.category}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block">ISBN</span>
+                  <span className="font-medium">{selectedBook.isbn || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block">Location</span>
+                  <span className="font-medium">Rack {selectedBook.rack_number || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block">Copies</span>
+                  <span className="font-medium">{selectedBook.available_copies} / {selectedBook.total_copies}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block">Publisher</span>
+                  <span className="font-medium">{selectedBook.publisher || "-"} ({selectedBook.publication_year || "-"})</span>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-medium mb-1">Description</h3>
+                <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                  {selectedBook.description || "No description available."}
+                </p>
+              </div>
+
+              {selectedBook.pdf_url ? (
+                <div className="pt-2 border-t">
+                  <a
+                    href={`${import.meta.env.VITE_IMAGE_URL || 'http://localhost:5002'}/${selectedBook.pdf_url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Read Book
+                  </a>
+                </div>
+              ) : (
+                <div className="pt-2 border-t">
+                  <p className="text-center text-sm text-gray-500 italic">
+                    No PDF version available for this book.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-const AddBookModal = ({ onClose }) => {
+const BookModal = ({ onClose, bookToEdit = null }) => {
   const queryClient = useQueryClient();
+  const isEditing = !!bookToEdit;
+
   const [formData, setFormData] = useState({
-    book_title: "",
-    author: "",
-    isbn: "",
-    category: "",
-    total_copies: 1,
-    rack_number: "",
-    description: "",
+    book_title: bookToEdit?.book_title || "",
+    author: bookToEdit?.author || "",
+    isbn: bookToEdit?.isbn || "",
+    category: bookToEdit?.category || "",
+    total_copies: bookToEdit?.total_copies || 1,
+    rack_number: bookToEdit?.rack_number || "",
+    description: bookToEdit?.description || "",
+    publisher: bookToEdit?.publisher || "",
+    publication_year: bookToEdit?.publication_year || "",
+    file: null,
   });
 
   const mutation = useMutation({
-    mutationFn: libraryAPI.addBook,
+    mutationFn: (data) =>
+      isEditing
+        ? libraryAPI.updateBook(bookToEdit.id, data)
+        : libraryAPI.addBook(data),
     onSuccess: () => {
       queryClient.invalidateQueries(["library-books"]);
-      toast.success("Book added");
+      toast.success(isEditing ? "Book updated" : "Book added");
       onClose();
     },
     onError: (err) =>
-      toast.error(err.response?.data?.message || "Failed to add"),
+      toast.error(err.response?.data?.message || `Failed to ${isEditing ? "update" : "add"}`),
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutation.mutate(formData);
+
+    // Create FormData
+    const form = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (key === 'file' && formData[key]) {
+        form.append('book_pdf', formData[key]);
+      } else if (key !== 'file' && formData[key] !== null && formData[key] !== undefined) {
+        form.append(key, formData[key]);
+      }
+    });
+
+    // If editing and no new file, backend should keep existing.
+    // However, for libraryAPI.updateBook, we need to pass (id, data).
+    // Let's verify how useMutation calls it.
+    // The mutationFn ensures correct arguments.
+
+    mutation.mutate(form);
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Add New Book</h2>
+      <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold mb-4">{isEditing ? "Edit Book" : "Add New Book"}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Title</label>
@@ -260,6 +423,19 @@ const AddBookModal = ({ onClose }) => {
                 placeholder="Optional"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Publisher</label>
+              <input
+                className="w-full border rounded px-3 py-2"
+                value={formData.publisher}
+                onChange={(e) =>
+                  setFormData({ ...formData, publisher: e.target.value })
+                }
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium mb-1">Category</label>
               <input
@@ -271,6 +447,7 @@ const AddBookModal = ({ onClose }) => {
               />
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -298,6 +475,38 @@ const AddBookModal = ({ onClose }) => {
               />
             </div>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <textarea
+              className="w-full border rounded px-3 py-2"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Upload PDF {isEditing ? "(Override existing)" : "(Optional)"}</label>
+            <div className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-gray-50 transition-colors relative">
+              <input
+                type="file"
+                accept=".pdf"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                onChange={(e) => setFormData({ ...formData, file: e.target.files[0] })}
+              />
+              <div className="space-y-1">
+                <Upload className="w-8 h-8 text-gray-400 mx-auto" />
+                <p className="text-sm text-gray-500">
+                  {formData.file ? formData.file.name : "Click to upload or drag and drop"}
+                </p>
+                <p className="text-xs text-gray-400">PDF up to 10MB</p>
+              </div>
+            </div>
+            {isEditing && bookToEdit.pdf_url && !formData.file && (
+              <p className="text-xs text-green-600 mt-1">Current PDF: {bookToEdit.pdf_url.split('/').pop()}</p>
+            )}
+          </div>
+
           <div className="flex justify-end space-x-3 mt-6">
             <button
               type="button"
@@ -310,7 +519,7 @@ const AddBookModal = ({ onClose }) => {
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              Add Book
+              {isEditing ? "Update Book" : "Add Book"}
             </button>
           </div>
         </form>
@@ -396,21 +605,19 @@ const IssueReturnTab = () => {
       <div className="flex space-x-4 mb-6 justify-center">
         <button
           onClick={() => setMode("issue")}
-          className={`px-6 py-2 rounded-full font-medium ${
-            mode === "issue"
-              ? "bg-blue-100 text-blue-700"
-              : "bg-gray-100 text-gray-600"
-          }`}
+          className={`px-6 py-2 rounded-full font-medium ${mode === "issue"
+            ? "bg-blue-100 text-blue-700"
+            : "bg-gray-100 text-gray-600"
+            }`}
         >
           Issue Book
         </button>
         <button
           onClick={() => setMode("return")}
-          className={`px-6 py-2 rounded-full font-medium ${
-            mode === "return"
-              ? "bg-green-100 text-green-700"
-              : "bg-gray-100 text-gray-600"
-          }`}
+          className={`px-6 py-2 rounded-full font-medium ${mode === "return"
+            ? "bg-green-100 text-green-700"
+            : "bg-gray-100 text-gray-600"
+            }`}
         >
           Return Book
         </button>
@@ -448,15 +655,15 @@ const IssueReturnTab = () => {
                 <option value="">-- Select --</option>
                 {userType === "student"
                   ? students.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.first_name} {s.last_name} ({s.admission_number})
-                      </option>
-                    ))
+                    <option key={s.id} value={s.id}>
+                      {s.first_name} {s.last_name} ({s.admission_number})
+                    </option>
+                  ))
                   : teachers.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.first_name} {t.last_name} ({t.employee_id})
-                      </option>
-                    ))}
+                    <option key={t.id} value={t.id}>
+                      {t.first_name} {t.last_name} ({t.employee_id})
+                    </option>
+                  ))}
               </select>
             </div>
           </div>
@@ -576,13 +783,12 @@ const TransactionsTab = () => {
                 </td>
                 <td className="p-3">
                   <span
-                    className={`px-2 py-1 rounded-full text-xs capitalize ${
-                      t.status === "issued"
-                        ? "bg-blue-100 text-blue-800"
-                        : t.status === "returned"
+                    className={`px-2 py-1 rounded-full text-xs capitalize ${t.status === "issued"
+                      ? "bg-blue-100 text-blue-800"
+                      : t.status === "returned"
                         ? "bg-green-100 text-green-800"
                         : "bg-red-100 text-red-800"
-                    }`}
+                      }`}
                   >
                     {t.status}
                   </span>
@@ -625,11 +831,10 @@ const MyBooksTab = () => {
                 {item.book_title}
               </h3>
               <span
-                className={`px-2 py-1 rounded text-xs font-medium capitalize ${
-                  item.status === "issued"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-gray-100 text-gray-600"
-                }`}
+                className={`px-2 py-1 rounded text-xs font-medium capitalize ${item.status === "issued"
+                  ? "bg-blue-100 text-blue-800"
+                  : "bg-gray-100 text-gray-600"
+                  }`}
               >
                 {item.status}
               </span>
@@ -646,7 +851,7 @@ const MyBooksTab = () => {
                 <span
                   className={
                     item.status === "issued" &&
-                    new Date(item.due_date) < new Date()
+                      new Date(item.due_date) < new Date()
                       ? "text-red-600 font-bold"
                       : ""
                   }
@@ -654,6 +859,28 @@ const MyBooksTab = () => {
                   {new Date(item.due_date).toLocaleDateString()}
                 </span>
               </div>
+
+              {item.pdf_url && (
+                <div className="flex gap-2 mt-3">
+                  <a
+                    href={`${import.meta.env.VITE_IMAGE_URL || 'http://localhost:5002'}/${item.pdf_url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors font-medium text-sm"
+                  >
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Read Online
+                  </a>
+                  <a
+                    href={`${import.meta.env.VITE_IMAGE_URL || 'http://localhost:5002'}/${item.pdf_url}`}
+                    download
+                    className="flex-none flex items-center justify-center px-4 py-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors text-sm"
+                    title="Download"
+                  >
+                    <Download className="w-4 h-4" />
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         ))

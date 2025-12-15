@@ -112,26 +112,31 @@ const addBook = async (req, res) => {
 
     const [result] = await pool.query(
       `INSERT INTO library_books 
-      (book_title, author, isbn, publisher, publication_year, category, total_copies, available_copies, rack_number, description)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (book_title, author, isbn, publisher, publication_year, category, total_copies, available_copies, rack_number, description, pdf_url)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         book_title,
         author,
         isbn || null,
         publisher,
-        publication_year,
+        publication_year || null, // validated to be null if empty
         category,
         total_copies,
         total_copies, // available = total initially
         rack_number,
         description,
+        req.file ? req.file.path : null
       ]
     );
 
     res.status(201).json({
       success: true,
       message: "Book added successfully",
-      data: { id: result.insertId, book_title },
+      data: {
+        id: result.insertId,
+        book_title,
+        pdf_url: req.file ? req.file.path : null
+      },
     });
   } catch (error) {
     console.error("Add book error:", error);
@@ -147,20 +152,63 @@ const addBook = async (req, res) => {
 const updateBook = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    let updateData = { ...req.body };
 
-    // Logic to handle total_copies change vs available_copies needs care
-    // For MVP, we'll just update fields directly, but in production, changing total_copies should adjust available_copies safely.
+    // Allowed fields to update
+    const allowedFields = [
+      'book_title',
+      'author',
+      'isbn',
+      'publisher',
+      'publication_year',
+      'category',
+      'total_copies',
+      'rack_number',
+      'description',
+      'pdf_url'
+    ];
 
-    // Simple update for now
-    const fields = Object.keys(updateData);
-    const values = Object.values(updateData);
+    if (req.file) {
+      updateData.pdf_url = req.file.path;
+    }
+
+    // Filter updateData to only include allowed fields
+    const filteredUpdateData = {};
+    Object.keys(updateData).forEach(key => {
+      if (allowedFields.includes(key)) {
+        filteredUpdateData[key] = updateData[key];
+      }
+    });
+
+    // Also handle empty strings for nullable fields if needed, or just let them update
+    // Note: If ISBN is empty string, we might want to set it to NULL to avoid unique constraint if multiple empty strings are not allowed (though usually uniq allows multiple NULLs but empty string is a value).
+    if (filteredUpdateData.isbn === "") {
+      filteredUpdateData.isbn = null;
+    }
+
+    // Convert numbers or handle empty strings
+    if (filteredUpdateData.total_copies === "") {
+      filteredUpdateData.total_copies = null;
+    } else if (filteredUpdateData.total_copies) {
+      filteredUpdateData.total_copies = parseInt(filteredUpdateData.total_copies);
+    }
+
+    if (filteredUpdateData.publication_year === "") {
+      filteredUpdateData.publication_year = null;
+    } else if (filteredUpdateData.publication_year) {
+      filteredUpdateData.publication_year = parseInt(filteredUpdateData.publication_year);
+    }
+
+    const fields = Object.keys(filteredUpdateData);
+    const values = Object.values(filteredUpdateData);
 
     if (fields.length === 0)
-      return res.status(400).json({ message: "No fields to update" });
+      return res.status(400).json({ message: "No valid fields to update" });
 
     const setClause = fields.map((f) => `${f} = ?`).join(", ");
     values.push(id);
+
+    console.log(`Updating book ${id} with:`, filteredUpdateData);
 
     await pool.query(
       `UPDATE library_books SET ${setClause} WHERE id = ?`,
@@ -415,7 +463,7 @@ const getMyBooks = async (req, res) => {
 
     const [myBooks] = await pool.query(
       `
-      SELECT lt.*, lb.book_title, lb.author, lb.isbn
+      SELECT lt.*, lb.book_title, lb.author, lb.isbn, lb.pdf_url
       FROM library_transactions lt
       JOIN library_books lb ON lt.book_id = lb.id
       WHERE lt.user_id = ?

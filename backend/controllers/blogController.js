@@ -40,11 +40,16 @@ const upload = multer({
 exports.getAllBlogs = async (req, res) => {
     try {
         const { search, status } = req.query;
+        const userId = req.user ? req.user.id : null;
+
         let query = `
             SELECT b.*, 
                    COALESCE(t.first_name, s.first_name, st.first_name, 'Admin') as first_name,
                    COALESCE(t.last_name, s.last_name, st.last_name, '') as last_name,
-                   u.role
+                   u.role,
+                   (SELECT COUNT(*) FROM blog_likes WHERE blog_id = b.id) as like_count,
+                   (SELECT COUNT(*) FROM blog_comments WHERE blog_id = b.id) as comment_count,
+                   ${userId ? `(SELECT COUNT(*) FROM blog_likes WHERE blog_id = b.id AND user_id = ?) > 0 as is_liked` : 'FALSE as is_liked'}
             FROM blogs b 
             LEFT JOIN users u ON b.author_id = u.id 
             LEFT JOIN teachers t ON u.id = t.user_id
@@ -53,6 +58,10 @@ exports.getAllBlogs = async (req, res) => {
             WHERE 1=1
         `;
         const params = [];
+
+        if (userId) {
+            params.push(userId);
+        }
 
         if (status) {
             query += ' AND b.status = ?';
@@ -89,7 +98,9 @@ exports.getBlogById = async (req, res) => {
             SELECT b.*, 
                    COALESCE(t.first_name, s.first_name, st.first_name, 'Admin') as first_name,
                    COALESCE(t.last_name, s.last_name, st.last_name, '') as last_name,
-                   u.role
+                   u.role,
+                   (SELECT COUNT(*) FROM blog_likes WHERE blog_id = b.id) as like_count,
+                   (SELECT COUNT(*) FROM blog_comments WHERE blog_id = b.id) as comment_count
             FROM blogs b 
             LEFT JOIN users u ON b.author_id = u.id 
             LEFT JOIN teachers t ON u.id = t.user_id
@@ -228,6 +239,210 @@ exports.deleteBlog = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error deleting blog',
+            error: error.message
+        });
+    }
+};
+
+// Toggle like
+exports.toggleLike = async (req, res) => {
+    try {
+        const blogId = req.params.id;
+        const userId = req.user.id;
+
+        // Check if verify blog exists
+        const [blog] = await pool.query('SELECT id FROM blogs WHERE id = ?', [blogId]);
+        if (blog.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Blog not found'
+            });
+        }
+
+        // Check if already liked
+        const [existingLike] = await pool.query(
+            'SELECT id FROM blog_likes WHERE blog_id = ? AND user_id = ?',
+            [blogId, userId]
+        );
+
+        let isLiked = false;
+        if (existingLike.length > 0) {
+            // Unlike
+            await pool.query(
+                'DELETE FROM blog_likes WHERE blog_id = ? AND user_id = ?',
+                [blogId, userId]
+            );
+        } else {
+            // Like
+            await pool.query(
+                'INSERT INTO blog_likes (blog_id, user_id) VALUES (?, ?)',
+                [blogId, userId]
+            );
+            isLiked = true;
+        }
+
+        // Get updated count
+        const [countResult] = await pool.query(
+            'SELECT COUNT(*) as count FROM blog_likes WHERE blog_id = ?',
+            [blogId]
+        );
+
+        res.json({
+            success: true,
+            isLiked,
+            count: countResult[0].count
+        });
+    } catch (error) {
+        console.error('Error toggling like:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error processing like',
+            error: error.message
+        });
+    }
+};
+
+// Get blog comments
+exports.getBlogComments = async (req, res) => {
+    try {
+        const blogId = req.params.id;
+        const query = `
+            SELECT c.*, 
+                   COALESCE(t.first_name, s.first_name, st.first_name, 'Admin') as first_name,
+                   COALESCE(t.last_name, s.last_name, st.last_name, '') as last_name,
+                   u.role as author_role
+            FROM blog_comments c
+            LEFT JOIN users u ON c.user_id = u.id
+            LEFT JOIN teachers t ON u.id = t.user_id
+            LEFT JOIN students s ON u.id = s.user_id
+            LEFT JOIN staff st ON u.id = st.user_id
+            WHERE c.blog_id = ?
+            ORDER BY c.created_at DESC
+        `;
+
+        const [comments] = await pool.query(query, [blogId]);
+
+        res.json({
+            success: true,
+            data: comments
+        });
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching comments',
+            error: error.message
+        });
+    }
+};
+
+// Add comment
+exports.addBlogComment = async (req, res) => {
+    try {
+        const blogId = req.params.id;
+        const userId = req.user.id;
+        const { content } = req.body;
+
+        if (!content || !content.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Comment content is required'
+            });
+        }
+
+        const [result] = await pool.query(
+            'INSERT INTO blog_comments (blog_id, user_id, content) VALUES (?, ?, ?)',
+            [blogId, userId, content]
+        );
+
+        const [newComment] = await pool.query(`
+            SELECT c.*, 
+                   COALESCE(t.first_name, s.first_name, st.first_name, 'Admin') as first_name,
+                   COALESCE(t.last_name, s.last_name, st.last_name, '') as last_name,
+                   u.role as author_role
+            FROM blog_comments c
+            LEFT JOIN users u ON c.user_id = u.id
+            LEFT JOIN teachers t ON u.id = t.user_id
+            LEFT JOIN students s ON u.id = s.user_id
+            LEFT JOIN staff st ON u.id = st.user_id
+            WHERE c.id = ?
+        `, [result.insertId]);
+
+        res.status(201).json({
+            success: true,
+            data: newComment[0]
+        });
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error adding comment',
+            error: error.message
+        });
+    }
+};
+
+// Delete comment
+exports.deleteBlogComment = async (req, res) => {
+    try {
+        const { id, commentId } = req.params;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        // Check comment ownership or admin privileges
+        const [comment] = await pool.query('SELECT * FROM blog_comments WHERE id = ?', [commentId]);
+
+        if (comment.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Comment not found'
+            });
+        }
+
+        if (comment[0].user_id !== userId && !['admin', 'super_admin'].includes(userRole)) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to delete this comment'
+            });
+        }
+
+        await pool.query('DELETE FROM blog_comments WHERE id = ?', [commentId]);
+
+        res.json({
+            success: true,
+            message: 'Comment deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting comment',
+            error: error.message
+        });
+    }
+};
+
+// Check like status
+exports.getLikeStatus = async (req, res) => {
+    try {
+        const blogId = req.params.id;
+        const userId = req.user.id;
+
+        const [existingLike] = await pool.query(
+            'SELECT id FROM blog_likes WHERE blog_id = ? AND user_id = ?',
+            [blogId, userId]
+        );
+
+        res.json({
+            success: true,
+            isLiked: existingLike.length > 0
+        });
+
+    } catch (error) {
+        console.error('Error checking like status:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error checking like status',
             error: error.message
         });
     }

@@ -79,4 +79,22 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { authenticate, authorize };
+// Optional authentication - doesn't block if no token
+const optionalAuthenticate = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return next();
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { id: decoded.userId }; // Minimal user object
+    next();
+  } catch (error) {
+    // If token is invalid/expired, just proceed as guest
+    next();
+  }
+};
+
+module.exports = { authenticate, authorize, optionalAuthenticate };

@@ -4,7 +4,7 @@ import { staffAPI } from "../../lib/api";
 import toast from "react-hot-toast";
 import StaffForm from "./StaffForm";
 
-const IMAGE_URL = import.meta.env.VITE_IMAGE_URL || "http://localhost:5001";
+const IMAGE_URL = import.meta.env.VITE_IMAGE_URL || "http://localhost:5002";
 
 const StaffList = ({ searchTerm }) => {
     const [staffs, setStaffs] = useState([]);

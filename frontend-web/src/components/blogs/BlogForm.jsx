@@ -16,7 +16,7 @@ const BlogForm = ({ blog, onSubmit, onCancel, loading }) => {
                 title: blog.title || '',
                 content: blog.content || '',
                 image: null,
-                imagePreview: blog.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}${blog.image_url.startsWith('/') ? '' : '/'}${blog.image_url}` : null,
+                imagePreview: blog.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:5002/api'}${blog.image_url.startsWith('/') ? '' : '/'}${blog.image_url}` : null,
                 status: blog.status || 'published'
             });
         }
