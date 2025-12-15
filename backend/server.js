@@ -95,7 +95,7 @@ io.on("connection", (socket) => {
 
       // Save to database
       const [result] = await db.query(
-        "INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)",
+        "INSERT INTO messages (sender_id, receiver_id, message_text) VALUES (?, ?, ?)",
         [sender_id, receiver_id, content]
       );
 
