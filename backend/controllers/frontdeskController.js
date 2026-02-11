@@ -400,7 +400,7 @@ const getVisitorLogs = async (req, res) => {
                    CONCAT(s.first_name, ' ', s.last_name) as logged_by
             FROM frontdesk_visitors v
             LEFT JOIN staff s ON v.staff_id = s.id
-            WHERE s.is_frontdesk = 1
+            WHERE 1=1
         `;
         const params = [];
 
@@ -545,7 +545,7 @@ const getInquiries = async (req, res) => {
                    CONCAT(s.first_name, ' ', s.last_name) as logged_by
             FROM frontdesk_inquiries i
             LEFT JOIN staff s ON i.staff_id = s.id
-            WHERE s.is_frontdesk = 1
+            WHERE 1=1
         `;
         const params = [];
 

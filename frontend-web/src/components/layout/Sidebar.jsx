@@ -76,6 +76,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       show: ['admin', 'super_admin'].includes(role), // Show for admin and super_admin
     },
     {
+      name: "Staff",
+      path: "/staff", // Updated path
+      icon: Users,
+      show: ['admin', 'super_admin'].includes(role), // Show for admin and super_admin
+    },
+    {
       name: "Subjects",
       path: "/subjects",
       icon: BookText,
@@ -97,7 +103,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Visitors",
       path: "/visitors",
       icon: UserCheck,
-      permission: "visitors",
+      show: hasPermission(PERMISSIONS.VIEW_VISITORS),
     },
     /* {
       name: "Teachers",
@@ -175,7 +181,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Library",
       path: "/library",
       icon: BookOpen,
-      show: true,
+      show: hasPermission(PERMISSIONS.VIEW_LIBRARY),
     },
     {
       name: "Hostel",
@@ -199,7 +205,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Leave Management",
       path: "/leaves",
       icon: ClipboardList,
-      show: hasPermission(PERMISSIONS.MANAGE_LEAVES) && !['admin', 'guard', 'cleaner'].includes(role),
+      show: (hasPermission(PERMISSIONS.MANAGE_LEAVES) || ['admin', 'super_admin', 'principal', 'vice_principal'].includes(role)) && !['guard', 'cleaner'].includes(role),
     },
     {
       name: "My Leaves",

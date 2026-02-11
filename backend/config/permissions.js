@@ -25,6 +25,7 @@ const PERMISSIONS = {
     dashboard: ['read'],
     admissions: ['create', 'read', 'update', 'delete'],
     visitors: ['create', 'read', 'update', 'delete'],
+    leaves: ['create', 'read', 'update', 'delete'], // Added
   },
 
   // Principal - Almost full access
@@ -50,6 +51,7 @@ const PERMISSIONS = {
     dashboard: ['read'],
     admissions: ['create', 'read', 'update', 'delete'],
     visitors: ['read', 'update'],
+    leaves: ['create', 'read', 'update', 'delete'], // Added
   },
 
   // Vice Principal
@@ -75,6 +77,7 @@ const PERMISSIONS = {
     dashboard: ['read'],
     admissions: ['create', 'read', 'update'],
     visitors: ['read', 'update'],
+    leaves: ['create', 'read', 'update', 'delete'], // Added
   },
 
   // HOD (Head of Department)
@@ -100,6 +103,7 @@ const PERMISSIONS = {
     dashboard: ['read'],
     admissions: ['read'],
     visitors: ['read'],
+    leaves: ['create', 'read', 'update'], // Added
   },
 
   // Teacher
@@ -199,7 +203,6 @@ const PERMISSIONS = {
     settings: ['read'],
     dashboard: ['read'],
     admissions: ['read'],
-    visitors: ['read'],
   },
 
   // Student

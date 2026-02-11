@@ -1,6 +1,9 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "./store/slices/authSlice";
+import { PERMISSIONS } from "./utils/rbac";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import Unauthorized from "./pages/Unauthorized";
 
 // Layouts
 import AuthLayout from "./components/layout/AuthLayout";
@@ -13,6 +16,8 @@ import Classes from "./pages/Classes";
 import Students from "./pages/Students";
 import StudentDetails from "./pages/StudentDetails";
 import UserPage from "./pages/UserPage";
+import Staff from "./pages/Staff"; // Added Staff Page
+import Visitors from "./pages/Visitors"; // Added Visitors Page
 import Teachers from "./pages/Teachers";
 import TeacherDetails from "./pages/TeacherDetails";
 import Attendance from "./pages/Attendance";
@@ -56,10 +61,8 @@ import Discipline from "./pages/Discipline/Discipline";
 import Marksheet from "./pages/Marksheet/Marksheet";
 
 // Protected Route Component
-const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = useSelector(selectIsAuthenticated);
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
-};
+// Inline ProtectedRoute removed to use the imported one
+
 
 // Public Route Component (redirect to dashboard if authenticated)
 const PublicRoute = ({ children }) => {
@@ -98,10 +101,19 @@ function App() {
         <Route path="/subjects" element={<Subjects />} />
 
         <Route path="users" element={<UserPage />} />
+        <Route path="staff" element={<Staff />} /> {/* Added Staff Route */}
         <Route path="students" element={<Students />} />
         <Route path="students/:id" element={<StudentDetails />} />
-        <Route path="student-reports/:id" element={<StudentReports />} />
+        <Route path="students-reports/:id" element={<StudentReports />} />
         <Route path="my-reports" element={<MyReports />} />
+        <Route
+          path="visitors"
+          element={
+            <ProtectedRoute permission={PERMISSIONS.VIEW_VISITORS}>
+              <Visitors />
+            </ProtectedRoute>
+          }
+        />
         <Route path="teachers" element={<Teachers />} />
         <Route path="teachers/:id" element={<TeacherDetails />} />
         <Route path="attendance" element={<Attendance />} />
@@ -120,7 +132,14 @@ function App() {
         <Route path="profile" element={<Profile />} />
         <Route path="schedule" element={<TeacherSchedule />} />
         <Route path="schedule/:id" element={<TeacherScheduleDetail />} />
-        <Route path="library" element={<LibraryManagement />} />
+        <Route
+          path="library"
+          element={
+            <ProtectedRoute permission={PERMISSIONS.VIEW_LIBRARY}>
+              <LibraryManagement />
+            </ProtectedRoute>
+          }
+        />
         <Route path="hostel" element={<HostelManagement />} />
         <Route path="transport" element={<TransportationManagement />} />
         <Route path="payroll" element={<Payroll />} />
@@ -137,6 +156,7 @@ function App() {
         <Route path="bus-attendance-reports" element={<BusAttendanceReports />} />
         <Route path="discipline" element={<Discipline />} />
         <Route path="marksheets" element={<Marksheet />} />
+        <Route path="unauthorized" element={<Unauthorized />} />
       </Route>
 
       {/* 404 */}
