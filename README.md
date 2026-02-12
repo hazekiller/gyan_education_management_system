@@ -1,1 +1,1 @@
-# gauri_school_management
+# Gyan_Education_Management_System
