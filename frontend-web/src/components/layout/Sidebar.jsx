@@ -79,7 +79,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Staff",
       path: "/staff", // Updated path
       icon: Users,
-      show: ['admin', 'super_admin'].includes(role), // Show for admin and super_admin
+      show: ['admin', 'super_admin', 'hr', 'principal', 'vice_principal'].includes(role), // Show for admin, hr, principal
     },
     {
       name: "Subjects",
@@ -214,6 +214,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       show: (['teacher', 'student', 'accountant', 'guard', 'cleaner'].includes(role) || hasPermission(PERMISSIONS.SUBMIT_LEAVE)) && !['admin', 'super_admin'].includes(role),
     },
     {
+      name: "Expenses",
+      path: "/expenses",
+      icon: DollarSign,
+      show: ['accountant', 'super_admin', 'founder'].includes(role),
+    },
+    {
       name: "Reports",
       path: "/reports",
       icon: FileText,
@@ -235,7 +241,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       name: "Discipline",
       path: "/discipline",
       icon: AlertTriangle,
-      show: ['admin', 'super_admin'].includes(role), // Show for admins only
+      show: ['admin', 'super_admin', 'principal', 'vice_principal'].includes(role), // Show for admins only
     },
     {
       name: "Marksheet",

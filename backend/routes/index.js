@@ -31,6 +31,8 @@ const frontdeskRoutes = require("./frontdesk.routes");
 const leavesRoutes = require("./leaves.routes");
 const filesRoutes = require("./files.routes");
 const disciplineRoutes = require("./discipline.routes");
+const accountsRoutes = require("./accountsRoutes");
+const hrRoutes = require("./hrRoutes");
 // const galleryRoutes = require("./gallery.routes");
 
 
@@ -81,6 +83,8 @@ router.use("/leaves", leavesRoutes);
 router.use("/files", filesRoutes);
 router.use("/discipline", disciplineRoutes);
 router.use("/marksheets", require("./marksheets.routes"));
+router.use("/accounts", accountsRoutes);
+router.use("/hr", hrRoutes);
 
 
 // ===== DEFAULT ROUTE =====

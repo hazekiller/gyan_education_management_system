@@ -77,7 +77,7 @@ const login = async (req, res) => {
         [user.id]
       );
       userDetails = teachers[0];
-    } else if (["accountant", "guard", "cleaner"].includes(user.role)) {
+    } else if (["accountant", "guard", "cleaner", "hr", "staff"].includes(user.role)) {
       const [staff] = await pool.query(
         "SELECT * FROM staff WHERE user_id = ?",
         [user.id]
@@ -103,6 +103,11 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
+    try {
+      require('fs').appendFileSync('login_error.log', `${new Date().toISOString()} - Login Error: ${error.message}\n${error.stack}\n\n`);
+    } catch (fsError) {
+      console.error("Failed to write log", fsError);
+    }
     res.status(500).json({
       success: false,
       message: "Login failed",
@@ -164,9 +169,9 @@ const getProfile = async (req, res) => {
         [userId]
       );
       userDetails = teachers[0];
-    } else if (["accountant", "guard", "cleaner"].includes(role)) {
+    } else if (["accountant", "guard", "cleaner", "hr", "staff"].includes(role)) {
       const [staff] = await pool.query(
-        "SELECT s.*, u.email FROM staff s LEFT JOIN users u ON s.user_id = u.id WHERE s.user_id = ?",
+        "SELECT * FROM staff WHERE user_id = ?",
         [userId]
       );
       userDetails = staff[0];

@@ -59,6 +59,7 @@ import MyLeaves from "./pages/MyLeaves";
 
 import Discipline from "./pages/Discipline/Discipline";
 import Marksheet from "./pages/Marksheet/Marksheet";
+import Expenses from "./pages/Accounts/Expenses";
 
 // Protected Route Component
 // Inline ProtectedRoute removed to use the imported one
@@ -142,6 +143,7 @@ function App() {
         />
         <Route path="hostel" element={<HostelManagement />} />
         <Route path="transport" element={<TransportationManagement />} />
+        <Route path="expenses" element={<Expenses />} />
         <Route path="payroll" element={<Payroll />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="admissions" element={<Admissions />} />
