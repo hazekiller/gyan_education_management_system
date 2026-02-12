@@ -5,7 +5,7 @@
 // For Physical Device: use your computer's IP address (e.g., 192.168.1.x)
 
 export const API_BASE_URL = __DEV__
-    ? 'http://192.168.1.70:5000/api'  // Updated to your local IP for physical device
+    ? 'http://192.168.1.80:5002/api'  // Updated to your local IP for physical device
     : 'https://your-production-api.com/api';
 
 export const ENDPOINTS = {
