@@ -289,7 +289,7 @@ const Login = () => {
             Powered by <span className="font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Quantum Tech</span>
           </p>
           <p className="text-gray-600 text-xs mt-2">
-            © 2025 Gyan School Management System. All rights reserved.
+            © 2025 Gyan Education Management System. All rights reserved.
           </p>
         </div>
       </div>
