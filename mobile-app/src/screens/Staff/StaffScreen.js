@@ -7,6 +7,7 @@ import {
     RefreshControl,
     TouchableOpacity,
     TextInput,
+    Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
@@ -15,24 +16,24 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
 import { ENDPOINTS } from '../../constants/api';
 
-const StudentsScreen = ({ navigation }) => {
-    const [students, setStudents] = useState([]);
+const StaffScreen = ({ navigation }) => {
+    const [staff, setStaff] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        fetchStudents();
+        fetchStaff();
     }, []);
 
-    const fetchStudents = async () => {
+    const fetchStaff = async () => {
         try {
-            const response = await api.get(ENDPOINTS.STUDENTS);
+            const response = await api.get(ENDPOINTS.STAFF);
             if (response.data.success) {
-                setStudents(response.data.data);
+                setStaff(response.data.data);
             }
         } catch (error) {
-            console.error('Error fetching students:', error);
+            console.error('Error fetching staff:', error);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -41,23 +42,24 @@ const StudentsScreen = ({ navigation }) => {
 
     const onRefresh = () => {
         setRefreshing(true);
-        fetchStudents();
+        fetchStaff();
     };
 
-    const filteredStudents = students.filter((student) =>
-        `${student.first_name} ${student.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.roll_number?.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredStaff = staff.filter((item) =>
+        `${item.first_name} ${item.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.employee_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.role?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const renderStudent = ({ item }) => (
+    const renderStaffMember = ({ item }) => (
         <Card
-            onPress={() => navigation.navigate('StudentDetails', { id: item.id })}
-            style={styles.studentCard}
+            onPress={() => navigation.navigate('StaffDetails', { id: item.id })}
+            style={styles.staffCard}
         >
-            <View style={styles.studentHeader}>
+            <View style={styles.staffHeader}>
                 <View style={styles.avatarContainer}>
-                    {item.profile_photo ? (
-                        <Image source={{ uri: item.profile_photo }} style={styles.avatar} />
+                    {item.profile_image ? (
+                        <Image source={{ uri: item.profile_image }} style={styles.avatar} />
                     ) : (
                         <View style={styles.avatarPlaceholder}>
                             <Text style={styles.avatarText}>
@@ -66,19 +68,20 @@ const StudentsScreen = ({ navigation }) => {
                         </View>
                     )}
                 </View>
-                <View style={styles.studentInfo}>
-                    <Text style={styles.studentName}>{item.first_name} {item.last_name}</Text>
-                    <Text style={styles.studentDetail}>Roll No: {item.roll_number || 'N/A'}</Text>
-                    <Text style={styles.studentDetail}>Class: {item.class_name || 'N/A'}</Text>
+                <View style={styles.staffInfo}>
+                    <Text style={styles.staffName}>{item.first_name} {item.last_name}</Text>
+                    <Text style={styles.staffRole}>{item.role?.toUpperCase()}</Text>
+                    <View style={styles.contactRow}>
+                        <Ionicons name="call-outline" size={14} color={COLORS.textSecondary} />
+                        <Text style={styles.contactText}>{item.phone || 'N/A'}</Text>
+                    </View>
                 </View>
                 <Ionicons name="chevron-forward" size={24} color={COLORS.textSecondary} />
             </View>
         </Card>
     );
 
-    if (loading) {
-        return <LoadingSpinner />;
-    }
+    if (loading) return <LoadingSpinner />;
 
     return (
         <View style={styles.container}>
@@ -87,17 +90,17 @@ const StudentsScreen = ({ navigation }) => {
                 <Ionicons name="search" size={20} color={COLORS.textSecondary} />
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search students..."
+                    placeholder="Search staff..."
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     placeholderTextColor={COLORS.textLight}
                 />
             </View>
 
-            {/* Students List */}
+            {/* Staff List */}
             <FlatList
-                data={filteredStudents}
-                renderItem={renderStudent}
+                data={filteredStaff}
+                renderItem={renderStaffMember}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
@@ -106,7 +109,7 @@ const StudentsScreen = ({ navigation }) => {
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="people-outline" size={64} color={COLORS.textLight} />
-                        <Text style={styles.emptyText}>No students found</Text>
+                        <Text style={styles.emptyText}>No staff members found</Text>
                     </View>
                 }
             />
@@ -115,10 +118,7 @@ const StudentsScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
+    container: { flex: 1, backgroundColor: COLORS.background },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -135,63 +135,20 @@ const styles = StyleSheet.create({
         fontSize: SIZES.md,
         color: COLORS.text,
     },
-    listContent: {
-        padding: SIZES.spacing.lg,
-        paddingTop: 0,
-    },
-    studentCard: {
-        marginBottom: SIZES.spacing.md,
-    },
-    studentHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    avatarContainer: {
-        marginRight: SIZES.spacing.md,
-    },
-    avatar: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-    },
-    avatarPlaceholder: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: COLORS.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    avatarText: {
-        fontSize: SIZES.xl,
-        fontWeight: 'bold',
-        color: COLORS.white,
-    },
-    studentInfo: {
-        flex: 1,
-    },
-    studentName: {
-        fontSize: SIZES.md,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SIZES.spacing.xs,
-    },
-    studentDetail: {
-        fontSize: SIZES.sm,
-        color: COLORS.textSecondary,
-        marginBottom: 2,
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: SIZES.spacing.xxl,
-    },
-    emptyText: {
-        fontSize: SIZES.md,
-        color: COLORS.textSecondary,
-        marginTop: SIZES.spacing.md,
-    },
+    listContent: { padding: SIZES.spacing.lg, paddingTop: 0 },
+    staffCard: { marginBottom: SIZES.spacing.md },
+    staffHeader: { flexDirection: 'row', alignItems: 'center' },
+    avatarContainer: { marginRight: SIZES.spacing.md },
+    avatar: { width: 56, height: 56, borderRadius: 28 },
+    avatarPlaceholder: { width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
+    avatarText: { fontSize: SIZES.xl, fontWeight: 'bold', color: COLORS.white },
+    staffInfo: { flex: 1 },
+    staffName: { fontSize: SIZES.md, fontWeight: 'bold', color: COLORS.text, marginBottom: 2 },
+    staffRole: { fontSize: SIZES.xs, color: COLORS.primary, fontWeight: 'bold', marginBottom: 4 },
+    contactRow: { flexDirection: 'row', alignItems: 'center' },
+    contactText: { fontSize: SIZES.xs, color: COLORS.textSecondary, marginLeft: 4 },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: SIZES.spacing.xxl },
+    emptyText: { fontSize: SIZES.md, color: COLORS.textSecondary, marginTop: SIZES.spacing.md },
 });
 
-export default StudentsScreen;
+export default StaffScreen;

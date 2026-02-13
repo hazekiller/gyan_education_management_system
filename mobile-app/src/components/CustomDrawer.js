@@ -7,6 +7,7 @@ import {
     Image,
     ScrollView,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
     DrawerContentScrollView,
     DrawerItemList,
@@ -38,7 +39,10 @@ const CustomDrawer = (props) => {
                 contentContainerStyle={styles.drawerContent}
             >
                 {/* User Profile Section */}
-                <View style={styles.profileSection}>
+                <LinearGradient
+                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                    style={styles.profileSection}
+                >
                     <View style={styles.profileImageContainer}>
                         {user?.profile_image ? (
                             <Image
@@ -47,13 +51,13 @@ const CustomDrawer = (props) => {
                             />
                         ) : (
                             <View style={styles.profileImagePlaceholder}>
-                                <Ionicons name="person" size={40} color={COLORS.white} />
+                                <Ionicons name="person" size={35} color={COLORS.white} />
                             </View>
                         )}
                     </View>
-                    <Text style={styles.userName}>{user?.name || 'User'}</Text>
-                    <Text style={styles.userRole}>{user?.role || 'Role'}</Text>
-                </View>
+                    <Text style={styles.userName}>{user?.name || 'Gyan User'}</Text>
+                    <Text style={styles.userRole}>{user?.role || 'Guest'}</Text>
+                </LinearGradient>
 
                 {/* Drawer Items */}
                 <View style={styles.drawerItems}>
@@ -85,45 +89,50 @@ const styles = StyleSheet.create({
         paddingTop: 0,
     },
     profileSection: {
-        backgroundColor: COLORS.primary,
-        paddingVertical: SIZES.spacing.xl,
+        paddingTop: 60,
+        paddingBottom: SIZES.spacing.xl,
         paddingHorizontal: SIZES.spacing.lg,
+        borderBottomLeftRadius: SIZES.radius.xl,
+        borderBottomRightRadius: SIZES.radius.xl,
         marginBottom: SIZES.spacing.md,
+        ...SHADOWS.medium,
     },
     profileImageContainer: {
-        alignItems: 'center',
+        alignItems: 'flex-start',
         marginBottom: SIZES.spacing.md,
     },
     profileImage: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        borderWidth: 3,
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        borderWidth: 2,
         borderColor: COLORS.white,
     },
     profileImagePlaceholder: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: COLORS.primaryDark,
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 3,
+        borderWidth: 2,
         borderColor: COLORS.white,
     },
     userName: {
-        fontSize: SIZES.lg,
+        fontSize: SIZES.xl,
         fontWeight: 'bold',
         color: COLORS.white,
-        textAlign: 'center',
+        textAlign: 'left',
         marginBottom: SIZES.spacing.xs,
     },
     userRole: {
         fontSize: SIZES.sm,
         color: COLORS.white,
-        textAlign: 'center',
+        textAlign: 'left',
         opacity: 0.9,
-        textTransform: 'capitalize',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        fontWeight: '600',
     },
     drawerItems: {
         flex: 1,
@@ -133,21 +142,21 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: COLORS.border,
         padding: SIZES.spacing.lg,
+        backgroundColor: COLORS.white,
     },
     logoutButton: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: SIZES.spacing.md,
         paddingHorizontal: SIZES.spacing.lg,
-        backgroundColor: COLORS.surface,
+        backgroundColor: COLORS.error + '10', // 10% opacity
         borderRadius: SIZES.radius.md,
-        ...SHADOWS.small,
     },
     logoutText: {
         fontSize: SIZES.md,
         color: COLORS.error,
         marginLeft: SIZES.spacing.md,
-        fontWeight: '600',
+        fontWeight: 'bold',
     },
 });
 

@@ -62,11 +62,15 @@ const LoginScreen = () => {
             });
 
             if (response.data.success) {
-                const { token, user } = response.data;
+                const { token, user } = response.data.data;
 
                 // Store token and user data securely
-                await SecureStore.setItemAsync('token', token);
-                await SecureStore.setItemAsync('user', JSON.stringify(user));
+                if (token) {
+                    await SecureStore.setItemAsync('token', String(token));
+                }
+                if (user) {
+                    await SecureStore.setItemAsync('user', JSON.stringify(user));
+                }
 
                 dispatch(loginSuccess({ token, user }));
             } else {
@@ -155,11 +159,49 @@ const LoginScreen = () => {
                                 style={styles.loginButton}
                             />
 
-                            {/* Demo Credentials */}
+                            {/* Role-based Demo Credentials */}
                             <View style={styles.demoSection}>
-                                <Text style={styles.demoTitle}>Demo Credentials:</Text>
-                                <Text style={styles.demoText}>Email: admin@gyan.edu</Text>
-                                <Text style={styles.demoText}>Password: Admin@123</Text>
+                                <Text style={styles.demoTitle}>Quick Login (Demo):</Text>
+                                <View style={styles.demoButtonsRow}>
+                                    <TouchableOpacity 
+                                        style={styles.demoButton}
+                                        onPress={() => { setEmail('admin@gyan.edu'); setPassword('Admin@123'); }}
+                                    >
+                                        <Text style={styles.demoButtonText}>Admin</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity 
+                                        style={styles.demoButton}
+                                        onPress={() => { setEmail('teacher@gyan.edu'); setPassword('Teacher@123'); }}
+                                    >
+                                        <Text style={styles.demoButtonText}>Teacher</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity 
+                                        style={styles.demoButton}
+                                        onPress={() => { setEmail('student@gyan.edu'); setPassword('Student@123'); }}
+                                    >
+                                        <Text style={styles.demoButtonText}>Student</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={styles.demoButtonsRow}>
+                                    <TouchableOpacity 
+                                        style={styles.demoButton}
+                                        onPress={() => { setEmail('accountant@gyan.edu'); setPassword('Accountant@123'); }}
+                                    >
+                                        <Text style={styles.demoButtonText}>Accountant</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity 
+                                        style={styles.demoButton}
+                                        onPress={() => { setEmail('hr@gyan.edu'); setPassword('HR@123'); }}
+                                    >
+                                        <Text style={styles.demoButtonText}>HR</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity 
+                                        style={styles.demoButton}
+                                        onPress={() => { setEmail('guard@gyan.edu'); setPassword('Guard@123'); }}
+                                    >
+                                        <Text style={styles.demoButtonText}>Guard</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </View>
                     </View>
@@ -236,14 +278,34 @@ const styles = StyleSheet.create({
         borderRadius: SIZES.radius.md,
     },
     demoTitle: {
-        fontSize: SIZES.sm,
-        fontWeight: '600',
-        color: COLORS.text,
+        fontSize: SIZES.xs,
+        fontWeight: 'bold',
+        color: COLORS.textSecondary,
+        marginBottom: SIZES.spacing.sm,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    demoButtonsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         marginBottom: SIZES.spacing.xs,
     },
-    demoText: {
-        fontSize: SIZES.sm,
-        color: COLORS.textSecondary,
+    demoButton: {
+        flex: 1,
+        backgroundColor: COLORS.white,
+        paddingVertical: 6,
+        paddingHorizontal: 4,
+        borderRadius: SIZES.radius.sm,
+        marginHorizontal: 2,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.border,
+        ...SHADOWS.small,
+    },
+    demoButtonText: {
+        fontSize: 10,
+        fontWeight: '600',
+        color: COLORS.primary,
     },
 });
 

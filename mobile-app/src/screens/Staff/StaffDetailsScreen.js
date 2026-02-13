@@ -6,7 +6,6 @@ import {
     ScrollView,
     Image,
     Alert,
-    RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
@@ -15,40 +14,33 @@ import Card from '../../components/Card';
 import api from '../../services/api';
 import { ENDPOINTS } from '../../constants/api';
 
-const StudentDetailsScreen = ({ route, navigation }) => {
+const StaffDetailsScreen = ({ route, navigation }) => {
     const { id } = route.params;
-    const [student, setStudent] = useState(null);
+    const [staff, setStaff] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
-        fetchStudentDetails();
+        fetchStaffDetails();
     }, [id]);
 
-    const fetchStudentDetails = async () => {
+    const fetchStaffDetails = async () => {
         try {
-            const response = await api.get(ENDPOINTS.STUDENT_DETAILS(id));
+            const response = await api.get(ENDPOINTS.STAFF_DETAILS(id));
             if (response.data.success) {
-                setStudent(response.data.data);
+                setStaff(response.data.data);
             }
         } catch (error) {
-            console.error('Error fetching student details:', error);
-            Alert.alert('Error', 'Failed to fetch student details');
+            console.error('Error fetching staff details:', error);
+            Alert.alert('Error', 'Failed to fetch staff details');
         } finally {
             setLoading(false);
-            setRefreshing(false);
         }
     };
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        fetchStudentDetails();
-    };
-
     if (loading) return <LoadingSpinner />;
-    if (!student) return (
+    if (!staff) return (
         <View style={styles.centerContainer}>
-            <Text style={styles.errorText}>Student record not found</Text>
+            <Text style={styles.errorText}>Staff record not found</Text>
         </View>
     );
 
@@ -63,74 +55,56 @@ const StudentDetailsScreen = ({ route, navigation }) => {
     );
 
     return (
-        <ScrollView 
-            style={styles.container} 
-            contentContainerStyle={styles.content}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
             {/* Profile Header */}
             <View style={styles.header}>
                 <View style={styles.avatarContainer}>
-                    {student.profile_photo ? (
-                        <Image source={{ uri: student.profile_photo }} style={styles.avatar} />
+                    {staff.profile_photo ? (
+                        <Image source={{ uri: staff.profile_photo }} style={styles.avatar} />
                     ) : (
                         <View style={styles.avatarPlaceholder}>
                             <Ionicons name="person" size={50} color={COLORS.white} />
                         </View>
                     )}
                 </View>
-                <Text style={styles.name}>{student.first_name} {student.last_name}</Text>
-                <Text style={styles.rollNo}>Roll No: {student.roll_number || 'N/A'}</Text>
+                <Text style={styles.name}>{staff.first_name} {staff.last_name}</Text>
+                <Text style={styles.designation}>{staff.designation || 'Staff Member'}</Text>
                 
-                <View style={[styles.statusBadge, { backgroundColor: student.status === 'active' ? '#E8F5E9' : '#F5F5F5' }]}>
-                    <View style={[styles.statusDot, { backgroundColor: student.status === 'active' ? '#4CAF50' : '#9E9E9E' }]} />
-                    <Text style={[styles.statusText, { color: student.status === 'active' ? '#2E7D32' : '#616161' }]}>
-                        {student.status?.toUpperCase() || 'ACTIVE'}
+                <View style={[styles.statusBadge, { backgroundColor: staff.status === 'active' ? '#E8F5E9' : '#F5F5F5' }]}>
+                    <View style={[styles.statusDot, { backgroundColor: staff.status === 'active' ? '#4CAF50' : '#9E9E9E' }]} />
+                    <Text style={[styles.statusText, { color: staff.status === 'active' ? '#2E7D32' : '#616161' }]}>
+                        {staff.status?.toUpperCase() || 'ACTIVE'}
                     </Text>
                 </View>
             </View>
 
-            {/* Academic Information */}
+            {/* Contact Information */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Academic Information</Text>
+                <Text style={styles.sectionTitle}>Contact Information</Text>
                 <Card style={styles.infoCard}>
-                    <InfoRow label="Class" value={student.class_name} icon="school-outline" />
-                    <InfoRow label="Section" value={student.section_name} icon="layers-outline" />
-                    <InfoRow label="Admission No" value={student.admission_number} icon="id-card-outline" />
-                    <InfoRow label="Admission Date" value={student.admission_date ? new Date(student.admission_date).toLocaleDateString() : 'N/A'} icon="calendar-outline" />
+                    <InfoRow label="Email" value={staff.email} icon="mail-outline" />
+                    <InfoRow label="Phone" value={staff.phone} icon="call-outline" />
+                    <InfoRow label="Address" value={staff.address} icon="location-outline" />
                 </Card>
             </View>
 
-            {/* Personal Information */}
+            {/* Employment Details */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Personal Information</Text>
+                <Text style={styles.sectionTitle}>Employment Details</Text>
                 <Card style={styles.infoCard}>
-                    <InfoRow label="Email" value={student.email} icon="mail-outline" />
-                    <InfoRow label="Phone" value={student.phone} icon="call-outline" />
-                    <InfoRow label="Gender" value={student.gender} icon="person-outline" />
-                    <InfoRow label="Date of Birth" value={student.date_of_birth ? new Date(student.date_of_birth).toLocaleDateString() : 'N/A'} icon="calendar-clear-outline" />
-                    <InfoRow label="Blood Group" value={student.blood_group} icon="water-outline" />
+                    <InfoRow label="Employee ID" value={staff.employee_id} icon="id-card-outline" />
+                    <InfoRow label="Department" value={staff.department || 'General'} icon="business-outline" />
+                    <InfoRow label="Joining Date" value={staff.joining_date ? new Date(staff.joining_date).toLocaleDateString() : 'N/A'} icon="calendar-outline" />
+                    <InfoRow label="Qualification" value={staff.qualification} icon="school-outline" />
                 </Card>
             </View>
 
-            {/* Guardian Information */}
+            {/* Other Information */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Guardian Information</Text>
+                <Text style={styles.sectionTitle}>Other Information</Text>
                 <Card style={styles.infoCard}>
-                    <InfoRow label="Father Name" value={student.father_name} icon="man-outline" />
-                    <InfoRow label="Mother Name" value={student.mother_name} icon="woman-outline" />
-                    <InfoRow label="Guardian Phone" value={student.parent_phone} icon="call-outline" />
-                    <InfoRow label="Guardian Email" value={student.parent_email} icon="mail-outline" />
-                </Card>
-            </View>
-
-            {/* Contact Details */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Contact Details</Text>
-                <Card style={styles.infoCard}>
-                    <InfoRow label="Address" value={student.address} icon="location-outline" />
-                    <InfoRow label="City" value={student.city} icon="business-outline" />
-                    <InfoRow label="State" value={student.state} icon="map-outline" />
+                    <InfoRow label="Gender" value={staff.gender} icon="person-outline" />
+                    <InfoRow label="Date of Birth" value={staff.date_of_birth ? new Date(staff.date_of_birth).toLocaleDateString() : 'N/A'} icon="calendar-clear-outline" />
                 </Card>
             </View>
             
@@ -164,7 +138,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     name: { fontSize: SIZES.xl, fontWeight: 'bold', color: COLORS.text },
-    rollNo: { fontSize: SIZES.md, color: COLORS.primary, fontWeight: 'medium', marginTop: 4 },
+    designation: { fontSize: SIZES.md, color: COLORS.primary, fontWeight: 'medium', marginTop: 4 },
     statusBadge: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -192,4 +166,4 @@ const styles = StyleSheet.create({
     value: { fontSize: SIZES.sm, fontWeight: 'medium', color: COLORS.text, flex: 1, textAlign: 'right' },
 });
 
-export default StudentDetailsScreen;
+export default StaffDetailsScreen;

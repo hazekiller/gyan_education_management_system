@@ -36,7 +36,7 @@ const ClassesScreen = ({ navigation }) => {
   };
 
   const renderItem = ({ item }) => (
-    <Card onPress={() => navigation.navigate('ClassesDetails', { id: item.id })} style={styles.card}>
+    <Card onPress={() => navigation.navigate('ClassDetails', { id: item.id })} style={styles.card}>
       <Text style={styles.title}>{item.name || item.title || 'Untitled'}</Text>
       <Text style={styles.subtitle}>{item.description || item.class_name || ''}</Text>
     </Card>

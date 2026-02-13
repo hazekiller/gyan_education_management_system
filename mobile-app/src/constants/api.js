@@ -74,15 +74,38 @@ export const ENDPOINTS = {
     ISSUE_BOOK: '/library/issue',
     RETURN_BOOK: '/library/return',
 
+    // Library
+    LIBRARY_BOOKS: '/library/books',
+    LIBRARY_BOOK_DETAILS: (id) => `/library/books/${id}`,
+    LIBRARY_TRANSACTIONS: '/library/transactions',
+    LIBRARY_MY_BOOKS: '/library/my-books',
+    LIBRARY_ISSUE: '/library/issue',
+    LIBRARY_RETURN: '/library/return',
+
     // Hostel
     HOSTEL_ROOMS: '/hostel/rooms',
+    HOSTEL_DETAILS: (id) => `/hostel/rooms/${id}`,
     HOSTEL_ALLOCATIONS: '/hostel/allocations',
+    HOSTEL_MY_ROOM: '/hostel/my-room',
 
     // Transport
     TRANSPORT_ROUTES: '/transport/routes',
     TRANSPORT_VEHICLES: '/transport/vehicles',
+    TRANSPORT_MY_TRANSPORT: '/transport/my-transport',
+
+    // Staff
+    STAFF: '/staff',
+    STAFF_DETAILS: (id) => `/staff/${id}`,
 
     // Payroll
     PAYROLL: '/payroll',
     PAYROLL_DETAILS: (id) => `/payroll/${id}`,
+
+    // Admissions
+    ADMISSIONS: '/admissions',
+    ADMISSION_DETAILS: (id) => `/admissions/${id}`,
+
+    // Daily Reports
+    DAILY_REPORTS: '/daily-reports',
+    DAILY_REPORT_DETAILS: (id) => `/daily-reports/${id}`,
 };

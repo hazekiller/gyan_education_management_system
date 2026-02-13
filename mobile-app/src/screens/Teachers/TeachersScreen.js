@@ -36,9 +36,11 @@ const TeachersScreen = ({ navigation }) => {
   };
 
   const renderItem = ({ item }) => (
-    <Card onPress={() => navigation.navigate('TeachersDetails', { id: item.id })} style={styles.card}>
-      <Text style={styles.title}>{item.name || item.title || 'Untitled'}</Text>
-      <Text style={styles.subtitle}>{item.description || item.class_name || ''}</Text>
+    <Card onPress={() => navigation.navigate('TeacherDetails', { id: item.id })} style={styles.card}>
+      <Text style={styles.title}>
+        {item.first_name ? `${item.first_name} ${item.last_name || ''}` : (item.name || item.title || 'Untitled')}
+      </Text>
+      <Text style={styles.subtitle}>{item.specialization || item.qualification || item.description || ''}</Text>
     </Card>
   );
 
@@ -58,7 +60,7 @@ const TeachersScreen = ({ navigation }) => {
       </View>
       <FlatList
         data={items.filter(item => 
-          (item.name || item.title || '').toLowerCase().includes(searchQuery.toLowerCase())
+          (item.first_name || item.last_name || item.name || item.title || '').toLowerCase().includes(searchQuery.toLowerCase())
         )}
         renderItem={renderItem}
         keyExtractor={(item) => item.id?.toString() || Math.random().toString()}

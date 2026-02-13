@@ -185,7 +185,7 @@ const getReportById = async (req, res) => {
         t.first_name as teacher_first_name, t.last_name as teacher_last_name,
         u.email as creator_email,
         c.name as class_name,
-        s.name as subject_name, s.subject_code
+        s.name as subject_name, s.code as subject_code
        FROM daily_reports dr
        LEFT JOIN teachers t ON dr.teacher_id = t.id
        LEFT JOIN users u ON dr.created_by = u.id

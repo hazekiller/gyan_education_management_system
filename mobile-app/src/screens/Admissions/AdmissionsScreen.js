@@ -5,6 +5,7 @@ import {
     StyleSheet,
     FlatList,
     RefreshControl,
+    TouchableOpacity,
     TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,24 +15,24 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
 import { ENDPOINTS } from '../../constants/api';
 
-const PayrollScreen = () => {
-    const [payrollRecords, setPayrollRecords] = useState([]);
+const AdmissionsScreen = ({ navigation }) => {
+    const [admissions, setAdmissions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        fetchPayroll();
+        fetchAdmissions();
     }, []);
 
-    const fetchPayroll = async () => {
+    const fetchAdmissions = async () => {
         try {
-            const response = await api.get(ENDPOINTS.PAYROLL);
+            const response = await api.get(ENDPOINTS.ADMISSIONS);
             if (response.data.success) {
-                setPayrollRecords(response.data.data);
+                setAdmissions(response.data.data);
             }
         } catch (error) {
-            console.error('Error fetching payroll:', error);
+            console.error('Error fetching admissions:', error);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -40,30 +41,35 @@ const PayrollScreen = () => {
 
     const onRefresh = () => {
         setRefreshing(true);
-        fetchPayroll();
+        fetchAdmissions();
     };
 
-    const filteredRecords = payrollRecords.filter((item) =>
-        `${item.employee_first_name} ${item.employee_last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.month?.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredAdmissions = admissions.filter((item) =>
+        `${item.first_name} ${item.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.application_number?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const getStatusStyle = (status) => {
         switch (status?.toLowerCase()) {
-            case 'paid': return { bg: '#E8F5E9', text: '#2E7D32' };
             case 'pending': return { bg: '#FFF9C4', text: '#FBC02D' };
+            case 'approved': return { bg: '#E3F2FD', text: '#1976D2' };
+            case 'admitted': return { bg: '#E8F5E9', text: '#2E7D32' };
+            case 'rejected': return { bg: '#FFEBEE', text: '#C62828' };
             default: return { bg: '#F5F5F5', text: '#616161' };
         }
     };
 
-    const renderPayrollItem = ({ item }) => {
+    const renderAdmission = ({ item }) => {
         const statusStyle = getStatusStyle(item.status);
         return (
-            <Card style={styles.card}>
+            <Card
+                onPress={() => navigation.navigate('AdmissionDetails', { id: item.id })}
+                style={styles.card}
+            >
                 <View style={styles.cardHeader}>
-                    <View>
-                        <Text style={styles.employeeName}>{item.employee_first_name} {item.employee_last_name}</Text>
-                        <Text style={styles.employeeRole}>{item.employee_role?.toUpperCase() || 'EMPLOYEE'}</Text>
+                    <View style={styles.headerInfo}>
+                        <Text style={styles.appNumber}>{item.application_number}</Text>
+                        <Text style={styles.studentName}>{item.first_name} {item.last_name}</Text>
                     </View>
                     <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
                         <Text style={[styles.statusText, { color: statusStyle.text }]}>
@@ -72,25 +78,25 @@ const PayrollScreen = () => {
                     </View>
                 </View>
 
-                <View style={styles.divider} />
+                <View style={styles.cardDivider} />
 
                 <View style={styles.detailsRow}>
-                    <View>
-                        <Text style={styles.detailLabel}>Period</Text>
-                        <Text style={styles.detailValue}>{item.month} {item.year}</Text>
+                    <View style={styles.detailItem}>
+                        <Ionicons name="school-outline" size={16} color={COLORS.textSecondary} />
+                        <Text style={styles.detailText}>{item.class_name || 'N/A'}</Text>
                     </View>
-                    <View style={styles.amountContainer}>
-                        <Text style={styles.detailLabel}>Net Salary</Text>
-                        <Text style={styles.amountValue}>₹{parseFloat(item.net_salary).toLocaleString()}</Text>
+                    <View style={styles.detailItem}>
+                        <Ionicons name="calendar-outline" size={16} color={COLORS.textSecondary} />
+                        <Text style={styles.detailText}>
+                            {new Date(item.application_date).toLocaleDateString()}
+                        </Text>
                     </View>
                 </View>
 
-                {item.payment_date && (
-                    <View style={styles.footer}>
-                        <Ionicons name="time-outline" size={14} color={COLORS.textSecondary} />
-                        <Text style={styles.footerText}>Paid on {new Date(item.payment_date).toLocaleDateString()}</Text>
-                    </View>
-                )}
+                <View style={styles.parentRow}>
+                    <Ionicons name="person-outline" size={16} color={COLORS.textSecondary} />
+                    <Text style={styles.parentText}>{item.parent_name} ({item.parent_phone})</Text>
+                </View>
             </Card>
         );
     };
@@ -103,7 +109,7 @@ const PayrollScreen = () => {
                 <Ionicons name="search" size={20} color={COLORS.textSecondary} />
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search by name or month..."
+                    placeholder="Search admissions..."
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     placeholderTextColor={COLORS.textLight}
@@ -111,8 +117,8 @@ const PayrollScreen = () => {
             </View>
 
             <FlatList
-                data={filteredRecords}
-                renderItem={renderPayrollItem}
+                data={filteredAdmissions}
+                renderItem={renderAdmission}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
@@ -120,8 +126,8 @@ const PayrollScreen = () => {
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Ionicons name="wallet-outline" size={64} color={COLORS.textLight} />
-                        <Text style={styles.emptyText}>No payroll records found</Text>
+                        <Ionicons name="file-tray-full-outline" size={64} color={COLORS.textLight} />
+                        <Text style={styles.emptyText}>No admission applications found</Text>
                     </View>
                 }
             />
@@ -150,20 +156,19 @@ const styles = StyleSheet.create({
     listContent: { padding: SIZES.spacing.lg, paddingTop: 0 },
     card: { marginBottom: SIZES.spacing.md, padding: SIZES.spacing.md },
     cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-    employeeName: { fontSize: SIZES.md, fontWeight: 'bold', color: COLORS.text },
-    employeeRole: { fontSize: 10, color: COLORS.primary, fontWeight: 'bold', marginTop: 2 },
+    headerInfo: { flex: 1 },
+    appNumber: { fontSize: SIZES.xs, color: COLORS.primary, fontWeight: 'bold', marginBottom: 2 },
+    studentName: { fontSize: SIZES.md, fontWeight: 'bold', color: COLORS.text },
     statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
     statusText: { fontSize: 10, fontWeight: 'bold' },
-    divider: { height: 1, backgroundColor: '#EEE', marginVertical: SIZES.spacing.sm },
-    detailsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    detailLabel: { fontSize: 10, color: COLORS.textSecondary, textTransform: 'uppercase' },
-    detailValue: { fontSize: SIZES.md, fontWeight: 'bold', color: COLORS.text, marginTop: 2 },
-    amountContainer: { alignItems: 'flex-end' },
-    amountValue: { fontSize: SIZES.lg, fontWeight: 'bold', color: COLORS.text, marginTop: 2 },
-    footer: { flexDirection: 'row', alignItems: 'center', marginTop: SIZES.spacing.sm },
-    footerText: { fontSize: SIZES.xs, color: COLORS.textSecondary, marginLeft: 4 },
+    cardDivider: { height: 1, backgroundColor: '#EEE', marginVertical: SIZES.spacing.sm },
+    detailsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SIZES.spacing.xs },
+    detailItem: { flexDirection: 'row', alignItems: 'center' },
+    detailText: { fontSize: SIZES.sm, color: COLORS.textSecondary, marginLeft: 4 },
+    parentRow: { flexDirection: 'row', alignItems: 'center', marginTop: SIZES.spacing.xs },
+    parentText: { fontSize: SIZES.sm, color: COLORS.textSecondary, marginLeft: 4 },
     emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: SIZES.spacing.xxl },
     emptyText: { fontSize: SIZES.md, color: COLORS.textSecondary, marginTop: SIZES.spacing.md },
 });
 
-export default PayrollScreen;
+export default AdmissionsScreen;

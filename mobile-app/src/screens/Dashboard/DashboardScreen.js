@@ -14,6 +14,7 @@ import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
 import Card from '../../components/Card';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
+import { canAccessScreen } from '../../utils/rbac';
 
 const DashboardScreen = ({ navigation }) => {
     const user = useSelector(selectUser);
@@ -98,75 +99,95 @@ const DashboardScreen = ({ navigation }) => {
 
             {/* Statistics Cards */}
             <View style={styles.statsContainer}>
-                <StatCard
-                    title="Students"
-                    value={stats.students || 0}
-                    icon="people"
-                    color={COLORS.primary}
-                    onPress={() => navigation.navigate('Students')}
-                />
-                <StatCard
-                    title="Teachers"
-                    value={stats.teachers || 0}
-                    icon="person"
-                    color={COLORS.secondary}
-                    onPress={() => navigation.navigate('Teachers')}
-                />
-                <StatCard
-                    title="Classes"
-                    value={stats.classes || 0}
-                    icon="school"
-                    color={COLORS.success}
-                    onPress={() => navigation.navigate('Classes')}
-                />
-                <StatCard
-                    title="Attendance"
-                    value={`${stats.attendance || 0}%`}
-                    icon="checkmark-circle"
-                    color={COLORS.warning}
-                    onPress={() => navigation.navigate('Attendance')}
-                />
+                {canAccessScreen(user?.role, 'Students') && (
+                    <StatCard
+                        title="Students"
+                        value={stats.students || 0}
+                        icon="people"
+                        color={COLORS.primary}
+                        onPress={() => navigation.navigate('Students')}
+                    />
+                )}
+                {canAccessScreen(user?.role, 'Teachers') && (
+                    <StatCard
+                        title="Teachers"
+                        value={stats.teachers || 0}
+                        icon="person"
+                        color={COLORS.secondary}
+                        onPress={() => navigation.navigate('Teachers')}
+                    />
+                )}
+                {canAccessScreen(user?.role, 'Classes') && (
+                    <StatCard
+                        title="Classes"
+                        value={stats.classes || 0}
+                        icon="school"
+                        color={COLORS.success}
+                        onPress={() => navigation.navigate('Classes')}
+                    />
+                )}
+                {canAccessScreen(user?.role, 'Attendance') && (
+                    <StatCard
+                        title="Attendance"
+                        value={user?.role === 'student' ? `${stats.my_attendance || 0}%` : `${stats.attendance || 0}%`}
+                        icon="checkmark-circle"
+                        color={COLORS.warning}
+                        onPress={() => navigation.navigate('Attendance')}
+                    />
+                )}
             </View>
 
             {/* Quick Actions */}
             <Card title="Quick Actions" style={styles.quickActionsCard}>
                 <View style={styles.quickActionsGrid}>
-                    <QuickActionCard
-                        title="Mark Attendance"
-                        icon="checkmark-done"
-                        color={COLORS.success}
-                        onPress={() => navigation.navigate('Attendance')}
-                    />
-                    <QuickActionCard
-                        title="Exams"
-                        icon="document-text"
-                        color={COLORS.primary}
-                        onPress={() => navigation.navigate('Exams')}
-                    />
-                    <QuickActionCard
-                        title="Assignments"
-                        icon="clipboard"
-                        color={COLORS.secondary}
-                        onPress={() => navigation.navigate('Assignments')}
-                    />
-                    <QuickActionCard
-                        title="Events"
-                        icon="calendar"
-                        color={COLORS.accent}
-                        onPress={() => navigation.navigate('Events')}
-                    />
-                    <QuickActionCard
-                        title="Messages"
-                        icon="chatbubbles"
-                        color={COLORS.info}
-                        onPress={() => navigation.navigate('Messages')}
-                    />
-                    <QuickActionCard
-                        title="Library"
-                        icon="library"
-                        color={COLORS.warning}
-                        onPress={() => navigation.navigate('Library')}
-                    />
+                    {canAccessScreen(user?.role, 'Attendance') && (
+                        <QuickActionCard
+                            title={user?.role === 'student' ? "My Attendance" : "Attendance"}
+                            icon="checkmark-done"
+                            color={COLORS.success}
+                            onPress={() => navigation.navigate('Attendance')}
+                        />
+                    )}
+                    {canAccessScreen(user?.role, 'Subjects') && (
+                        <QuickActionCard
+                            title="Subjects"
+                            icon="book"
+                            color={COLORS.primary}
+                            onPress={() => navigation.navigate('Subjects')}
+                        />
+                    )}
+                    {canAccessScreen(user?.role, 'Exams') && (
+                        <QuickActionCard
+                            title="Exams"
+                            icon="document-text"
+                            color="#8B5CF6"
+                            onPress={() => navigation.navigate('Exams')}
+                        />
+                    )}
+                    {canAccessScreen(user?.role, 'Assignments') && (
+                        <QuickActionCard
+                            title="Assignments"
+                            icon="clipboard"
+                            color={COLORS.secondary}
+                            onPress={() => navigation.navigate('Assignments')}
+                        />
+                    )}
+                    {canAccessScreen(user?.role, 'Events') && (
+                        <QuickActionCard
+                            title="Events"
+                            icon="calendar"
+                            color={COLORS.accent}
+                            onPress={() => navigation.navigate('Events')}
+                        />
+                    )}
+                    {canAccessScreen(user?.role, 'Announcements') && (
+                        <QuickActionCard
+                            title="Notice"
+                            icon="megaphone"
+                            color="#F59E0B"
+                            onPress={() => navigation.navigate('Announcements')}
+                        />
+                    )}
                 </View>
             </Card>
 
